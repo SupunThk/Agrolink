@@ -1,0 +1,87 @@
+const Reducer = (state, action)=>{
+    switch(action.type){
+        case "LOGIN_START":
+            return{
+                ...state,
+                user:null,
+                isFetching: true,
+                error: false,
+                isVerified: false
+            };
+        case "LOGIN_SUCCESS":
+            return{
+                ...state,
+                user:action.payload,
+                isFetching: false,
+                error: false
+            };
+        case "LOGIN_FAILURE":
+            return{
+                ...state,
+                user:null,
+                isFetching: false,
+                error: true,
+            };
+        case "UPDATE_START":
+            return{
+                ...state,
+                isFetching:true
+            };
+        case "UPDATE_SUCCESS":
+            return{
+                ...state,
+                user:action.payload,
+                isFetching: false,
+                error: false
+            };
+        case "UPDATE_FAILURE":
+            return{
+                ...state,
+                isFetching: false,
+                error: true,
+            };
+        case "LOGOUT":
+            return{
+                ...state,
+                user:null,
+                isFetching: false,
+                error: false,
+                isVerified: false
+            };
+        case "VERIFY_SUCCESS":
+            return{
+                ...state,
+                isVerified: true,
+                showVModal: false
+            };
+        case "SHOW_VMODAL":
+            return{
+                ...state,
+                showVModal: true
+            };
+        case "HIDE_VMODAL":
+            return{
+                ...state,
+                showVModal: false
+            };
+        case "SHOW_DMODAL":
+            return{
+                ...state,
+                showDModal: true
+            };
+        case "HIDE_DMODAL":
+            return{
+                ...state,
+                showDModal: false
+            };
+        case "TOGGLE_THEME":
+            return {
+                ...state,
+                theme: state.theme === "light" ? "dark" : "light"
+            };
+        default:
+            return state;    
+    }
+};
+
+export default Reducer;

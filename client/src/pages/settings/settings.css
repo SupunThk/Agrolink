@@ -1,0 +1,334 @@
+.settings {
+  display: flex;
+  max-width: 1200px;
+  margin: 48px auto;
+  gap: 40px;
+  padding: 0 24px 80px;
+  align-items: flex-start;
+  background: var(--bg-snow);
+  transition: background var(--duration-zen) var(--ease-zen);
+}
+
+.settingsMain {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form */
+.settingsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header */
+.settingsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.settingsHeading {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--forest-900);
+  letter-spacing: -0.03em;
+  margin: 0 0 4px;
+}
+
+.settingsSubheading {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--slate-400);
+  margin: 0;
+}
+
+.settingsHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.settingsSaveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--emerald-600), var(--forest-900));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -5px rgba(5, 150, 105, 0.35);
+  transition: all 0.35s var(--ease-zen);
+  white-space: nowrap;
+}
+
+.settingsSaveBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -5px rgba(5, 150, 105, 0.45);
+  filter: brightness(1.08);
+}
+
+.settingsSaveBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.settingsDangerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(239, 68, 68, 0.05);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-zen);
+  white-space: nowrap;
+}
+
+.settingsDangerBtn:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  transform: translateY(-2px);
+}
+
+/* Card */
+.settingsCard {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: all var(--duration-zen) var(--ease-zen);
+}
+
+.settingsCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--forest-900);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.settingsCardTitle i {
+  color: var(--emerald-600);
+  font-size: 14px;
+}
+
+/* Profile Picture */
+.settingsPP {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.settingsPPLeft {
+  flex-shrink: 0;
+}
+
+.settingsPP img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.08);
+}
+
+.settingsPPDefault {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald-600), var(--forest-900));
+  border: 3px solid rgba(16, 185, 129, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 36px;
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.12);
+  flex-shrink: 0;
+}
+
+.settingsPPRight {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settingsPPHint {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--slate-400);
+  margin: 0;
+}
+
+.settingsPPBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+  color: var(--emerald-600);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-zen);
+  width: fit-content;
+}
+
+.settingsPPBtn:hover {
+  background: var(--emerald-600);
+  color: #000;
+  border-color: var(--emerald-600);
+}
+
+.settingsPPRemove {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.settingsPPRemove:hover {
+  opacity: 0.7;
+}
+
+/* Grid layout for fields */
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.settingsField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settingsLabel {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.settingsOptional {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--slate-400);
+  font-size: 11px;
+}
+
+.settingsInput {
+  padding: 14px 18px;
+  background: var(--bg-snow);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--slate-900);
+  transition: all 0.3s var(--ease-zen);
+}
+
+.settingsInput:focus {
+  outline: none;
+  border-color: var(--emerald-600);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08);
+}
+
+/* Locked state */
+.settingsLocked {
+  text-align: center;
+  padding: 80px 40px;
+  background: var(--bg-card);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+}
+
+.settingsLockedIcon {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--emerald-600);
+  margin: 0 auto 24px;
+}
+
+.settingsLocked h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--forest-900);
+  margin: 0 0 8px;
+}
+
+.settingsLocked p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--slate-500);
+}
+
+@media screen and (max-width: 992px) {
+  .settings {
+    flex-direction: column;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .settings {
+    padding: 0 16px 60px;
+    margin-top: 24px;
+  }
+  .settingsGrid {
+    grid-template-columns: 1fr;
+  }
+  .settingsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
