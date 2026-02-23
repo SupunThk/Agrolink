@@ -1,78 +1,88 @@
-const Reducer = (state, action)=>{
-    switch(action.type){
+const Reducer = (state, action) => {
+    switch (action.type) {
         case "LOGIN_START":
-            return{
+            return {
                 ...state,
-                user:null,
+                user: null,
                 isFetching: true,
                 error: false,
                 isVerified: false
             };
         case "LOGIN_SUCCESS":
-            return{
+            return {
                 ...state,
-                user:action.payload,
+                user: action.payload,
                 isFetching: false,
                 error: false
             };
         case "LOGIN_FAILURE":
-            return{
+            return {
                 ...state,
-                user:null,
+                user: null,
                 isFetching: false,
                 error: true,
             };
         case "UPDATE_START":
-            return{
+            return {
                 ...state,
-                isFetching:true
+                isFetching: true
             };
         case "UPDATE_SUCCESS":
-            return{
+            return {
                 ...state,
-                user:action.payload,
+                user: action.payload,
                 isFetching: false,
                 error: false
             };
         case "UPDATE_FAILURE":
-            return{
+            return {
                 ...state,
                 isFetching: false,
                 error: true,
             };
         case "LOGOUT":
-            return{
+            return {
                 ...state,
-                user:null,
+                user: null,
                 isFetching: false,
                 error: false,
                 isVerified: false
             };
         case "VERIFY_SUCCESS":
-            return{
+            return {
                 ...state,
                 isVerified: true,
                 showVModal: false
             };
         case "SHOW_VMODAL":
-            return{
+            return {
                 ...state,
                 showVModal: true
             };
         case "HIDE_VMODAL":
-            return{
+            return {
                 ...state,
                 showVModal: false
             };
         case "SHOW_DMODAL":
-            return{
+            return {
                 ...state,
                 showDModal: true
             };
         case "HIDE_DMODAL":
-            return{
+            return {
                 ...state,
                 showDModal: false
+            };
+        case "SET_ADMIN_SIDEBAR":
+            return {
+                ...state,
+                adminSidebarOpen: action.payload
+            };
+        case "SET_ADMIN_TAB":
+            return {
+                ...state,
+                adminActiveTab: action.payload
             };
         case "TOGGLE_THEME":
             return {
@@ -80,7 +90,7 @@ const Reducer = (state, action)=>{
                 theme: state.theme === "light" ? "dark" : "light"
             };
         default:
-            return state;    
+            return state;
     }
 };
 
