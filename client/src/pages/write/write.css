@@ -258,6 +258,7 @@
   gap: 10px;
   padding: 16px 40px;
   border-bottom: 1px solid var(--glass-border);
+  flex-wrap: wrap;
 }
 
 .writeCategoryIcon {
@@ -266,24 +267,77 @@
   opacity: 0.6;
 }
 
-.writeCategoryInput {
-  border: none;
+.writeCategorySelectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.writeCategorySelectWrap::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--slate-600);
+  opacity: 0.85;
+  font-size: 12px;
+}
+
+.writeCategorySelect,
+.writeCategoryOtherInput {
   font-family: var(--font-display);
   font-size: 13px;
-  font-weight: 600;
-  color: var(--slate-500);
-  background: transparent;
-  width: 100%;
-}
-
-.writeCategoryInput:focus {
-  outline: none;
+  font-weight: 700;
   color: var(--forest-900);
+  background: var(--glass-zen);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  transition: all 0.25s var(--ease-zen);
+  box-shadow: var(--shadow-subtle);
 }
 
-.writeCategoryInput::placeholder {
+.writeCategorySelect {
+  min-width: 260px;
+  padding: 10px 34px 10px 14px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color-scheme: light;
+}
+
+[data-theme='dark'] .writeCategorySelect {
+  color-scheme: dark;
+}
+
+.writeCategorySelect option {
+  background: var(--bg-card);
+  color: var(--slate-900);
+}
+
+.writeCategoryOtherInput {
+  flex: 1 1 240px;
+  min-width: 220px;
+  padding: 10px 14px;
+}
+
+.writeCategorySelect:hover,
+.writeCategoryOtherInput:hover {
+  border-color: var(--emerald-600);
+}
+
+.writeCategorySelect:focus,
+.writeCategoryOtherInput:focus {
+  outline: none;
+  border-color: var(--emerald-600);
+  box-shadow: var(--shadow-input);
+}
+
+.writeCategoryOtherInput::placeholder {
   color: var(--slate-600);
-  opacity: 0.4;
+  opacity: 0.6;
 }
 
 /* Body */
@@ -324,6 +378,12 @@
   }
   .writeCategoryArea {
     padding: 12px 20px;
+  }
+  .writeCategorySelectWrap,
+  .writeCategorySelect,
+  .writeCategoryOtherInput {
+    width: 100%;
+    min-width: 0;
   }
   .writeBodyArea {
     padding: 16px 20px 32px;

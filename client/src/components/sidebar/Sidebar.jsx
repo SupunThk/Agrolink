@@ -6,11 +6,24 @@ import { Link } from "react-router-dom";
 export default function Sidebar() {
   const [cats, setCats] = useState([]);
 
+  const DEFAULT_CATEGORIES = [
+    "Organic Farming",
+    "Inorganic Farming",
+    "Crop Diseases",
+    "Pest Management",
+    "Soil Management",
+    "Weather & Climate",
+    "Crop Growth",
+    "Fertilizer Management",
+  ];
+
   useEffect(() => {
     const getCats = async () => {
       try {
         const res = await axios.get("/categories");
-        setCats(res.data);
+        const byName = new Map(res.data.map((c) => [c.name, c]));
+        const orderedDefaults = DEFAULT_CATEGORIES.map((name) => byName.get(name)).filter(Boolean);
+        setCats(orderedDefaults);
       } catch (err) {}
     };
     getCats();
@@ -49,24 +62,28 @@ export default function Sidebar() {
         </div>
 
         {/* Categories Card */}
-        {cats.length > 0 && (
-          <div className="sidebarCard">
-            <div className="sidebarCardHeader">
-              <i className="fas fa-tags sidebarCardIcon"></i>
-              <span className="sidebarTitle">Categories</span>
-            </div>
-            <ul className="sidebarList">
-              {cats.map((c) => (
-                <Link key={c._id} className="link" to={`/?cat=${c.name}`}>
-                  <li className="sidebarListItem">
-                    <i className="fas fa-seedling"></i>
-                    {c.name}
-                  </li>
-                </Link>
-              ))}
-            </ul>
+        <div className="sidebarCard">
+          <div className="sidebarCardHeader">
+            <i className="fas fa-tags sidebarCardIcon"></i>
+            <span className="sidebarTitle">Categories</span>
           </div>
-        )}
+          <ul className="sidebarList">
+            {cats.map((c) => (
+              <Link key={c._id} className="link" to={`/?cat=${encodeURIComponent(c.name)}`}>
+                <li className="sidebarListItem">
+                  <i className="fas fa-seedling"></i>
+                  {c.name}
+                </li>
+              </Link>
+            ))}
+            <Link className="link" to={`/?cat=${encodeURIComponent("Other")}`}>
+              <li className="sidebarListItem">
+                <i className="fas fa-seedling"></i>
+                Other
+              </li>
+            </Link>
+          </ul>
+        </div>
 
         {/* Social Card */}
         <div className="sidebarCard">

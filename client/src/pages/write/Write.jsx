@@ -7,10 +7,24 @@ export default function Write() {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState(null);
-  const [cat, setCat] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [otherCategory, setOtherCategory] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useContext(Context);
+
+  const DEFAULT_CATEGORIES = [
+    "Organic Farming",
+    "Inorganic Farming",
+    "Crop Diseases",
+    "Pest Management",
+    "Soil Management",
+    "Weather & Climate",
+    "Crop Growth",
+    "Fertilizer Management",
+  ];
+
+  const CATEGORY_OPTIONS = [...DEFAULT_CATEGORIES, "Other"];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,9 +35,49 @@ export default function Write() {
       return;
     }
 
+    const trimmedOther = otherCategory.trim();
+    if (selectedCategory === "Other" && !trimmedOther) {
+      setError("Please type your category.");
+      return;
+    }
+
+    const finalCategory = selectedCategory === "Other" ? trimmedOther : selectedCategory;
+
     setPublishing(true);
     const newPost = { username: user.username, title, desc };
-    if (cat) newPost.categories = [cat];
+
+    if (finalCategory) {
+      if (selectedCategory !== "Other") {
+        // Default categories: ensure stored in Category collection
+        try {
+          await axios.post("/categories", { name: finalCategory });
+        } catch (err) {
+          setError("Could not save the selected category. Please try again.");
+          setPublishing(false);
+          return;
+        }
+        newPost.categories = [finalCategory];
+      } else {
+        // Custom categories should not appear as sidebar categories.
+        // Tag as 'Other' for grouping, but keep the custom label on the post.
+        const normalized = DEFAULT_CATEGORIES.find(
+          (c) => c.toLowerCase() === finalCategory.toLowerCase()
+        );
+        if (normalized) {
+          // If user typed a known default, treat it as that default.
+          try {
+            await axios.post("/categories", { name: normalized });
+          } catch (err) {
+            setError("Could not save the selected category. Please try again.");
+            setPublishing(false);
+            return;
+          }
+          newPost.categories = [normalized];
+        } else {
+          newPost.categories = [finalCategory, "Other"];
+        }
+      }
+    }
 
     if (file) {
       const data = new FormData();
@@ -124,12 +178,33 @@ export default function Write() {
         {/* Category */}
         <div className="writeCategoryArea">
           <i className="fas fa-tag writeCategoryIcon"></i>
-          <input
-            type="text"
-            className="writeCategoryInput"
-            placeholder="Add a category (e.g. Organic, Crops)..."
-            onChange={(e) => setCat(e.target.value)}
-          />
+          <div className="writeCategorySelectWrap">
+            <select
+              className="writeCategorySelect"
+              value={selectedCategory}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSelectedCategory(value);
+                if (value !== "Other") setOtherCategory("");
+              }}
+            >
+              <option value="">Select a category</option>
+              {CATEGORY_OPTIONS.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {selectedCategory === "Other" && (
+            <input
+              type="text"
+              className="writeCategoryOtherInput"
+              placeholder="Type your category..."
+              value={otherCategory}
+              onChange={(e) => setOtherCategory(e.target.value)}
+            />
+          )}
         </div>
 
         {/* Body */}

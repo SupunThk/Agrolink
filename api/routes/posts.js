@@ -80,18 +80,38 @@ router.get("/:id", async (req,res)=>{
 router.get("/", async (req,res)=>{
     const username = req.query.user;
     const catName = req.query.cat;
+
+    const DEFAULT_CATEGORIES = [
+        "Organic Farming",
+        "Inorganic Farming",
+        "Crop Diseases",
+        "Pest Management",
+        "Soil Management",
+        "Weather & Climate",
+        "Crop Growth",
+        "Fertilizer Management",
+    ];
+
     try{
         let posts;
         if(username){
-            posts = await Post.find({username})
+            posts = await Post.find({username}).sort({ createdAt: -1 });
         } else if(catName){
-            posts = await Post.find({
-                categories:{
-                    $in:[catName],
-                },
-            });
+            if (catName === "Other") {
+                posts = await Post.find({
+                    categories: {
+                        $elemMatch: { $nin: DEFAULT_CATEGORIES },
+                    },
+                }).sort({ createdAt: -1 });
+            } else {
+                posts = await Post.find({
+                    categories:{
+                        $in:[catName],
+                    },
+                }).sort({ createdAt: -1 });
+            }
         } else{
-            posts = await Post.find(); 
+            posts = await Post.find().sort({ createdAt: -1 });
         }
         res.status(200).json(posts);
     }catch(err){

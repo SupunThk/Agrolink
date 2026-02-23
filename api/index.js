@@ -6,6 +6,7 @@ const authRoute = require("./routes/auth");
 const userRoute = require("./routes/users");
 const postRoute = require("./routes/posts");
 const categoryRoute = require("./routes/categories");
+const Category = require("./models/Category");
 const multer = require("multer");
 const path = require("path");
 
@@ -13,9 +14,40 @@ dotenv.config();
 app.use(express.json());
 app.use("/images", express.static(path.join(__dirname, "/images")));
 
-mongoose.connect(process.env.MONGO_URL)
-.then(console.log("Connected to MongoDB"))
-.catch((err) => console.log(err));
+const DEFAULT_CATEGORIES = [
+  "Organic Farming",
+  "Inorganic Farming",
+  "Crop Diseases",
+  "Pest Management",
+  "Soil Management",
+  "Weather & Climate",
+  "Crop Growth",
+  "Fertilizer Management",
+];
+
+async function seedDefaultCategories() {
+  try {
+    await Promise.all(
+      DEFAULT_CATEGORIES.map((name) =>
+        Category.findOneAndUpdate(
+          { name },
+          { $setOnInsert: { name } },
+          { upsert: true, new: true }
+        )
+      )
+    );
+  } catch (err) {
+    console.error("Failed to seed default categories", err);
+  }
+}
+
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(async () => {
+    console.log("Connected to MongoDB");
+    await seedDefaultCategories();
+  })
+  .catch((err) => console.log(err));
 
 const storage = multer.diskStorage({
   destination:(req,file,cb) =>{
