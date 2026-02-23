@@ -9,6 +9,7 @@ import Write from "./pages/write/Write";
 import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
 import AdminPanel from "./pages/admin/AdminPanel";
+import AskExpert from "./pages/askExpert/AskExpert";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
@@ -48,6 +49,7 @@ function App() {
         />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/ask-expert" element={<AskExpert />} />
         <Route
           path="/admin"
           element={user && user.isAdmin ? <AdminPanel /> : <Login />}

@@ -129,23 +129,26 @@ export default function AdminPanel() {
       )}
 
       {/* Sidebar — glass-panel matching the Topbar design */}
-      <aside style={{
-        width: SIDEBAR_WIDTH,
-        position: 'fixed',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        zIndex: 1001,
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--glass-zen)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderRight: '1px solid var(--glass-border)',
-        boxShadow: '4px 0 32px rgba(6,78,59,0.1)',
-        transform: adminSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-        transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-      }}>
+      <aside
+        className="adminSidebar"
+        style={{
+          width: SIDEBAR_WIDTH,
+          position: 'fixed',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          zIndex: 1001,
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'var(--glass-zen)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderRight: '1px solid var(--glass-border)',
+          boxShadow: '4px 0 32px rgba(6,78,59,0.1)',
+          transform: adminSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
 
         {/* Logo header — same height as Topbar, same glass styling = one seamless bar */}
         <div style={{
