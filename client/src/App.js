@@ -10,22 +10,24 @@ import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AskExpert from "./pages/askExpert/AskExpert";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
 import DeleteModal from "./components/deleteModal/DeleteModal";
 
-function App() {
+function AppContent() {
   const { user, showVModal, showDModal, dispatch, theme } = useContext(Context);
+  const location = useLocation();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  const isAdminRoute = window.location.pathname === "/admin";
+  const isAdminRoute = location.pathname === "/admin";
+
   return (
-    <Router>
-      <Topbar adminMode={isAdminRoute} />
+    <>
+      {!isAdminRoute && <Topbar />}
       {showVModal && <VerificationModal setShowModal={(val) => dispatch({ type: val ? "SHOW_VMODAL" : "HIDE_VMODAL" })} />}
       {showDModal && <DeleteModal />}
       <Routes>
@@ -55,6 +57,14 @@ function App() {
           element={user && user.isAdmin ? <AdminPanel /> : <Login />}
         />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

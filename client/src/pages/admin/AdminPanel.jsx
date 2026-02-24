@@ -10,9 +10,13 @@ import {
   Leaf,
   Sprout,
   AlertTriangle,
+  Menu,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import { useState } from 'react';
 import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 import SidebarItem from '../../components/admin/SidebarItem.jsx';
 import StatCard from '../../components/admin/StatCard.jsx';
 import UserTable from '../../components/admin/UserTable.jsx';
@@ -27,10 +31,35 @@ const TOPBAR_HEIGHT = 70;
 const SIDEBAR_WIDTH = 260;
 
 export default function AdminPanel() {
-  const { adminSidebarOpen, dispatch } = useContext(Context);
+  const { user, adminSidebarOpen, theme, dispatch } = useContext(Context);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const navigate = useNavigate();
+  const PF = 'http://localhost:5000/images/';
   const [stats, setStats] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileRef = React.useRef(null);
+  const [isMobile, setIsMobile] = useState(() => !window.matchMedia('(min-width: 1024px)').matches);
+
+  // Track mobile vs desktop
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsMobile(!e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    if (!showProfileMenu) return;
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showProfileMenu]);
 
   // Fetch real dashboard stats from API
   useEffect(() => {
@@ -56,11 +85,12 @@ export default function AdminPanel() {
     fetchStats();
   }, []);
 
-  // Auto-open sidebar on large screens
+  // Auto-open sidebar on large screens (both on mount and on resize)
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
+    if (mq.matches) dispatch({ type: 'SET_ADMIN_SIDEBAR', payload: true });
     const handle = (e) => {
-      if (e.matches) dispatch({ type: 'SET_ADMIN_SIDEBAR', payload: true });
+      dispatch({ type: 'SET_ADMIN_SIDEBAR', payload: e.matches });
     };
     mq.addEventListener('change', handle);
     return () => mq.removeEventListener('change', handle);
@@ -152,11 +182,10 @@ export default function AdminPanel() {
       color: 'var(--slate-900)',
     }}>
 
-      {/* Mobile overlay — closes sidebar when clicking outside */}
-      {adminSidebarOpen && (
+      {/* Mobile overlay — closes sidebar when clicking outside (only on mobile) */}
+      {adminSidebarOpen && isMobile && (
         <div
           style={{ position: 'fixed', inset: 0, top: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 30 }}
-          className="lg:hidden"
           onClick={() => dispatch({ type: 'SET_ADMIN_SIDEBAR', payload: false })}
         />
       )}
@@ -288,10 +317,241 @@ export default function AdminPanel() {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        minHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
+        minHeight: '100vh',
         transition: 'padding-left 0.3s var(--ease-zen)',
         paddingLeft: adminSidebarOpen ? SIDEBAR_WIDTH : 0,
       }}>
+        {/* ── Admin Top Bar ──────────────────────────────────────────── */}
+        <div style={{
+          height: TOPBAR_HEIGHT,
+          minHeight: TOPBAR_HEIGHT,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          background: 'var(--glass-zen)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid var(--glass-border)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 20,
+        }}>
+          {/* Left: hamburger + page title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {!adminSidebarOpen && (
+              <button
+                onClick={() => dispatch({ type: 'SET_ADMIN_SIDEBAR', payload: true })}
+                style={{
+                  padding: 8, borderRadius: 10, border: 'none',
+                  background: 'transparent', color: 'var(--slate-600)',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--mint-100)'; e.currentTarget.style.color = 'var(--emerald-600)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-600)'; }}
+              >
+                <Menu size={20} />
+              </button>
+            )}
+            <div>
+              <h1 style={{
+                margin: 0, fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700,
+                color: 'var(--slate-900)', lineHeight: 1.2,
+              }}>
+                {getPageTitle()}
+              </h1>
+              <p style={{
+                margin: 0, fontFamily: 'var(--font-body)', fontSize: 12,
+                color: 'var(--slate-500)',
+              }}>
+                {getPageSubtitle()}
+              </p>
+            </div>
+          </div>
+
+          {/* Center: navigation links */}
+          <ul style={{
+            display: 'flex', alignItems: 'center', gap: 0, listStyle: 'none',
+            margin: 0, padding: 0, fontFamily: 'var(--font-display)',
+          }}>
+            {[
+              { label: 'HOME', to: '/' },
+              { label: 'ABOUT', to: '/about' },
+              { label: 'CONTACT', to: '/contact' },
+              { label: 'WRITE', to: '/write' },
+              { label: 'ASK AN EXPERT', to: '/ask-expert' },
+              { label: 'ADMIN', to: '/admin' },
+            ].map((item) => (
+              <li key={item.to} style={{ padding: '0 14px' }}>
+                <Link
+                  to={item.to}
+                  className="link"
+                  style={{
+                    fontSize: 13, fontWeight: 600, letterSpacing: '0.04em',
+                    color: 'var(--slate-600)', textDecoration: 'none',
+                    transition: 'color 0.2s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--emerald-600)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--slate-600)'}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li style={{ padding: '0 14px', cursor: 'pointer' }}
+              onClick={() => dispatch({ type: 'LOGOUT' })}
+            >
+              <span
+                style={{
+                  fontSize: 13, fontWeight: 600, letterSpacing: '0.04em',
+                  color: 'var(--slate-600)', transition: 'color 0.2s', cursor: 'pointer',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--emerald-600)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--slate-600)'}
+              >
+                LOGOUT
+              </span>
+            </li>
+          </ul>
+
+          {/* Right: theme toggle + profile */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+              style={{
+                padding: 8, borderRadius: 10, border: 'none',
+                background: 'transparent', color: 'var(--slate-500)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--mint-100)'; e.currentTarget.style.color = 'var(--emerald-600)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-500)'; }}
+              title="Toggle theme"
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+
+            {/* Profile chip with dropdown */}
+            <div ref={profileRef} style={{ position: 'relative' }}>
+              <div
+                onClick={() => setShowProfileMenu(v => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '5px 12px 5px 5px', borderRadius: 14,
+                  background: showProfileMenu ? 'var(--mint-100)' : 'var(--bg-surface)',
+                  border: '1px solid var(--glass-border)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {user?.profilePic ? (
+                  <img
+                    src={PF + user.profilePic}
+                    alt=""
+                    style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 10,
+                    background: 'linear-gradient(135deg, var(--emerald-600), var(--forest-900))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', fontSize: 13, fontWeight: 700,
+                  }}>
+                    {user?.username?.charAt(0)?.toUpperCase() || 'A'}
+                  </div>
+                )}
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600,
+                  color: 'var(--slate-800)',
+                }}>
+                  {user?.username || 'Admin'}
+                </span>
+              </div>
+
+              {/* Dropdown menu */}
+              {showProfileMenu && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                  minWidth: 200, padding: 8, borderRadius: 16,
+                  background: 'var(--glass-zen)', backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '1px solid var(--glass-border)',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+                  zIndex: 100,
+                  animation: 'fadeIn 0.2s ease',
+                }}>
+                  {/* User info */}
+                  <div style={{
+                    padding: '10px 12px', borderBottom: '1px solid var(--glass-border)',
+                    marginBottom: 6,
+                  }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, color: 'var(--slate-900)' }}>
+                      {user?.username || 'Admin'}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)', marginTop: 2 }}>
+                      {user?.email || 'Administrator'}
+                    </div>
+                  </div>
+
+                  {/* Settings */}
+                  <button
+                    onClick={() => { setShowProfileMenu(false); handleTabChange('settings'); }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 12px', borderRadius: 10, border: 'none',
+                      background: 'transparent', cursor: 'pointer',
+                      fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500,
+                      color: 'var(--slate-700)', transition: 'all 0.15s',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--mint-100)'; e.currentTarget.style.color = 'var(--emerald-600)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-700)'; }}
+                  >
+                    <Settings size={15} /> Settings
+                  </button>
+
+                  {/* Back to Site */}
+                  <button
+                    onClick={() => { setShowProfileMenu(false); navigate('/'); }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 12px', borderRadius: 10, border: 'none',
+                      background: 'transparent', cursor: 'pointer',
+                      fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500,
+                      color: 'var(--slate-700)', transition: 'all 0.15s',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--mint-100)'; e.currentTarget.style.color = 'var(--emerald-600)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--slate-700)'; }}
+                  >
+                    <Leaf size={15} /> Back to Site
+                  </button>
+
+                  <div style={{ height: 1, background: 'var(--glass-border)', margin: '6px 0' }} />
+
+                  {/* Logout */}
+                  <button
+                    onClick={() => { setShowProfileMenu(false); dispatch({ type: 'LOGOUT' }); }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 12px', borderRadius: 10, border: 'none',
+                      background: 'transparent', cursor: 'pointer',
+                      fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500,
+                      color: '#ef4444', transition: 'all 0.15s',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <LogOut size={15} /> Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '32px 24px' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
