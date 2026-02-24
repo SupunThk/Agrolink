@@ -19,6 +19,7 @@ import UserTable from '../../components/admin/UserTable.jsx';
 import BlogModeration from '../../components/admin/BlogModeration.jsx';
 import DiseaseRegistry from '../../components/admin/DiseaseRegistry.jsx';
 import MarketplaceManagement from '../../components/admin/MarketplaceManagement.jsx';
+import AdminSettings from '../../components/admin/AdminSettings.jsx';
 import { Context } from '../../context/Context.js';
 import Logo from '../../components/logo/Logo.jsx';
 
@@ -97,6 +98,8 @@ export default function AdminPanel() {
         return <DiseaseRegistry />;
       case 'marketplace':
         return <MarketplaceManagement />;
+      case 'settings':
+        return <AdminSettings />;
       default:
         return (
           <div style={{
@@ -123,6 +126,7 @@ export default function AdminPanel() {
       case 'blogs': return 'Blog Moderation';
       case 'diseases': return 'Disease Database';
       case 'marketplace': return 'Marketplace';
+      case 'settings': return 'Settings';
       default: return 'AgroLink Admin';
     }
   };
@@ -134,6 +138,7 @@ export default function AdminPanel() {
       case 'blogs': return 'Review and moderate posts';
       case 'diseases': return 'Browse disease entries';
       case 'marketplace': return 'Monitor listings and orders';
+      case 'settings': return 'Database, profile & security';
       default: return '';
     }
   };
