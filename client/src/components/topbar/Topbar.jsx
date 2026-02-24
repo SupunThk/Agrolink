@@ -7,16 +7,16 @@ import MobileSidebar from "../mobileSidebar/MobileSidebar";
 
 export default function Topbar() {
   const navigate = useNavigate();
-  const {user, isVerified, theme, dispatch} = useContext(Context);
+  const { user, isVerified, theme, dispatch } = useContext(Context);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const PF = "http://localhost:5000/images/"
 
   const handleLogout = () => {
-    dispatch({type:"LOGOUT"});
+    dispatch({ type: "LOGOUT" });
   }
-  
+
   const handleProfileClick = () => {
-    dispatch({type: "SHOW_VMODAL"});
+    dispatch({ type: "SHOW_VMODAL" });
   }
 
   return (
@@ -61,7 +61,7 @@ export default function Topbar() {
         </div>
         <div className="topRight">
           {user ? (
-            <div onClick={handleProfileClick} style={{cursor: "pointer"}} className="topProfileBtn">
+            <div onClick={handleProfileClick} style={{ cursor: "pointer" }} className="topProfileBtn">
               {user.profilePic ? (
                 <img
                   className="topImg"
@@ -70,7 +70,7 @@ export default function Topbar() {
                   onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
                 />
               ) : null}
-              <div className="topImgDefault" style={{display: user.profilePic ? "none" : "flex"}}>
+              <div className="topImgDefault" style={{ display: user.profilePic ? "none" : "flex" }}>
                 <i className="fas fa-user"></i>
               </div>
             </div>
@@ -88,7 +88,7 @@ export default function Topbar() {
               </li>
             </ul>
           )}
-          <div className="themeToggle" onClick={() => dispatch({type: "TOGGLE_THEME"})}>
+          <div className="themeToggle" onClick={() => dispatch({ type: "TOGGLE_THEME" })}>
             {theme === "light" ? (
               <i className="fas fa-moon"></i>
             ) : (
