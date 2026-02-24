@@ -8,15 +8,17 @@ import {
   LogOut,
   X,
   Leaf,
+  Sprout,
+  AlertTriangle,
 } from 'lucide-react';
 import { useState } from 'react';
+import axios from 'axios';
 import SidebarItem from '../../components/admin/SidebarItem.jsx';
 import StatCard from '../../components/admin/StatCard.jsx';
 import UserTable from '../../components/admin/UserTable.jsx';
 import BlogModeration from '../../components/admin/BlogModeration.jsx';
 import DiseaseRegistry from '../../components/admin/DiseaseRegistry.jsx';
 import MarketplaceManagement from '../../components/admin/MarketplaceManagement.jsx';
-import { MOCK_STATS } from '../../components/admin/data/mockData.js';
 import { Context } from '../../context/Context.js';
 import Logo from '../../components/logo/Logo.jsx';
 
@@ -26,6 +28,32 @@ const SIDEBAR_WIDTH = 260;
 export default function AdminPanel() {
   const { adminSidebarOpen, dispatch } = useContext(Context);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [stats, setStats] = useState([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  // Fetch real dashboard stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get("/users/admin/stats");
+        const data = res.data;
+        const realStats = [
+          { title: "Total Users", value: data.totalUsers.toLocaleString(), change: data.userChange, icon: Users, color: "bg-blue-500" },
+          { title: "Total Posts", value: data.totalPosts.toLocaleString(), change: data.postChange, icon: FileText, color: "bg-green-500" },
+        ];
+        setStats(realStats);
+        setTotalRecords(data.totalUsers + data.totalPosts);
+      } catch (err) {
+        console.error("Failed to fetch admin stats:", err);
+        // Fallback stats on error
+        setStats([
+          { title: "Total Users", value: "—", change: "0%", icon: Users, color: "bg-blue-500" },
+          { title: "Total Posts", value: "—", change: "0%", icon: FileText, color: "bg-green-500" },
+        ]);
+      }
+    };
+    fetchStats();
+  }, []);
 
   // Auto-open sidebar on large screens
   useEffect(() => {
@@ -51,8 +79,8 @@ export default function AdminPanel() {
       case 'dashboard':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${MOCK_STATS.length}, 1fr)`, gap: 20 }}>
-              {MOCK_STATS.map((stat, index) => (
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${stats.length || 1}, 1fr)`, gap: 20 }}>
+              {stats.map((stat, index) => (
                 <StatCard key={index} {...stat} />
               ))}
             </div>
@@ -101,7 +129,7 @@ export default function AdminPanel() {
 
   const getPageSubtitle = () => {
     switch (activeTab) {
-      case 'dashboard': return `${MOCK_STATS.reduce((a, s) => a + (parseInt(s.value) || 0), 0)} total records`;
+      case 'dashboard': return `${totalRecords} total records`;
       case 'users': return 'Manage registered users';
       case 'blogs': return 'Review and moderate posts';
       case 'diseases': return 'Browse disease entries';
