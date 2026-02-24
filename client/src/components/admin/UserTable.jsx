@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, ChevronLeft, ChevronRight, Trash2, Loader } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, Loader } from 'lucide-react';
 import axios from 'axios';
+import ConfirmModal from './ConfirmModal';
+import { useToast } from './Toast';
 
 const STATUSES = ['All', 'Active', 'Inactive'];
 const PAGE_SIZE = 6;
@@ -63,6 +65,9 @@ const UserTable = () => {
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
   const [page, setPage] = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState(null); // user obj to delete
+  const [deleting, setDeleting] = useState(false);
+  const { toast, ToastContainer } = useToast();
 
   // Fetch users from backend
   const fetchUsers = async () => {
@@ -103,14 +108,22 @@ const UserTable = () => {
 
   const handleFilter = (f) => { setActiveFilter(f); setPage(1); };
 
-  const handleDelete = async (userId) => {
-    if (!window.confirm("Are you sure you want to delete this user? All their posts will also be deleted.")) return;
+  const openDeleteConfirm = (user) => setDeleteTarget(user);
+  const closeDeleteConfirm = () => { if (!deleting) setDeleteTarget(null); };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await axios.delete("/users/admin/" + userId);
-      setUsers(prev => prev.filter(u => u._id !== userId));
+      await axios.delete("/users/admin/" + deleteTarget._id);
+      setUsers(prev => prev.filter(u => u._id !== deleteTarget._id));
+      toast.success(`User "${deleteTarget.username}" has been deleted`);
     } catch (err) {
       console.error("Failed to delete user:", err);
-      alert("Failed to delete user");
+      toast.error("Failed to delete user. Please try again.");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -264,7 +277,7 @@ const UserTable = () => {
                 </td>
                 <td style={{ ...td, textAlign: 'center' }}>
                   <button
-                    onClick={() => handleDelete(user._id)}
+                    onClick={() => openDeleteConfirm(user)}
                     title="Delete user"
                     style={{
                       padding: 6, borderRadius: 8, border: 'none',
@@ -322,6 +335,21 @@ const UserTable = () => {
           </button>
         </div>
       </div>
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete User"
+        message={deleteTarget ? `Are you sure you want to delete "${deleteTarget.username}"? All their posts will also be permanently removed.` : ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={closeDeleteConfirm}
+      />
+
+      {/* Toast notifications */}
+      <ToastContainer />
     </div>
   );
 };
