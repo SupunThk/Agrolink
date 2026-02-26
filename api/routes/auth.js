@@ -53,6 +53,11 @@ router.post("/login", async(req, res) => {
             return res.status(403).json("Your expert account is pending admin approval. Please wait for approval before logging in.");
         }
 
+        // Block deactivated accounts from logging in
+        if (user.active === false) {
+            return res.status(403).json("Your account has been deactivated by an administrator. Please contact support.");
+        }
+
         const { password, ...others } = user._doc;
         // Always include isAdmin and role in response
         res.status(200).json({ ...others, isAdmin: user.isAdmin, role: user.role });

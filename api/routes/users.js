@@ -85,6 +85,33 @@ router.put("/admin/reject/:id", async (req, res) => {
   }
 });
 
+// ── ADMIN: Deactivate user account ──────────────────────────────────────────
+router.put("/admin/deactivate/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json("User not found!");
+    if (user.isAdmin) return res.status(400).json("Cannot deactivate an admin account!");
+    user.active = false;
+    await user.save();
+    res.status(200).json("User account has been deactivated!");
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Reactivate user account ──────────────────────────────────────────
+router.put("/admin/reactivate/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json("User not found!");
+    user.active = true;
+    await user.save();
+    res.status(200).json("User account has been reactivated!");
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
 // ── ADMIN: Delete any user ──────────────────────────────────────────────────
 router.delete("/admin/:id", async (req, res) => {
   try {
@@ -146,10 +173,24 @@ router.delete("/:id", async(req, res) => {
     }
 });
 
+// ── Account status check (for active sessions) ─────────────────────────────
+router.get("/check/status/:id", async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ exists: false, active: false });
+        }
+        return res.status(200).json({ exists: true, active: user.active !== false });
+    } catch (err) {
+        res.status(500).json("Something went wrong!");
+    }
+});
+
 //GET USER
 router.get("/:id", async (req,res)=>{
     try{
         const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json("User not found!");
         const {password, ...others} = user._doc;
         res.status(200).json(others);
     }catch(err){

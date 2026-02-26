@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Trash2, Loader, Check, X as XIcon, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, Loader, Check, X as XIcon, Eye, Ban, RotateCcw } from 'lucide-react';
 import axios from 'axios';
 import ConfirmModal from './ConfirmModal';
 import { useToast } from './Toast';
 
-const STATUSES = ['All', 'Active', 'Inactive', 'Pending'];
+const STATUSES = ['All', 'Active', 'Inactive', 'Pending', 'Deactivated'];
 const PAGE_SIZE = 6;
 
 // ── Shared card/table styles via CSS vars ───────────────────────────────────
@@ -42,6 +42,7 @@ const statusBadge = (status) => {
     Active: { bg: 'var(--status-green-bg)', color: 'var(--status-green-txt)', border: 'var(--status-green-border)' },
     Inactive: { bg: 'var(--status-gray-bg)', color: 'var(--status-gray-txt)', border: 'var(--status-gray-border)' },
     Pending: { bg: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: 'rgba(245,158,11,0.3)' },
+    Deactivated: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'rgba(239,68,68,0.3)' },
   };
   const s = map[status] || map.Inactive;
   return {
@@ -97,8 +98,9 @@ const UserTable = () => {
     username: u.username || 'Unknown',
     email: u.email || '—',
     role: u.isAdmin ? 'Admin' : u.role === 'expert' ? 'Expert' : 'User',
-    status: u.role === 'expert' && !u.approved ? 'Pending' : getUserStatus(u),
+    status: u.active === false ? 'Deactivated' : u.role === 'expert' && !u.approved ? 'Pending' : getUserStatus(u),
     approved: u.approved,
+    active: u.active !== false,
     description: u.description || '',
     joinDate: u.createdAt,
     profilePic: u.profilePic,
@@ -155,6 +157,34 @@ const UserTable = () => {
     } catch (err) {
       console.error("Failed to reject expert:", err);
       toast.error("Failed to reject expert. Please try again.");
+    } finally {
+      setApproving(null);
+    }
+  };
+
+  const handleDeactivate = async (user) => {
+    setApproving(user._id);
+    try {
+      await axios.put("/users/admin/deactivate/" + user._id);
+      setUsers(prev => prev.map(u => u._id === user._id ? { ...u, active: false } : u));
+      toast.success(`Account "${user.username}" has been deactivated`);
+    } catch (err) {
+      console.error("Failed to deactivate user:", err);
+      toast.error("Failed to deactivate user. Please try again.");
+    } finally {
+      setApproving(null);
+    }
+  };
+
+  const handleReactivate = async (user) => {
+    setApproving(user._id);
+    try {
+      await axios.put("/users/admin/reactivate/" + user._id);
+      setUsers(prev => prev.map(u => u._id === user._id ? { ...u, active: true } : u));
+      toast.success(`Account "${user.username}" has been reactivated`);
+    } catch (err) {
+      console.error("Failed to reactivate user:", err);
+      toast.error("Failed to reactivate user. Please try again.");
     } finally {
       setApproving(null);
     }
@@ -303,7 +333,7 @@ const UserTable = () => {
                   <span style={statusBadge(user.status)}>
                     <span style={{
                       width: 6, height: 6, borderRadius: '50%',
-                      background: user.status === 'Active' ? 'var(--status-green-txt)' : user.status === 'Pending' ? '#f59e0b' : 'var(--status-gray-txt)',
+                      background: user.status === 'Active' ? 'var(--status-green-txt)' : user.status === 'Pending' ? '#f59e0b' : user.status === 'Deactivated' ? '#ef4444' : 'var(--status-gray-txt)',
                     }} />
                     {user.status}
                   </span>
@@ -356,6 +386,39 @@ const UserTable = () => {
                           <XIcon size={15} />
                         </button>
                       </>
+                    )}
+                    {user.role !== 'Admin' && user.status !== 'Pending' && (
+                      user.active ? (
+                        <button
+                          onClick={() => handleDeactivate(user)}
+                          disabled={approving === user._id}
+                          title="Deactivate account"
+                          style={{
+                            padding: 6, borderRadius: 8, border: 'none',
+                            background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                            transition: 'all 0.2s', opacity: approving === user._id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#f59e0b'; e.currentTarget.style.background = 'rgba(245,158,11,0.08)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <Ban size={15} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleReactivate(user)}
+                          disabled={approving === user._id}
+                          title="Reactivate account"
+                          style={{
+                            padding: 6, borderRadius: 8, border: 'none',
+                            background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                            transition: 'all 0.2s', opacity: approving === user._id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#22c55e'; e.currentTarget.style.background = 'rgba(34,197,94,0.08)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <RotateCcw size={15} />
+                        </button>
+                      )
                     )}
                     <button
                       onClick={() => openDeleteConfirm(user)}

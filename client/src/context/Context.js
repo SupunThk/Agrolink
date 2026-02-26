@@ -3,7 +3,7 @@ import Reducer from "./Reducer";
 
 const INITIAL_STATE = {
   user: (() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
       try {
         return JSON.parse(storedUser);
@@ -29,7 +29,7 @@ export const ContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(Reducer, INITIAL_STATE);
 
   useEffect(() => {
-    localStorage.setItem("user", JSON.stringify(state.user));
+    sessionStorage.setItem("user", JSON.stringify(state.user));
   }, [state.user]);
 
   useEffect(() => {
