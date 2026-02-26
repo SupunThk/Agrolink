@@ -156,19 +156,55 @@
 .singlePostDesc {
   font-size: 17px;
   line-height: 1.8;
-  color: var(--slate-900); /* White in dark mode */
+  color: var(--slate-900);
   text-align: justify;
   white-space: pre-wrap;
 }
 
-.singlePostDesc::first-letter {
-  float: left;
-  font-size: 64px;
+.singlePostDesc p {
+  margin: 0 0 14px;
+}
+
+.singlePostDesc h2 {
+  font-family: var(--font-display);
+  font-size: 26px;
   font-weight: 800;
+  color: var(--forest-900);
+  margin: 24px 0 12px;
+}
+
+.singlePostDesc h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--forest-900);
+  margin: 18px 0 8px;
+}
+
+.singlePostDesc ul,
+.singlePostDesc ol {
+  padding-left: 26px;
+  margin: 6px 0 14px;
+}
+
+.singlePostDesc li {
+  margin-bottom: 4px;
+}
+
+.singlePostDesc b,
+.singlePostDesc strong {
+  font-weight: 700;
+  color: var(--forest-900);
+}
+
+.singlePostDesc > p:first-child::first-letter,
+.singlePostDesc > div:first-child::first-letter,
+.singlePostDesc::first-letter {
+  font-size: 3.6em;
+  font-weight: 800;
+  font-family: var(--font-display);
   color: var(--emerald-600);
-  line-height: 0.8;
-  padding-right: 12px;
-  margin-top: 6px;
+  line-height: 1;
 }
 
 .singlePostTitleInput {

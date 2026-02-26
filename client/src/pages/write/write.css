@@ -342,28 +342,7 @@
 
 /* Body */
 .writeBodyArea {
-  padding: 24px 40px 40px;
-}
-
-.writeBodyInput {
-  width: 100%;
-  min-height: 420px;
-  border: none;
-  font-family: var(--font-body);
-  font-size: 17px;
-  color: var(--slate-900);
-  line-height: 1.8;
-  resize: vertical;
-  background: transparent;
-}
-
-.writeBodyInput::placeholder {
-  color: var(--slate-600);
-  opacity: 0.4;
-}
-
-.writeBodyInput:focus {
-  outline: none;
+  padding: 24px 32px 32px;
 }
 
 @media screen and (max-width: 768px) {
@@ -386,7 +365,7 @@
     min-width: 0;
   }
   .writeBodyArea {
-    padding: 16px 20px 32px;
+    padding: 16px 16px 24px;
   }
   .writeToolbar {
     padding: 16px 20px;

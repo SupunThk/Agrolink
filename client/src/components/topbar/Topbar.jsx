@@ -8,7 +8,9 @@ import MobileSidebar from "../mobileSidebar/MobileSidebar";
 export default function Topbar() {
   const {user, theme, dispatch} = useContext(Context);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const PF = "http://localhost:5000/images/"
+  const PF = "http://localhost:5000/images/";
+  const getAvatarSrc = (src) =>
+    src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
 
   const handleLogout = () => {
     dispatch({type:"LOGOUT"});
@@ -64,7 +66,7 @@ export default function Topbar() {
               {user.profilePic ? (
                 <img
                   className="topImg"
-                  src={PF + user.profilePic}
+                  src={getAvatarSrc(user.profilePic)}
                   alt="Profile"
                   onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
                 />

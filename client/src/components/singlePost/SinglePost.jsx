@@ -4,12 +4,18 @@ import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import "./singlePost.css";
+import RichEditor from "../richEditor/RichEditor";
+
+const PF = "http://localhost:5000/images/";
+// Handle both local filenames and any old Cloudinary URLs already in the DB
+const getPhotoSrc = (src) =>
+  src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
 
 export default function SinglePost() {
   const location = useLocation();
   const path = location.pathname.split("/")[2];
   const [post, setPost] = useState({});
-  const PF = "http://localhost:5000/images/";
+  // post.photo is now a full Cloudinary HTTPS URL — no local prefix needed
   const { user } = useContext(Context);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
@@ -66,7 +72,7 @@ export default function SinglePost() {
       try {
         await axios.post("/upload", data);
       } catch (err) {
-        setError("Failed to upload cover image.");
+        setError("Failed to upload cover image. Please try again.");
         return;
       }
     }
@@ -92,7 +98,7 @@ export default function SinglePost() {
             {file ? (
               <img src={URL.createObjectURL(file)} alt="" className="singlePostImg" />
             ) : post.photo ? (
-              <img src={PF + post.photo} alt="" className="singlePostImg" />
+              <img src={getPhotoSrc(post.photo)} alt="" className="singlePostImg" />
             ) : (
               <div className="singlePostImgPlaceholder">
                 <i className="fas fa-image"></i>
@@ -113,7 +119,7 @@ export default function SinglePost() {
           </div>
         ) : (
           post.photo && (
-            <img src={PF + post.photo} alt="" className="singlePostImg" />
+            <img src={getPhotoSrc(post.photo)} alt="" className="singlePostImg" />
           )
         )}
         {updateMode ? (
@@ -153,13 +159,14 @@ export default function SinglePost() {
           </span>
         </div>
         {updateMode ? (
-          <textarea
-            className="singlePostDescInput"
+          <RichEditor
             value={desc}
-            onChange={(e) => setDesc(e.target.value)}
+            onChange={setDesc}
+            placeholder="Write your story..."
+            minHeight="360px"
           />
         ) : (
-          <p className="singlePostDesc">{desc}</p>
+          <div className="singlePostDesc" dangerouslySetInnerHTML={{ __html: desc }} />
         )}
         {updateMode && (
           <div className="singlePostUpdateActions">

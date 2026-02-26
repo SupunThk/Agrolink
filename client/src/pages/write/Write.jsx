@@ -2,6 +2,7 @@ import "./write.css";
 import { useContext, useState } from "react";
 import axios from "axios";
 import { Context } from "../../context/Context";
+import RichEditor from "../../components/richEditor/RichEditor";
 
 export default function Write() {
   const [title, setTitle] = useState("");
@@ -213,10 +214,11 @@ export default function Write() {
 
         {/* Body */}
         <div className="writeBodyArea">
-          <textarea
-            className="writeBodyInput"
+          <RichEditor
+            value={desc}
+            onChange={setDesc}
             placeholder="Share your story with the community..."
-            onChange={(e) => setDesc(e.target.value)}
+            minHeight="420px"
           />
         </div>
       </form>

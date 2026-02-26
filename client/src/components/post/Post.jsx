@@ -1,15 +1,24 @@
 import "./post.css"
 import { Link } from "react-router-dom"
 
-export default function Post({ post }) {
-  const PF = "http://localhost:5000/images/";
+const PF = "http://localhost:5000/images/";
+// Handle both local filenames and any old Cloudinary URLs already in the DB
+const getPhotoSrc = (src) =>
+  src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
 
+// Strip HTML tags so the card preview shows plain text
+const stripHtml = (html) => {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+};
+
+export default function Post({ post }) {
   return (
     <div className="post">
       {/* Image */}
       <div className="postImgWrapper">
         {post.photo ? (
-          <img className="postImg" src={PF + post.photo} alt={post.title} />
+          <img className="postImg" src={getPhotoSrc(post.photo)} alt={post.title} />
         ) : (
           <div className="postImgPlaceholder">
             <i className="fas fa-leaf"></i>
@@ -43,7 +52,7 @@ export default function Post({ post }) {
           <h3 className="postTitle">{post.title}</h3>
         </Link>
 
-        <p className="postDesc">{post.desc}</p>
+        <p className="postDesc">{stripHtml(post.desc)}</p>
 
         <Link to={`/post/${post._id}`} className="link postReadMore">
           Read Article <i className="fas fa-arrow-right"></i>

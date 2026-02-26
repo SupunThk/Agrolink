@@ -13,7 +13,6 @@ export default function Settings() {
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
-  const PF = "http://localhost:5000/images/";
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -54,10 +53,7 @@ export default function Settings() {
       try {
         await axios.post("/upload", data);
       } catch (err) {
-        const errorMsg = typeof err.response?.data === "string"
-          ? err.response.data
-          : "Profile image upload failed.";
-        setError(errorMsg);
+        setError("Profile image upload failed. Please try again.");
         dispatch({ type: "UPDATE_FAILURE" });
         return;
       }
@@ -78,7 +74,11 @@ export default function Settings() {
     }
   };
 
-  const avatarSrc = file ? URL.createObjectURL(file) : (user.profilePic ? PF + user.profilePic : null);
+  const PF = "http://localhost:5000/images/";
+  // Handle both local filenames and old Cloudinary URLs already in the DB
+  const getImageSrc = (src) =>
+    src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
+  const avatarSrc = file ? URL.createObjectURL(file) : (user.profilePic ? getImageSrc(user.profilePic) : null);
 
   return (
     <div className="settings fadeIn">

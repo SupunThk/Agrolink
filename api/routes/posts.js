@@ -3,6 +3,7 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const requireDb = require("../middleware/requireDb");
 
+
 router.use(requireDb);
 
 //CREATE POST
@@ -52,16 +53,17 @@ router.delete("/:id", async (req, res) => {
 
     if (!post) return res.status(404).json("Post not found");
 
-    // compare usernames safely
-    if (post.username.trim().toLowerCase() === req.body.username.trim().toLowerCase()) {
-      await post.deleteOne(); // correct delete
-      return res.status(200).json("Post has been deleted...");
-    } else {
+    // Compare usernames safely (case-insensitive, trimmed)
+    if (post.username.trim().toLowerCase() !== req.body.username.trim().toLowerCase()) {
       return res.status(401).json("You can delete only your post!");
     }
 
+
+    await post.deleteOne();
+    return res.status(200).json("Post has been deleted...");
+
   } catch (err) {
-    console.error(err);
+    console.error("[DELETE /posts/:id]", err);
     return res.status(500).json("Server error");
   }
 });

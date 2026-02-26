@@ -7,12 +7,30 @@ const userRoute = require("./routes/users");
 const postRoute = require("./routes/posts");
 const categoryRoute = require("./routes/categories");
 const Category = require("./models/Category");
+
+// Prevent unhandled promise rejections from crashing the server
+process.on("unhandledRejection", (reason) => {
+  console.error("[UnhandledRejection]", reason instanceof Error ? reason.message : reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[UncaughtException]", err.message);
+});
+
+dotenv.config();
+
 const multer = require("multer");
 const path = require("path");
 
-dotenv.config();
 app.use(express.json());
+// Serve files from api/images/ at /images
 app.use("/images", express.static(path.join(__dirname, "/images")));
+
+// Save uploaded files to api/images/ using the filename sent by the client
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => { cb(null, "images"); },
+  filename:    (req, file, cb) => { cb(null, req.body.name); },
+});
+const upload = multer({ storage });
 
 const DEFAULT_CATEGORIES = [
   "Organic Farming",
@@ -42,12 +60,14 @@ async function seedDefaultCategories() {
 }
 
 async function startServer() {
+  // ── Startup checks ────────────────────────────────────────────────────────
   if (!process.env.MONGO_URL) {
     console.error(
       "Missing MONGO_URL. Create api/.env and set MONGO_URL to your MongoDB connection string."
     );
     console.error("Starting backend without DB (API will return 503 for DB routes).");
   }
+
 
   try {
     if (process.env.MONGO_URL) {
@@ -67,24 +87,19 @@ async function startServer() {
   });
 }
 
-const storage = multer.diskStorage({
-  destination:(req,file,cb) =>{
-    cb(null,"images")
-  },
-  filename:(req,file,cb) => {
-    cb(null, req.body.name);
-  },
-});
-
-const upload = multer({storage:storage});
-app.post("/api/upload", upload.single("file"),(req,res) => {
+app.post("/api/upload", upload.single("file"), (req, res) => {
   res.status(200).json("File has been uploaded");
 });
-
 
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/categories", categoryRoute);
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("[Server Error]", err.message || err);
+  return res.status(400).json({ message: err.message || "Something went wrong." });
+});
 
 startServer();

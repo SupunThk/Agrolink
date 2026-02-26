@@ -4,6 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const requireDb = require("../middleware/requireDb");
 
+
 router.use(requireDb);
 
 //UPDATE
