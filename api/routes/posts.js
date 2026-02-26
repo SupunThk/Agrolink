@@ -6,6 +6,114 @@ const requireDb = require("../middleware/requireDb");
 
 router.use(requireDb);
 
+// ── ADMIN: Get all posts for moderation ─────────────────────────────────────
+router.get("/admin/all", async (req, res) => {
+  try {
+    const { status, search } = req.query;
+    let filter = {};
+    if (status && status !== "All") {
+      filter.status = status;
+    }
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { username: { $regex: search, $options: "i" } },
+      ];
+    }
+    const posts = await Post.find(filter).sort({ createdAt: -1 });
+    // Attach author info (profile pic, name) from User collection
+    const usernames = [...new Set(posts.map((p) => p.username))];
+    const users = await User.find({ username: { $in: usernames } }).select("username name profilePic");
+    const userMap = {};
+    users.forEach((u) => { userMap[u.username] = u; });
+
+    const enriched = posts.map((p) => {
+      const post = p._doc;
+      const author = userMap[post.username];
+      return {
+        ...post,
+        authorName: author?.name || post.username,
+        authorPic: author?.profilePic || "",
+      };
+    });
+
+    res.status(200).json(enriched);
+  } catch (err) {
+    console.error("[GET /posts/admin/all]", err);
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Get moderation stats ─────────────────────────────────────────────
+router.get("/admin/mod-stats", async (req, res) => {
+  try {
+    const [total, pending, approved, rejected, flagged] = await Promise.all([
+      Post.countDocuments(),
+      Post.countDocuments({ status: "Pending" }),
+      Post.countDocuments({ status: "Approved" }),
+      Post.countDocuments({ status: "Rejected" }),
+      Post.countDocuments({ flagged: true }),
+    ]);
+    res.status(200).json({ total, pending, approved, rejected, flagged });
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Approve a post ───────────────────────────────────────────────────
+router.put("/admin/approve/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    post.status = "Approved";
+    post.rejectionReason = "";
+    post.flagged = false;
+    await post.save();
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Reject a post ───────────────────────────────────────────────────
+router.put("/admin/reject/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    post.status = "Rejected";
+    post.rejectionReason = req.body.reason || "";
+    await post.save();
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Flag / Unflag a post ─────────────────────────────────────────────
+router.put("/admin/flag/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    post.flagged = !post.flagged;
+    await post.save();
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Delete any post ──────────────────────────────────────────────────
+router.delete("/admin/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    await post.deleteOne();
+    res.status(200).json("Post has been deleted.");
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
 //CREATE POST
 router.post("/", async(req, res) => {
    const newPost = new Post(req.body);
@@ -88,24 +196,27 @@ router.get("/", async (req,res)=>{
 
     try{
         let posts;
+        const approvedFilter = { status: "Approved" };
         if(username){
-            posts = await Post.find({username}).sort({ createdAt: -1 });
+            posts = await Post.find({ username, ...approvedFilter }).sort({ createdAt: -1 });
         } else if(catName){
             if (catName === "Other") {
                 posts = await Post.find({
+                    ...approvedFilter,
                     categories: {
                         $elemMatch: { $nin: DEFAULT_CATEGORIES },
                     },
                 }).sort({ createdAt: -1 });
             } else {
                 posts = await Post.find({
+                    ...approvedFilter,
                     categories:{
                         $in:[catName],
                     },
                 }).sort({ createdAt: -1 });
             }
         } else{
-            posts = await Post.find().sort({ createdAt: -1 });
+            posts = await Post.find(approvedFilter).sort({ createdAt: -1 });
         }
         res.status(200).json(posts);
     }catch(err){
@@ -118,6 +229,8 @@ router.get("/", async (req,res)=>{
 router.get("/:id", async (req,res)=>{
     try{
         const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json("Post not found");
+        if (post.status !== "Approved") return res.status(403).json("This post is not available");
         res.status(200).json(post);
     }catch(err){
         res.status(500).json(err)
