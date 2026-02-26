@@ -19,6 +19,7 @@ const INITIAL_STATE = {
   isVerified: false,
   showVModal: false,
   showDModal: false,
+  adminSidebarOpen: false,
   theme: localStorage.getItem("theme") || "light",
 };
 
@@ -43,6 +44,7 @@ export const ContextProvider = ({ children }) => {
         isVerified: state.isVerified,
         showVModal: state.showVModal,
         showDModal: state.showDModal,
+        adminSidebarOpen: state.adminSidebarOpen,
         theme: state.theme,
         dispatch,
       }}

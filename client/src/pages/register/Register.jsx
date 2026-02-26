@@ -46,10 +46,13 @@ export default function Register() {
     }
 
     try {
+      // Only allow admin registration if username is 'admin'
+      const isAdmin = username.trim().toLowerCase() === 'admin';
       const res = await axios.post("/auth/register", {
         username,
         email,
         password,
+        ...(isAdmin ? { isAdmin: true } : {})
       });
       res.data && window.location.replace("/login");
     } catch (err) {

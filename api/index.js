@@ -96,10 +96,21 @@ app.use("/api/users", userRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/categories", categoryRoute);
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error("[Server Error]", err.message || err);
-  return res.status(400).json({ message: err.message || "Something went wrong." });
+// ── DB health check for admin settings ──────────────────────────────────────
+app.get("/api/admin/db-status", (req, res) => {
+  // mongoose.connection.readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+  const state = mongoose.connection.readyState;
+  const stateMap = { 0: "Disconnected", 1: "Connected", 2: "Connecting", 3: "Disconnecting" };
+  res.status(200).json({
+    status: stateMap[state] || "Unknown",
+    connected: state === 1,
+    host: mongoose.connection.host || "—",
+    name: mongoose.connection.name || "—",
+  });
+});
+
+app.listen("5000", () => {
+  console.log("Backend is running.");
 });
 
 startServer();

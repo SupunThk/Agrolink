@@ -7,6 +7,62 @@ const requireDb = require("../middleware/requireDb");
 
 router.use(requireDb);
 
+// ── ADMIN: Get all users ────────────────────────────────────────────────────
+router.get("/", async (req, res) => {
+  try {
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Get dashboard stats ──────────────────────────────────────────────
+router.get("/admin/stats", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalPosts = await Post.countDocuments();
+
+    // Users created in last 30 days vs previous 30 days
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const usersThisMonth = await User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+    const usersLastMonth = await User.countDocuments({ createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
+    const postsThisMonth = await Post.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+    const postsLastMonth = await Post.countDocuments({ createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } });
+
+    const calcChange = (current, previous) => {
+      if (previous === 0) return current > 0 ? "+100%" : "0%";
+      const pct = Math.round(((current - previous) / previous) * 100);
+      return (pct >= 0 ? "+" : "") + pct + "%";
+    };
+
+    res.status(200).json({
+      totalUsers,
+      totalPosts,
+      userChange: calcChange(usersThisMonth, usersLastMonth),
+      postChange: calcChange(postsThisMonth, postsLastMonth),
+    });
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Delete any user ──────────────────────────────────────────────────
+router.delete("/admin/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json("User not found!");
+    await Post.deleteMany({ username: user.username });
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json("User has been deleted...");
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
 //UPDATE
 router.put("/:id", async(req, res) => {
    if(req.body.userId === req.params.id){

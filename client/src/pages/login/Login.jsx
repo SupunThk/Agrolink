@@ -29,6 +29,12 @@ export default function Login() {
         password,
       });
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
+      // Redirect admin to /admin, others to home
+      if (res.data.isAdmin) {
+        window.location.replace("/admin");
+      } else {
+        window.location.replace("/");
+      }
     } catch (err) {
       dispatch({ type: "LOGIN_FAILURE" });
       const errorMsg = typeof err.response?.data === "string" 
