@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import "./login.css";
-import { useRef, useContext, useState } from "react";
+import { useRef, useContext, useState, useEffect } from "react";
 import { Context } from "../../context/Context";
 import axios from "axios";
 
@@ -9,6 +9,16 @@ export default function Login() {
   const passwordRef = useRef();
   const { dispatch, isFetching } = useContext(Context);
   const [error, setError] = useState(false);
+  const [deactivatedMsg, setDeactivatedMsg] = useState(null);
+
+  // Show deactivation message if redirected from a forced logout
+  useEffect(() => {
+    const msg = sessionStorage.getItem("deactivatedMessage");
+    if (msg) {
+      setDeactivatedMsg(msg);
+      sessionStorage.removeItem("deactivatedMessage");
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,8 +39,8 @@ export default function Login() {
         password,
       });
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
-      // Redirect admin to /admin, others to home
-      if (res.data.isAdmin) {
+      // Redirect based on role
+      if (res.data.isAdmin || res.data.role === "admin") {
         window.location.replace("/admin");
       } else {
         window.location.replace("/");
@@ -53,6 +63,12 @@ export default function Login() {
           <p>Welcome back to the community</p>
         </div>
         <form className="loginForm" onSubmit={handleSubmit}>
+          {deactivatedMsg && (
+            <div className="alert alert-warning" style={{ marginBottom: 16 }}>
+              <i className="fas fa-ban"></i>
+              <span>{deactivatedMsg}</span>
+            </div>
+          )}
           <label>Username</label>
           <input
             className="loginInput"

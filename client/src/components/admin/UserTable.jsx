@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Trash2, Loader } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, Loader, Check, X as XIcon, Eye, Ban, RotateCcw } from 'lucide-react';
 import axios from 'axios';
 import ConfirmModal from './ConfirmModal';
 import { useToast } from './Toast';
 
-const STATUSES = ['All', 'Active', 'Inactive'];
+const STATUSES = ['All', 'Active', 'Inactive', 'Pending', 'Deactivated'];
 const PAGE_SIZE = 6;
 
 // ── Shared card/table styles via CSS vars ───────────────────────────────────
@@ -41,6 +41,8 @@ const statusBadge = (status) => {
   const map = {
     Active: { bg: 'var(--status-green-bg)', color: 'var(--status-green-txt)', border: 'var(--status-green-border)' },
     Inactive: { bg: 'var(--status-gray-bg)', color: 'var(--status-gray-txt)', border: 'var(--status-gray-border)' },
+    Pending: { bg: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: 'rgba(245,158,11,0.3)' },
+    Deactivated: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'rgba(239,68,68,0.3)' },
   };
   const s = map[status] || map.Inactive;
   return {
@@ -67,6 +69,8 @@ const UserTable = () => {
   const [page, setPage] = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null); // user obj to delete
   const [deleting, setDeleting] = useState(false);
+  const [approving, setApproving] = useState(null); // id of user being approved
+  const [descriptionModal, setDescriptionModal] = useState(null); // user obj to show description
   const { toast, ToastContainer } = useToast();
 
   // Fetch users from backend
@@ -93,8 +97,11 @@ const UserTable = () => {
     _id: u._id,
     username: u.username || 'Unknown',
     email: u.email || '—',
-    role: u.isAdmin ? 'Admin' : 'User',
-    status: getUserStatus(u),
+    role: u.isAdmin ? 'Admin' : u.role === 'expert' ? 'Expert' : 'User',
+    status: u.active === false ? 'Deactivated' : u.role === 'expert' && !u.approved ? 'Pending' : getUserStatus(u),
+    approved: u.approved,
+    active: u.active !== false,
+    description: u.description || '',
     joinDate: u.createdAt,
     profilePic: u.profilePic,
   }));
@@ -124,6 +131,62 @@ const UserTable = () => {
     } finally {
       setDeleting(false);
       setDeleteTarget(null);
+    }
+  };
+
+  const handleApprove = async (user) => {
+    setApproving(user._id);
+    try {
+      await axios.put("/users/admin/approve/" + user._id);
+      setUsers(prev => prev.map(u => u._id === user._id ? { ...u, approved: true } : u));
+      toast.success(`Expert "${user.username}" has been approved`);
+    } catch (err) {
+      console.error("Failed to approve expert:", err);
+      toast.error("Failed to approve expert. Please try again.");
+    } finally {
+      setApproving(null);
+    }
+  };
+
+  const handleReject = async (user) => {
+    setApproving(user._id);
+    try {
+      await axios.put("/users/admin/reject/" + user._id);
+      setUsers(prev => prev.filter(u => u._id !== user._id));
+      toast.success(`Expert "${user.username}" has been rejected and removed`);
+    } catch (err) {
+      console.error("Failed to reject expert:", err);
+      toast.error("Failed to reject expert. Please try again.");
+    } finally {
+      setApproving(null);
+    }
+  };
+
+  const handleDeactivate = async (user) => {
+    setApproving(user._id);
+    try {
+      await axios.put("/users/admin/deactivate/" + user._id);
+      setUsers(prev => prev.map(u => u._id === user._id ? { ...u, active: false } : u));
+      toast.success(`Account "${user.username}" has been deactivated`);
+    } catch (err) {
+      console.error("Failed to deactivate user:", err);
+      toast.error("Failed to deactivate user. Please try again.");
+    } finally {
+      setApproving(null);
+    }
+  };
+
+  const handleReactivate = async (user) => {
+    setApproving(user._id);
+    try {
+      await axios.put("/users/admin/reactivate/" + user._id);
+      setUsers(prev => prev.map(u => u._id === user._id ? { ...u, active: true } : u));
+      toast.success(`Account "${user.username}" has been reactivated`);
+    } catch (err) {
+      console.error("Failed to reactivate user:", err);
+      toast.error("Failed to reactivate user. Please try again.");
+    } finally {
+      setApproving(null);
     }
   };
 
@@ -195,12 +258,12 @@ const UserTable = () => {
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <colgroup>
+            <col style={{ width: '20%' }} />
             <col style={{ width: '22%' }} />
-            <col style={{ width: '24%' }} />
-            <col style={{ width: '12%' }} />
-            <col style={{ width: '16%' }} />
+            <col style={{ width: '10%' }} />
             <col style={{ width: '14%' }} />
             <col style={{ width: '12%' }} />
+            <col style={{ width: '22%' }} />
           </colgroup>
           <thead>
             <tr>
@@ -255,9 +318,9 @@ const UserTable = () => {
                 <td style={{ ...td, textAlign: 'center' }}>
                   <span style={{
                     padding: '3px 10px', borderRadius: 8,
-                    background: user.role === 'Admin' ? 'rgba(59,130,246,0.12)' : 'var(--status-gray-bg)',
-                    color: user.role === 'Admin' ? '#3b82f6' : 'var(--status-gray-txt)',
-                    border: `1px solid ${user.role === 'Admin' ? 'rgba(59,130,246,0.3)' : 'var(--status-gray-border)'}`,
+                    background: user.role === 'Admin' ? 'rgba(59,130,246,0.12)' : user.role === 'Expert' ? 'rgba(168,85,247,0.12)' : 'var(--status-gray-bg)',
+                    color: user.role === 'Admin' ? '#3b82f6' : user.role === 'Expert' ? '#a855f7' : 'var(--status-gray-txt)',
+                    border: `1px solid ${user.role === 'Admin' ? 'rgba(59,130,246,0.3)' : user.role === 'Expert' ? 'rgba(168,85,247,0.3)' : 'var(--status-gray-border)'}`,
                     fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-display)',
                   }}>
                     {user.role}
@@ -270,25 +333,107 @@ const UserTable = () => {
                   <span style={statusBadge(user.status)}>
                     <span style={{
                       width: 6, height: 6, borderRadius: '50%',
-                      background: user.status === 'Active' ? 'var(--status-green-txt)' : 'var(--status-gray-txt)',
+                      background: user.status === 'Active' ? 'var(--status-green-txt)' : user.status === 'Pending' ? '#f59e0b' : user.status === 'Deactivated' ? '#ef4444' : 'var(--status-gray-txt)',
                     }} />
                     {user.status}
                   </span>
                 </td>
                 <td style={{ ...td, textAlign: 'center' }}>
-                  <button
-                    onClick={() => openDeleteConfirm(user)}
-                    title="Delete user"
-                    style={{
-                      padding: 6, borderRadius: 8, border: 'none',
-                      background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    {user.status === 'Pending' && (
+                      <>
+                        {user.description && (
+                          <button
+                            onClick={() => setDescriptionModal(user)}
+                            title="View description"
+                            style={{
+                              padding: 6, borderRadius: 8, border: 'none',
+                              background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.color = '#3b82f6'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            <Eye size={15} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleApprove(user)}
+                          disabled={approving === user._id}
+                          title="Approve expert"
+                          style={{
+                            padding: 6, borderRadius: 8, border: 'none',
+                            background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                            transition: 'all 0.2s', opacity: approving === user._id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#22c55e'; e.currentTarget.style.background = 'rgba(34,197,94,0.08)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <Check size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleReject(user)}
+                          disabled={approving === user._id}
+                          title="Reject expert"
+                          style={{
+                            padding: 6, borderRadius: 8, border: 'none',
+                            background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                            transition: 'all 0.2s', opacity: approving === user._id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <XIcon size={15} />
+                        </button>
+                      </>
+                    )}
+                    {user.role !== 'Admin' && user.status !== 'Pending' && (
+                      user.active ? (
+                        <button
+                          onClick={() => handleDeactivate(user)}
+                          disabled={approving === user._id}
+                          title="Deactivate account"
+                          style={{
+                            padding: 6, borderRadius: 8, border: 'none',
+                            background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                            transition: 'all 0.2s', opacity: approving === user._id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#f59e0b'; e.currentTarget.style.background = 'rgba(245,158,11,0.08)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <Ban size={15} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleReactivate(user)}
+                          disabled={approving === user._id}
+                          title="Reactivate account"
+                          style={{
+                            padding: 6, borderRadius: 8, border: 'none',
+                            background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                            transition: 'all 0.2s', opacity: approving === user._id ? 0.5 : 1,
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#22c55e'; e.currentTarget.style.background = 'rgba(34,197,94,0.08)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <RotateCcw size={15} />
+                        </button>
+                      )
+                    )}
+                    <button
+                      onClick={() => openDeleteConfirm(user)}
+                      title="Delete user"
+                      style={{
+                        padding: 6, borderRadius: 8, border: 'none',
+                        background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--slate-400)'; e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -350,6 +495,76 @@ const UserTable = () => {
 
       {/* Toast notifications */}
       <ToastContainer />
+
+      {/* Expert description modal */}
+      {descriptionModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999,
+        }} onClick={() => setDescriptionModal(null)}>
+          <div style={{
+            background: 'var(--bg-card)', borderRadius: 20, padding: '28px 32px',
+            maxWidth: 480, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            border: '1px solid var(--glass-border)',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: 'var(--slate-900)', margin: 0 }}>
+                Expert Application
+              </h3>
+              <button onClick={() => setDescriptionModal(null)} style={{
+                padding: 6, borderRadius: 8, border: 'none', background: 'transparent',
+                color: 'var(--slate-400)', cursor: 'pointer',
+              }}>
+                <XIcon size={18} />
+              </button>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--slate-400)' }}>
+                Applicant
+              </span>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--slate-900)', fontWeight: 600, marginTop: 4 }}>
+                {descriptionModal.username} ({descriptionModal.email})
+              </p>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--slate-400)' }}>
+                Description
+              </span>
+              <p style={{
+                fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--slate-700)',
+                marginTop: 4, lineHeight: 1.6, padding: '12px 16px',
+                background: 'var(--bg-surface)', borderRadius: 12,
+                border: '1px solid var(--glass-border)',
+              }}>
+                {descriptionModal.description || 'No description provided.'}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => { handleReject(descriptionModal); setDescriptionModal(null); }}
+                style={{
+                  padding: '8px 20px', borderRadius: 10, border: 'none',
+                  background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer',
+                  fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600,
+                }}
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => { handleApprove(descriptionModal); setDescriptionModal(null); }}
+                style={{
+                  padding: '8px 20px', borderRadius: 10, border: 'none',
+                  background: 'var(--emerald-600)', color: '#fff', cursor: 'pointer',
+                  fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600,
+                }}
+              >
+                Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
