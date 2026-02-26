@@ -86,6 +86,13 @@ export default function Topbar({ adminMode }) {
                 ASK AN EXPERT
               </Link>
             </li>
+            {user && (
+              <li className="topListItem">
+                <Link className="link" to="/my-blogs">
+                  MY BLOGS
+                </Link>
+              </li>
+            )}
             {user && user.isAdmin && (
               <li className="topListItem">
                 <Link className="link" to="/admin">

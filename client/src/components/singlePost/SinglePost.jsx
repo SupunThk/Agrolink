@@ -25,7 +25,8 @@ export default function SinglePost() {
   useEffect(() => {
     const getPost = async () => {
       try {
-        const res = await axios.get("/posts/" + path);
+        const urlToFetch = user?.username ? `/posts/${path}?user=${user.username}` : `/posts/${path}`;
+        const res = await axios.get(urlToFetch);
         setPost(res.data);
         setTitle(res.data.title);
         setDesc(res.data.desc);
