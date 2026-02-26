@@ -112,6 +112,41 @@ router.put("/admin/reactivate/:id", async (req, res) => {
   }
 });
 
+// ── ADMIN: Create admin account ─────────────────────────────────────────────
+router.post("/admin/create-admin", async (req, res) => {
+  try {
+    const { username, name, email, password } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json("Username, email and password are required!");
+    }
+    // Check if username or email already exists
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res.status(400).json("Username or email already exists!");
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPass = await bcrypt.hash(password, salt);
+    const newAdmin = new User({
+      username,
+      name: name || username,
+      email,
+      password: hashedPass,
+      role: "admin",
+      isAdmin: true,
+      approved: true,
+      active: true,
+    });
+    const savedUser = await newAdmin.save();
+    const { password: pw, ...others } = savedUser._doc;
+    res.status(201).json(others);
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json("Username or email already exists!");
+    }
+    res.status(500).json("Something went wrong!");
+  }
+});
+
 // ── ADMIN: Delete any user ──────────────────────────────────────────────────
 router.delete("/admin/:id", async (req, res) => {
   try {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import {
   Database, CheckCircle, XCircle, RefreshCw, Lock, Eye, EyeOff,
-  Camera, Save, Loader, Shield, Server, HardDrive,
+  Camera, Save, Loader, Shield, Server, HardDrive, UserPlus, Mail, User as UserIcon,
 } from 'lucide-react';
 import axios from 'axios';
 import { Context } from '../../context/Context';
@@ -76,6 +76,40 @@ const AdminSettings = () => {
   };
 
   useEffect(() => { fetchDbStatus(); }, []);
+
+  /* ── Create Admin Account ───────────────────────────────────────────────── */
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminName, setAdminName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPw, setAdminPw] = useState('');
+  const [adminConfirmPw, setAdminConfirmPw] = useState('');
+  const [showAdminPw, setShowAdminPw] = useState(false);
+  const [showAdminConfirmPw, setShowAdminConfirmPw] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(false);
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    if (!adminUsername || !adminEmail || !adminPw) { toast.error('Please fill in all required fields'); return; }
+    if (adminPw.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (adminPw !== adminConfirmPw) { toast.error('Passwords do not match'); return; }
+    setAdminLoading(true);
+    try {
+      await axios.post('/users/admin/create-admin', {
+        username: adminUsername,
+        name: adminName,
+        email: adminEmail,
+        password: adminPw,
+      });
+      toast.success('Admin account created successfully!');
+      setAdminUsername(''); setAdminName(''); setAdminEmail('');
+      setAdminPw(''); setAdminConfirmPw('');
+    } catch (err) {
+      const msg = err.response?.data;
+      toast.error(typeof msg === 'string' ? msg : 'Failed to create admin account');
+    } finally {
+      setAdminLoading(false);
+    }
+  };
 
   /* ── Password change ───────────────────────────────────────────────────── */
   const [currentPw, setCurrentPw] = useState('');
@@ -563,6 +597,167 @@ const AdminSettings = () => {
                   <Lock size={14} />
                 )}
                 {pwLoading ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {/* ── 4. Create Admin Account ─────────────────────────────────────── */}
+      <div style={{ ...sectionCard, animationDelay: '0.24s' }}>
+        <div style={sectionHeader}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+            background: 'rgba(99,102,241,0.10)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            <UserPlus size={18} style={{ color: '#6366f1' }} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--slate-900)' }}>
+              Create Admin Account
+            </h3>
+            <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
+              Only admins can create other admin accounts
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleCreateAdmin} style={sectionBody}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 460 }}>
+            {/* Username */}
+            <div>
+              <label style={label}>Username *</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)' }}>
+                  <UserIcon size={15} />
+                </div>
+                <input
+                  type="text"
+                  value={adminUsername}
+                  onChange={e => setAdminUsername(e.target.value)}
+                  placeholder="Enter username"
+                  style={{ ...inputStyle, paddingLeft: 38 }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--emerald-600)'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.1)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.boxShadow = 'none'; }}
+                />
+              </div>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label style={label}>Full Name</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)' }}>
+                  <UserIcon size={15} />
+                </div>
+                <input
+                  type="text"
+                  value={adminName}
+                  onChange={e => setAdminName(e.target.value)}
+                  placeholder="Enter full name"
+                  style={{ ...inputStyle, paddingLeft: 38 }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--emerald-600)'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.1)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.boxShadow = 'none'; }}
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label style={label}>Email *</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)' }}>
+                  <Mail size={15} />
+                </div>
+                <input
+                  type="email"
+                  value={adminEmail}
+                  onChange={e => setAdminEmail(e.target.value)}
+                  placeholder="Enter email address"
+                  style={{ ...inputStyle, paddingLeft: 38 }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--emerald-600)'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.1)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.boxShadow = 'none'; }}
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label style={label}>Password *</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)' }}>
+                  <Lock size={15} />
+                </div>
+                <input
+                  type={showAdminPw ? 'text' : 'password'}
+                  value={adminPw}
+                  onChange={e => setAdminPw(e.target.value)}
+                  placeholder="Enter password"
+                  style={{ ...inputStyle, paddingLeft: 38, paddingRight: 38 }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--emerald-600)'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.1)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--glass-border)'; e.target.style.boxShadow = 'none'; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPw(!showAdminPw)}
+                  style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', padding: 4, border: 'none', background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer', borderRadius: 6 }}
+                >
+                  {showAdminPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label style={label}>Confirm Password *</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--slate-400)' }}>
+                  <Lock size={15} />
+                </div>
+                <input
+                  type={showAdminConfirmPw ? 'text' : 'password'}
+                  value={adminConfirmPw}
+                  onChange={e => setAdminConfirmPw(e.target.value)}
+                  placeholder="Re-enter password"
+                  style={{
+                    ...inputStyle,
+                    paddingLeft: 38, paddingRight: 38,
+                    borderColor: adminConfirmPw && adminConfirmPw !== adminPw ? '#ef4444' : undefined,
+                  }}
+                  onFocus={e => { e.target.style.borderColor = adminConfirmPw && adminConfirmPw !== adminPw ? '#ef4444' : 'var(--emerald-600)'; e.target.style.boxShadow = '0 0 0 3px rgba(5,150,105,0.1)'; }}
+                  onBlur={e => { e.target.style.borderColor = adminConfirmPw && adminConfirmPw !== adminPw ? '#ef4444' : 'var(--glass-border)'; e.target.style.boxShadow = 'none'; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminConfirmPw(!showAdminConfirmPw)}
+                  style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', padding: 4, border: 'none', background: 'transparent', color: 'var(--slate-400)', cursor: 'pointer', borderRadius: 6 }}
+                >
+                  {showAdminConfirmPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              {adminConfirmPw && adminConfirmPw !== adminPw && (
+                <p style={{ margin: '6px 0 0', fontFamily: 'var(--font-body)', fontSize: 11, color: '#ef4444', animation: 'adminSettingsFadeUp 0.2s ease' }}>
+                  Passwords do not match
+                </p>
+              )}
+            </div>
+
+            {/* Submit */}
+            <div style={{ paddingTop: 4 }}>
+              <button
+                type="submit"
+                disabled={adminLoading}
+                style={{ ...btnPrimary, background: '#6366f1', opacity: adminLoading ? 0.7 : 1 }}
+                onMouseEnter={e => { if (!adminLoading) e.currentTarget.style.filter = 'brightness(1.1)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'none'; }}
+              >
+                {adminLoading ? (
+                  <Loader size={14} style={{ animation: 'spin 0.6s linear infinite' }} />
+                ) : (
+                  <UserPlus size={14} />
+                )}
+                {adminLoading ? 'Creating...' : 'Create Admin Account'}
               </button>
             </div>
           </div>

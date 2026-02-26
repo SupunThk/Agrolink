@@ -7,12 +7,9 @@ router.post("/register", async(req, res) => {
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(req.body.password, salt);
-        const isAdmin = req.body.isAdmin === true; // Only true if explicitly set
-        // Determine role: admin > explicit role > default "user"
+        // Admin accounts can only be created from the admin panel
         let role = "user";
-        if (isAdmin) {
-            role = "admin";
-        } else if (req.body.role === "expert") {
+        if (req.body.role === "expert") {
             role = "expert";
         }
         const newUser = new User({
@@ -23,7 +20,7 @@ router.post("/register", async(req, res) => {
             role: role,
             description: role === "expert" ? (req.body.description || "") : "",
             approved: role === "expert" ? false : true,
-            isAdmin: isAdmin
+            isAdmin: false
         });
         const user = await newUser.save();
         // Let the client know if they need approval
