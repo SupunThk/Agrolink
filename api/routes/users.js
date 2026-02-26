@@ -46,6 +46,45 @@ router.get("/admin/stats", async (req, res) => {
   }
 });
 
+// ── ADMIN: Get pending expert approvals ─────────────────────────────────────
+router.get("/admin/pending-experts", async (req, res) => {
+  try {
+    const pendingExperts = await User.find({ role: "expert", approved: false })
+      .select("-password")
+      .sort({ createdAt: -1 });
+    res.status(200).json(pendingExperts);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Approve expert ───────────────────────────────────────────────────
+router.put("/admin/approve/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json("User not found!");
+    if (user.role !== "expert") return res.status(400).json("User is not an expert!");
+    user.approved = true;
+    await user.save();
+    res.status(200).json("Expert has been approved!");
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Reject expert (delete account) ───────────────────────────────────
+router.put("/admin/reject/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json("User not found!");
+    if (user.role !== "expert") return res.status(400).json("User is not an expert!");
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json("Expert has been rejected and removed!");
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
 // ── ADMIN: Delete any user ──────────────────────────────────────────────────
 router.delete("/admin/:id", async (req, res) => {
   try {

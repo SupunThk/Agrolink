@@ -6,12 +6,16 @@ import axios from "axios"
 
 export default function Register() {
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [role, setRole] = useState("user");
+  const [description, setDescription] = useState("");
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const validateEmail = (email) => {
     return String(email)
@@ -45,16 +49,25 @@ export default function Register() {
       return;
     }
 
+    if (role === "expert" && !description.trim()) {
+      setError("Please provide a description about your expertise.");
+      return;
+    }
+
     try {
-      // Only allow admin registration if username is 'admin'
-      const isAdmin = username.trim().toLowerCase() === 'admin';
       const res = await axios.post("/auth/register", {
         username,
+        name: name || username,
         email,
         password,
-        ...(isAdmin ? { isAdmin: true } : {})
+        role,
+        ...(role === "expert" ? { description } : {}),
       });
-      res.data && window.location.replace("/login");
+      if (res.data && res.data.pendingApproval) {
+        setSuccess("Your expert account has been created! Please wait for admin approval before you can log in.");
+      } else {
+        res.data && window.location.replace("/login");
+      }
     } catch (err) {
       const errorMsg = typeof err.response?.data === "string" 
         ? err.response.data 
@@ -72,13 +85,61 @@ export default function Register() {
           <p>Join our organic community</p>
         </div>
         <form className="registerForm" onSubmit={handleSubmit}>
-          <label>Username</label>
-          <input
-            className="registerInput"
-            type="text"
-            placeholder="Choose a username..."
-            onChange={(e) => setUsername(e.target.value)}
-          />
+          <label>Account Type</label>
+          <div className="registerRoleSelector">
+            <button
+              type="button"
+              className={`registerRoleBtn${role === "user" ? " active" : ""}`}
+              onClick={() => setRole("user")}
+            >
+              <i className="fas fa-user"></i>
+              <span>Normal User</span>
+            </button>
+            <button
+              type="button"
+              className={`registerRoleBtn${role === "expert" ? " active" : ""}`}
+              onClick={() => setRole("expert")}
+            >
+              <i className="fas fa-user-tie"></i>
+              <span>Expert</span>
+            </button>
+          </div>
+          {role === "expert" && (
+            <>
+              <label>About You</label>
+              <textarea
+                className="registerInput registerTextarea"
+                placeholder="Describe your expertise, qualifications, and experience..."
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <div className="registerExpertNote">
+                <i className="fas fa-info-circle"></i>
+                <span>Expert accounts require admin approval before you can log in.</span>
+              </div>
+            </>
+          )}
+          <div className="registerGrid">
+            <div className="registerField">
+              <label>Username</label>
+              <input
+                className="registerInput"
+                type="text"
+                placeholder="Choose a username..."
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div className="registerField">
+              <label>Full Name</label>
+              <input
+                className="registerInput"
+                type="text"
+                placeholder="Enter your full name..."
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+          </div>
           <label>Email</label>
           <input
             className="registerInput"
@@ -86,35 +147,47 @@ export default function Register() {
             placeholder="Enter your email..."
             onChange={(e) => setEmail(e.target.value)}
           />
-          <label>Password</label>
-          <div className="registerInputWrapper">
-            <input
-              className="registerInput"
-              type={showPassword ? "text" : "password"}
-              placeholder="Create a password..."
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <i
-              className={`registerEyeIcon fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
-              onClick={() => setShowPassword(!showPassword)}
-            />
-          </div>
-          <label>Confirm Password</label>
-          <div className="registerInputWrapper">
-            <input
-              className="registerInput"
-              type={showConfirm ? "text" : "password"}
-              placeholder="Confirm your password..."
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <i
-              className={`registerEyeIcon fas ${showConfirm ? "fa-eye-slash" : "fa-eye"}`}
-              onClick={() => setShowConfirm(!showConfirm)}
-            />
+          <div className="registerGrid">
+            <div className="registerField">
+              <label>Password</label>
+              <div className="registerInputWrapper">
+                <input
+                  className="registerInput"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a password..."
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <i
+                  className={`registerEyeIcon fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
+                  onClick={() => setShowPassword(!showPassword)}
+                />
+              </div>
+            </div>
+            <div className="registerField">
+              <label>Confirm Password</label>
+              <div className="registerInputWrapper">
+                <input
+                  className="registerInput"
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Confirm password..."
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <i
+                  className={`registerEyeIcon fas ${showConfirm ? "fa-eye-slash" : "fa-eye"}`}
+                  onClick={() => setShowConfirm(!showConfirm)}
+                />
+              </div>
+            </div>
           </div>
           <button className="registerButton" type="submit">
-            Create Account
+            {role === "expert" ? "Submit for Approval" : "Create Account"}
           </button>
+          {success && (
+            <div className="alert alert-success">
+              <i className="fas fa-check-circle"></i>
+              <span>{success}</span>
+            </div>
+          )}
           {error && (
             <div className="alert alert-error">
               <i className="fas fa-exclamation-circle"></i>

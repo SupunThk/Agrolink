@@ -6,6 +6,10 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    name: {
+        type: String,
+        default: "",
+    },
     email: {
         type: String,
         required: true,
@@ -18,6 +22,19 @@ const UserSchema = new mongoose.Schema({
     profilePic: {
         type: String,
         default: "",
+    },
+    role: {
+        type: String,
+        enum: ["user", "expert", "admin"],
+        default: "user",
+    },
+    description: {
+        type: String,
+        default: "",
+    },
+    approved: {
+        type: Boolean,
+        default: true,
     },
     isAdmin: {
         type: Boolean,

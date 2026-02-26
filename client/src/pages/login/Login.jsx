@@ -29,8 +29,8 @@ export default function Login() {
         password,
       });
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
-      // Redirect admin to /admin, others to home
-      if (res.data.isAdmin) {
+      // Redirect based on role
+      if (res.data.isAdmin || res.data.role === "admin") {
         window.location.replace("/admin");
       } else {
         window.location.replace("/");
