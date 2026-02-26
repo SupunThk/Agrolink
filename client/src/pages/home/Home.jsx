@@ -5,7 +5,7 @@ import Posts from "../../components/posts/Posts";
 import Sidebar from "../../components/sidebar/Sidebar";
 import "./home.css";
 import axios from "axios";
-import { useLocation } from "react-router";
+import { useLocation } from "react-router-dom";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
@@ -13,8 +13,13 @@ export default function Home() {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const res = await axios.get("/posts" + search);
-      setPosts(res.data);
+      try {
+        const res = await axios.get("/posts" + search);
+        setPosts(res.data);
+      } catch (err) {
+        // Avoid unhandled Axios errors in the UI when the API is down.
+        setPosts([]);
+      }
     }
     fetchPosts();
   },[search]);

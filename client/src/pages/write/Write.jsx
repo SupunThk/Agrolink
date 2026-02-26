@@ -87,7 +87,11 @@ export default function Write() {
       newPost.photo = filename;
       try {
         await axios.post("/upload", data);
-      } catch (err) {}
+      } catch (err) {
+        setError("Cover image upload failed. Please try again.");
+        setPublishing(false);
+        return;
+      }
     }
     try {
       const res = await axios.post("/posts", newPost);

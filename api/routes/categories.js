@@ -1,5 +1,8 @@
 const router = require("express").Router();
 const Category = require("../models/Category");
+const requireDb = require("../middleware/requireDb");
+
+router.use(requireDb);
 
 router.post("/", async (req, res) =>{
     const name = (req.body?.name || "").trim();
@@ -20,7 +23,7 @@ router.post("/", async (req, res) =>{
                 if (existing) return res.status(200).json(existing);
             } catch (e) {}
         }
-        return res.status(500).json(err);
+        return res.status(500).json("Something went wrong!");
     }
 });
 
@@ -30,7 +33,7 @@ router.get("/", async (req, res) =>{
         const cats = await Category.find().sort({ name: 1 });
         res.status(200).json(cats);
     }catch(err){
-        res.status(500).json(err);
+        res.status(500).json("Something went wrong!");
     }
 });
 

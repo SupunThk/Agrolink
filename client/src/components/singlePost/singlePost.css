@@ -198,6 +198,7 @@
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.7;
+  color: var(--slate-900);
 }
 
 .singlePostDescInput:focus {
@@ -220,7 +221,7 @@
 }
 
 .singlePostButton {
-  background: linear-gradient(135deg, var(--emerald-600) 0%, var(--forest-900) 100%);
+  background: linear-gradient(135deg, var(--emerald-600) 0%, var(--emerald-700) 100%);
   color: #fff;
   padding: 14px 32px;
   border-radius: 12px;

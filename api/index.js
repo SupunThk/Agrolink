@@ -41,13 +41,31 @@ async function seedDefaultCategories() {
   }
 }
 
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(async () => {
-    console.log("Connected to MongoDB");
-    await seedDefaultCategories();
-  })
-  .catch((err) => console.log(err));
+async function startServer() {
+  if (!process.env.MONGO_URL) {
+    console.error(
+      "Missing MONGO_URL. Create api/.env and set MONGO_URL to your MongoDB connection string."
+    );
+    console.error("Starting backend without DB (API will return 503 for DB routes).");
+  }
+
+  try {
+    if (process.env.MONGO_URL) {
+      await mongoose.connect(process.env.MONGO_URL, {
+        serverSelectionTimeoutMS: 5000,
+      });
+      console.log("Connected to MongoDB");
+      await seedDefaultCategories();
+    }
+  } catch (err) {
+    console.error("Failed to connect to MongoDB", err);
+    console.error("Continuing without DB (API will return 503 for DB routes).");
+  }
+
+  app.listen(5000, () => {
+    console.log("Backend is running.");
+  });
+}
 
 const storage = multer.diskStorage({
   destination:(req,file,cb) =>{
@@ -69,6 +87,4 @@ app.use("/api/users", userRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/categories", categoryRoute);
 
-app.listen("5000", () => {
-  console.log("Backend is running.");
-});
+startServer();

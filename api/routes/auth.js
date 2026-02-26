@@ -1,10 +1,17 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const bcrypt = require('bcrypt');
+const requireDb = require("../middleware/requireDb");
+
+router.use(requireDb);
 
 //REGISTER
 router.post("/register", async(req, res) => {
     try{
+
+        if (!req.body?.username || !req.body?.email || !req.body?.password) {
+            return res.status(400).json("Username, email and password are required!");
+        }
 
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(req.body.password, salt);
@@ -27,6 +34,9 @@ router.post("/register", async(req, res) => {
 //LOGIN
 router.post("/login", async(req, res) => {
     try{
+        if (!req.body?.username || !req.body?.password) {
+            return res.status(400).json("Username and password are required!");
+        }
         const user = await User.findOne({ username: req.body.username });
         if (!user) return res.status(400).json("Wrong credentials!");
 
@@ -43,6 +53,9 @@ router.post("/login", async(req, res) => {
 //VERIFY
 router.post("/verify", async (req, res) => {
     try {
+        if (!req.body?.username || !req.body?.password) {
+            return res.status(400).json("Username and password are required!");
+        }
         const user = await User.findOne({ username: req.body.username });
         if (!user) return res.status(400).json("Wrong credentials!");
 

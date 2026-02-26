@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import "./singlePost.css";
@@ -18,10 +18,16 @@ export default function SinglePost() {
 
   useEffect(() => {
     const getPost = async () => {
-      const res = await axios.get("/posts/" + path);
-      setPost(res.data);
-      setTitle(res.data.title);
-      setDesc(res.data.desc);
+      try {
+        const res = await axios.get("/posts/" + path);
+        setPost(res.data);
+        setTitle(res.data.title);
+        setDesc(res.data.desc);
+      } catch (err) {
+        setPost({});
+        setTitle("");
+        setDesc("");
+      }
     };
     getPost();
   }, [path]);
@@ -32,7 +38,13 @@ export default function SinglePost() {
         data: { username: user.username },
       });
       window.location.replace("/");
-    } catch (err) {}
+    } catch (err) {
+      setError(
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : "Failed to delete post. Please try again."
+      );
+    }
   };
 
   const [error, setError] = useState(null);
@@ -53,7 +65,10 @@ export default function SinglePost() {
       updatedPost.photo = filename;
       try {
         await axios.post("/upload", data);
-      } catch (err) {}
+      } catch (err) {
+        setError("Failed to upload cover image.");
+        return;
+      }
     }
 
     try {

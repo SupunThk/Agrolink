@@ -3,19 +3,19 @@ import "./sidebar.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
+const DEFAULT_CATEGORIES = [
+  "Organic Farming",
+  "Inorganic Farming",
+  "Crop Diseases",
+  "Pest Management",
+  "Soil Management",
+  "Weather & Climate",
+  "Crop Growth",
+  "Fertilizer Management",
+];
+
 export default function Sidebar() {
   const [cats, setCats] = useState([]);
-
-  const DEFAULT_CATEGORIES = [
-    "Organic Farming",
-    "Inorganic Farming",
-    "Crop Diseases",
-    "Pest Management",
-    "Soil Management",
-    "Weather & Climate",
-    "Crop Growth",
-    "Fertilizer Management",
-  ];
 
   useEffect(() => {
     const getCats = async () => {
@@ -24,7 +24,10 @@ export default function Sidebar() {
         const byName = new Map(res.data.map((c) => [c.name, c]));
         const orderedDefaults = DEFAULT_CATEGORIES.map((name) => byName.get(name)).filter(Boolean);
         setCats(orderedDefaults);
-      } catch (err) {}
+      } catch (err) {
+        // Fallback: show default categories even if API/DB is down.
+        setCats(DEFAULT_CATEGORIES.map((name) => ({ _id: name, name })));
+      }
     };
     getCats();
   }, []);
@@ -92,15 +95,15 @@ export default function Sidebar() {
             <span className="sidebarTitle">Follow Us</span>
           </div>
           <div className="sidebarSocial">
-            <a href="#" className="sidebarSocialBtn sidebarTwitter" aria-label="Twitter">
+            <a href="https://twitter.com/" className="sidebarSocialBtn sidebarTwitter" aria-label="Twitter" target="_blank" rel="noreferrer">
               <i className="fa-brands fa-twitter"></i>
               <span>Twitter</span>
             </a>
-            <a href="#" className="sidebarSocialBtn sidebarInstagram" aria-label="Instagram">
+            <a href="https://www.instagram.com/" className="sidebarSocialBtn sidebarInstagram" aria-label="Instagram" target="_blank" rel="noreferrer">
               <i className="fa-brands fa-instagram"></i>
               <span>Instagram</span>
             </a>
-            <a href="#" className="sidebarSocialBtn sidebarFacebook" aria-label="Facebook">
+            <a href="https://www.facebook.com/" className="sidebarSocialBtn sidebarFacebook" aria-label="Facebook" target="_blank" rel="noreferrer">
               <i className="fa-brands fa-facebook"></i>
               <span>Facebook</span>
             </a>

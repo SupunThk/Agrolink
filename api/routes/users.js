@@ -2,6 +2,9 @@ const router = require("express").Router();
 const Post = require("../models/Post");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
+const requireDb = require("../middleware/requireDb");
+
+router.use(requireDb);
 
 //UPDATE
 router.put("/:id", async(req, res) => {
@@ -55,6 +58,7 @@ router.delete("/:id", async(req, res) => {
 router.get("/:id", async (req,res)=>{
     try{
         const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json("User not found");
         const {password, ...others} = user._doc;
         res.status(200).json(others);
     }catch(err){

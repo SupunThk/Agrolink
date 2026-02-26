@@ -8,6 +8,7 @@
   overflow: hidden;
   border: 1px solid var(--glass-border);
   transition: all 0.4s var(--ease-zen);
+  height: 520px;
 }
 
 .post:hover {
@@ -127,6 +128,11 @@
   letter-spacing: -0.02em;
   transition: color 0.25s var(--ease-zen);
   margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .post:hover .postTitle {
@@ -138,13 +144,16 @@
   font-size: 13.5px;
   color: var(--slate-600);
   line-height: 1.75;
+  /* Fallback for browsers where line-clamp is unreliable */
+  max-height: calc(1.75em * 4);
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
-  flex-grow: 1;
+  flex-grow: 0;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .postReadMore {
@@ -157,7 +166,7 @@
   color: var(--emerald-600);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 4px;
+  margin-top: auto;
   transition: gap 0.25s var(--ease-zen);
 }
 
@@ -175,5 +184,6 @@
   .post {
     width: 100%;
     margin: 0 0 28px 0;
+    height: auto;
   }
 }

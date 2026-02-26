@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "./topbar.css";
 import { useContext, useState } from "react";
 import { Context } from "../../context/Context";
@@ -6,8 +6,7 @@ import Logo from "../logo/Logo";
 import MobileSidebar from "../mobileSidebar/MobileSidebar";
 
 export default function Topbar() {
-  const navigate = useNavigate();
-  const {user, isVerified, theme, dispatch} = useContext(Context);
+  const {user, theme, dispatch} = useContext(Context);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const PF = "http://localhost:5000/images/"
 

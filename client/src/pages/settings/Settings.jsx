@@ -51,7 +51,16 @@ export default function Settings() {
       data.append("name", filename);
       data.append("file", file);
       updatedUser.profilePic = filename;
-      try { await axios.post("/upload", data); } catch (err) {}
+      try {
+        await axios.post("/upload", data);
+      } catch (err) {
+        const errorMsg = typeof err.response?.data === "string"
+          ? err.response.data
+          : "Profile image upload failed.";
+        setError(errorMsg);
+        dispatch({ type: "UPDATE_FAILURE" });
+        return;
+      }
     }
 
     setSaving(true);

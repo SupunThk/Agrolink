@@ -4,25 +4,28 @@
     position: fixed;
     right: 40px;
     bottom: 40px;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(145deg, var(--primary-green), var(--secondary-green));
+    width: 52px;
+    height: 52px;
+    background: var(--emerald-600);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: var(--shadow-medium);
+    box-shadow: var(--shadow-zen);
     z-index: 9999;
     border: 3px solid rgba(255, 255, 255, 0.3);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-decoration: none;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
     animation: slideInRight 0.6s ease-out, pulse 2s infinite 0.6s;
 }
 
 /* Icon Inside */
 .icon i {
-    font-size: 25px;  /* ඔයාට ඕනෙ 25px */
+    font-size: 22px;
     color: white;
     transition: all 0.5s ease;
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
@@ -30,32 +33,32 @@
 
 /* Hover Effects */
 .icon:hover {
-    background: linear-gradient(145deg, var(--secondary-green), var(--primary-green));
-    transform: scale(1.15) rotate(5deg);
-    box-shadow: 0 25px 40px rgba(45, 106, 79, 0.4);
+    background: var(--emerald-700);
+    transform: scale(1.08);
+    box-shadow: 0 25px 40px rgba(5, 150, 105, 0.35);
     border-color: rgba(255, 255, 255, 0.6);
 }
 
 .icon:hover i {
-    transform: rotate(360deg) scale(1.1);
+    transform: scale(1.05);
 }
 
 /* Active (Click) Effect */
 .icon:active {
-    transform: scale(0.95) rotate(-5deg);
-    box-shadow: 0 10px 20px rgba(5, 184, 32, 0.5);
+    transform: scale(0.95);
+    box-shadow: 0 10px 20px rgba(5, 150, 105, 0.45);
 }
 
 /* Pulse Animation */
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(8, 161, 39, 0.7);
+        box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.55);
     }
     70% {
-        box-shadow: 0 0 0 20px rgba(8, 161, 39, 0);
+        box-shadow: 0 0 0 20px rgba(5, 150, 105, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(8, 161, 39, 0);
+        box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
     }
 }
 
@@ -144,12 +147,12 @@
     .icon {
         right: 30px;
         bottom: 30px;
-        width: 48px;   /* tablet එකේ පොඩ්ඩක් අඩු කළා */
-        height: 48px;
+        width: 44px;
+        height: 44px;
     }
     
     .icon i {
-        font-size: 24px;  /* 25ට ආසන්නව */
+        font-size: 20px;
     }
     
     .icon .tooltip {
@@ -173,12 +176,12 @@
     .icon {
         right: 25px;
         bottom: 25px;
-        width: 45px;
-        height: 45px;
+        width: 42px;
+        height: 42px;
     }
     
     .icon i {
-        font-size: 23px;
+        font-size: 19px;
     }
     
     .icon .tooltip {

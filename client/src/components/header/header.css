@@ -118,7 +118,7 @@
 }
 
 .headerBtnPrimary {
-  background: linear-gradient(135deg, var(--emerald-600), var(--forest-900));
+  background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
   color: #fff;
   box-shadow: 0 10px 24px -5px rgba(5, 150, 105, 0.5);
 }
