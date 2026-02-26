@@ -8,14 +8,17 @@ import Single from "./pages/single/Single";
 import Write from "./pages/write/Write";
 import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
+import KnowledgeBase from "./pages/knowledgeBase/KnowledgeBase";
+import AddDisease from "./pages/knowledgeBase/AddDisease";
+import DiseaseDetail from "./pages/knowledgeBase/DiseaseDetail";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
 import DeleteModal from "./components/deleteModal/DeleteModal";
 
 function App() {
-  const {user, showVModal, showDModal, dispatch, theme} = useContext(Context);
-  
+  const { user, showVModal, showDModal, dispatch, theme } = useContext(Context);
+
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
@@ -23,7 +26,7 @@ function App() {
   return (
     <Router>
       <Topbar />
-      {showVModal && <VerificationModal setShowModal={(val) => dispatch({type: val ? "SHOW_VMODAL" : "HIDE_VMODAL"})} />}
+      {showVModal && <VerificationModal setShowModal={(val) => dispatch({ type: val ? "SHOW_VMODAL" : "HIDE_VMODAL" })} />}
       {showDModal && <DeleteModal />}
       <Routes>
         <Route path="/" element={<Home />} />
@@ -46,6 +49,9 @@ function App() {
         />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/knowledge" element={<KnowledgeBase />} />
+        <Route path="/add-disease" element={<AddDisease />} />
+        <Route path="/disease-detail/:id" element={<DiseaseDetail />} />
       </Routes>
     </Router>
   );
