@@ -1,14 +1,26 @@
-import React from "react";
+import React, { useContext } from "react";
+import axios from "axios";
+import { Context } from "../../../context/Context";
 import "./productCard.css";
 
-export default function ProductCard({ product }) {
-    const PF = "http://localhost:5000/images/";
+export default function ProductCard({ product, onDelete }) {
+    const { user } = useContext(Context);
 
     // Format price
     const formattedPrice = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
     }).format(product.price);
+
+    const handleDelete = async () => {
+        if (!window.confirm("Are you sure you want to delete this listing?")) return;
+        try {
+            await axios.delete(`/products/${product._id}`, { data: { username: user.username } });
+            if (onDelete) onDelete(product._id);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     return (
         <div className="productCard">
@@ -50,9 +62,15 @@ export default function ProductCard({ product }) {
                         </div>
                         <span className="sellerName">{product.seller_id}</span>
                     </div>
-                    <button className="productCardContactBtn">
-                        Contact
-                    </button>
+                    {user && product.seller_id === user.username ? (
+                        <button className="productCardDeleteBtn" onClick={handleDelete}>
+                            <i className="fas fa-trash-alt"></i> Delete
+                        </button>
+                    ) : (
+                        <button className="productCardContactBtn">
+                            Contact
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

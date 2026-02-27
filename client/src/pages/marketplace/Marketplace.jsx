@@ -19,7 +19,12 @@ export default function Marketplace() {
       setError(false);
       try {
         const res = await axios.get('/products');
-        setProducts(res.data);
+        if (Array.isArray(res.data)) {
+          setProducts(res.data);
+        } else {
+          console.error("Expected array but got:", typeof res.data);
+          setError(true);
+        }
       } catch (err) {
         console.error("Failed to fetch products", err);
         setError(true);
@@ -32,8 +37,12 @@ export default function Marketplace() {
     }
   }, [activeTab]);
 
-  const allListings = products;
-  const myListings = products.filter(p => p.seller_id === user?.username);
+  const allListings = Array.isArray(products) ? products : [];
+  const myListings = allListings.filter(p => p.seller_id === user?.username);
+
+  const handleDeleteProduct = (deletedId) => {
+    setProducts(products.filter(p => p._id !== deletedId));
+  };
 
   return (
     <div className="marketplace fadeIn">
@@ -75,7 +84,7 @@ export default function Marketplace() {
 
               <div className="marketplaceGrid">
                 {allListings.map(product => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard key={product._id} product={product} onDelete={handleDeleteProduct} />
                 ))}
               </div>
             </div>
@@ -94,7 +103,7 @@ export default function Marketplace() {
 
               <div className="marketplaceGrid">
                 {myListings.map(product => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard key={product._id} product={product} onDelete={handleDeleteProduct} />
                 ))}
               </div>
             </div>

@@ -193,3 +193,25 @@ html[data-theme='dark'] .sellerName {
   background: var(--emerald-500);
   color: white;
 }
+
+.productCardDeleteBtn {
+  background: none;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.productCardDeleteBtn:hover {
+  background: #ef4444;
+  color: white;
+}
+
