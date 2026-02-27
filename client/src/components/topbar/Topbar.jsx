@@ -17,36 +17,9 @@ export default function Topbar({ adminMode }) {
     dispatch({ type: "LOGOUT" });
   }
 
-  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
-  // Hide dropdown when clicking outside
-  React.useEffect(() => {
-    if (!adminMode || !showAdminDropdown) return;
-    const handleClick = (e) => {
-      const dropdown = document.querySelector('.adminDropdown');
-      const profileBtn = document.querySelector('.topProfileBtn');
-      if (dropdown && !dropdown.contains(e.target) && profileBtn && !profileBtn.contains(e.target)) {
-        setShowAdminDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [adminMode, showAdminDropdown]);
   const handleProfileClick = () => {
-    if (adminMode) {
-      setShowAdminDropdown((v) => !v);
-    } else {
-      dispatch({ type: "SHOW_VMODAL" });
-    }
+    dispatch({ type: "SHOW_VMODAL" });
   }
-
-  // Hamburger button handler: if adminMode, toggle admin sidebar, else open global sidebar
-  const handleHamburger = () => {
-    if (adminMode) {
-      dispatch({ type: "SET_ADMIN_SIDEBAR", payload: true });
-    } else {
-      setSidebarOpen(true);
-    }
-  };
 
   return (
     <>
@@ -109,19 +82,17 @@ export default function Topbar({ adminMode }) {
         </div>
         <div className="topRight">
           {user ? (
-            <div style={{ position: "relative" }}>
-              <div onClick={handleProfileClick} style={{ cursor: "pointer" }} className="topProfileBtn">
-                {user.profilePic ? (
-                  <img
-                    className="topImg"
-                    src={PF + user.profilePic}
-                    alt="Profile"
-                    onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
-                  />
-                ) : null}
-                <div className="topImgDefault" style={{ display: user.profilePic ? "none" : "flex" }}>
-                  <i className="fas fa-user"></i>
-                </div>
+            <div onClick={handleProfileClick} style={{ cursor: "pointer" }} className="topProfileBtn">
+              {user.profilePic ? (
+                <img
+                  className="topImg"
+                  src={PF + user.profilePic}
+                  alt="Profile"
+                  onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+                />
+              ) : null}
+              <div className="topImgDefault" style={{ display: user.profilePic ? "none" : "flex" }}>
+                <i className="fas fa-user"></i>
               </div>
               {adminMode && showAdminDropdown && (
                 <div className="adminDropdown">

@@ -8,18 +8,15 @@ import Single from "./pages/single/Single";
 import Write from "./pages/write/Write";
 import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
-import AdminPanel from "./pages/admin/AdminPanel";
-import AskExpert from "./pages/askExpert/AskExpert";
-import MyBlogs from "./pages/myBlogs/MyBlogs";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import Marketplace from "./pages/marketplace/Marketplace";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
 import DeleteModal from "./components/deleteModal/DeleteModal";
 import axios from "axios";
 
-function AppContent() {
+function App() {
   const { user, showVModal, showDModal, dispatch, theme } = useContext(Context);
-  const location = useLocation();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -68,8 +65,8 @@ function AppContent() {
   const isAdminRoute = location.pathname === "/admin";
 
   return (
-    <>
-      {!isAdminRoute && <Topbar />}
+    <Router>
+      <Topbar />
       {showVModal && <VerificationModal setShowModal={(val) => dispatch({ type: val ? "SHOW_VMODAL" : "HIDE_VMODAL" })} />}
       {showDModal && <DeleteModal />}
       <Routes>
@@ -93,15 +90,7 @@ function AppContent() {
         />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/ask-expert" element={<AskExpert />} />
-        <Route
-          path="/my-blogs"
-          element={user ? <MyBlogs /> : <Login />}
-        />
-        <Route
-          path="/admin"
-          element={user && user.isAdmin ? <AdminPanel /> : <Login />}
-        />
+        <Route path="/marketplace" element={<Marketplace />} />
       </Routes>
     </>
   );

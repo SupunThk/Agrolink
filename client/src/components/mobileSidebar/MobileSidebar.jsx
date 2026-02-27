@@ -20,7 +20,7 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
           <Logo />
           <p className="navSidebarSubtitle">Community Management</p>
         </div>
-        
+
         <div className="navSidebarContent">
           <div className="navSidebarSection">
             <h4 className="navSidebarSectionTitle">MAIN NAVIGATION</h4>
@@ -33,6 +33,11 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
               <li className="navSidebarListItem">
                 <Link className="link" to="/write" onClick={() => setIsOpen(false)}>
                   <i className="fas fa-plus-circle"></i> Create Post
+                </Link>
+              </li>
+              <li className="navSidebarListItem">
+                <Link className="link" to="/marketplace" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-store"></i> Marketplace
                 </Link>
               </li>
             </ul>

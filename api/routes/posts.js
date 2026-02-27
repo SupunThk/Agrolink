@@ -3,7 +3,6 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const requireDb = require("../middleware/requireDb");
 
-
 router.use(requireDb);
 
 // ── ADMIN: Get all posts for moderation ─────────────────────────────────────
@@ -23,9 +22,13 @@ router.get("/admin/all", async (req, res) => {
     const posts = await Post.find(filter).sort({ createdAt: -1 });
     // Attach author info (profile pic, name) from User collection
     const usernames = [...new Set(posts.map((p) => p.username))];
-    const users = await User.find({ username: { $in: usernames } }).select("username name profilePic");
+    const users = await User.find({ username: { $in: usernames } }).select(
+      "username name profilePic",
+    );
     const userMap = {};
-    users.forEach((u) => { userMap[u.username] = u; });
+    users.forEach((u) => {
+      userMap[u.username] = u;
+    });
 
     const enriched = posts.map((p) => {
       const post = p._doc;
@@ -121,10 +124,9 @@ router.post("/", async (req, res) => {
     const savedPost = await newPost.save();
     res.status(200).json(savedPost);
   } catch (err) {
-    res.status(500).json("Something went wrong!")
+    res.status(500).json(err);
   }
 });
-
 
 //UPDATE POST
 router.put("/:id", async (req, res) => {
@@ -135,24 +137,21 @@ router.put("/:id", async (req, res) => {
         const updatedPost = await Post.findByIdAndUpdate(
           req.params.id,
           {
-            $set: req.body
+            $set: req.body,
           },
-          { new: true }
+          { new: true },
         );
         res.status(200).json(updatedPost);
       } catch (err) {
-        res.status(500).json("Something went wrong!");
+        res.status(500).json(err);
       }
-
     } else {
-      res.status(401).json("You can update only your post!")
+      res.status(401).json("You can update only your post!");
     }
   } catch (err) {
-    res.status(500).json("Something went wrong!");
+    res.status(500).json(err);
   }
 });
-
-
 
 //DELETE POST
 router.delete("/:id", async (req, res) => {
@@ -161,98 +160,54 @@ router.delete("/:id", async (req, res) => {
 
     if (!post) return res.status(404).json("Post not found");
 
-    // Compare usernames safely (case-insensitive, trimmed)
-    if (post.username.trim().toLowerCase() !== req.body.username.trim().toLowerCase()) {
+    // compare usernames safely
+    if (
+      post.username.trim().toLowerCase() ===
+      req.body.username.trim().toLowerCase()
+    ) {
+      await post.deleteOne(); // correct delete
+      return res.status(200).json("Post has been deleted...");
+    } else {
       return res.status(401).json("You can delete only your post!");
     }
-
-
-    await post.deleteOne();
-    return res.status(200).json("Post has been deleted...");
-
   } catch (err) {
-    console.error("[DELETE /posts/:id]", err);
+    console.error(err);
     return res.status(500).json("Server error");
   }
 });
 
-
-
-//GET ALL POST
-router.get("/", async (req, res) => {
-  const username = req.query.user;
-  const catName = req.query.cat;
-
-  const DEFAULT_CATEGORIES = [
-    "Organic Farming",
-    "Inorganic Farming",
-    "Crop Diseases",
-    "Pest Management",
-    "Soil Management",
-    "Weather & Climate",
-    "Crop Growth",
-    "Fertilizer Management",
-  ];
-
+//GET POST
+router.get("/:id", async (req, res) => {
   try {
-    let posts;
-    const approvedFilter = { status: "Approved" };
-
-    // If 'authorRequestsOwn' is true, we skip the approved filter and get ALL their posts
-    const authorRequestsOwn = req.query.authorRequestsOwn === "true";
-
-    if (username) {
-      if (authorRequestsOwn) {
-        // Fetch all posts (Approved, Pending, Rejected) for this author
-        posts = await Post.find({ username }).sort({ createdAt: -1 });
-      } else {
-        // Public view: only approved posts for this author
-        posts = await Post.find({ username, ...approvedFilter }).sort({ createdAt: -1 });
-      }
-    } else if (catName) {
-      if (catName === "Other") {
-        posts = await Post.find({
-          ...approvedFilter,
-          categories: {
-            $elemMatch: { $nin: DEFAULT_CATEGORIES },
-          },
-        }).sort({ createdAt: -1 });
-      } else {
-        posts = await Post.find({
-          ...approvedFilter,
-          categories: {
-            $in: [catName],
-          },
-        }).sort({ createdAt: -1 });
-      }
-    } else {
-      posts = await Post.find(approvedFilter).sort({ createdAt: -1 });
-    }
-    res.status(200).json(posts);
+    const post = await Post.findById(req.params.id);
+    res.status(200).json(post);
   } catch (err) {
     res.status(500).json(err);
   }
 });
 
-
-//GET POST
-router.get("/:id", async (req, res) => {
-  const requesterUsername = req.query.user;
-
+//GET ALL POST
+router.get("/", async (req, res) => {
+  const username = req.query.user;
+  const catName = req.query.cat;
   try {
-    const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json("Post not found");
-
-    // Allow access if the post is Approved OR if the requester is the author OR if requester is an admin
-    // Note: For full security, admin checking requires auth middleware, but we'll allow author bypass here based on passed username
-    if (post.status !== "Approved" && post.username !== requesterUsername) {
-      return res.status(403).json("This post is not available");
+    let posts;
+    if (username) {
+      posts = await Post.find({ username });
+    } else if (catName) {
+      posts = await Post.find({
+        categories: {
+          $in: [catName],
+        },
+      });
+    } else {
+      posts = await Post.find();
     }
-    res.status(200).json(post);
+    res.status(200).json(posts);
   } catch (err) {
-    res.status(500).json(err)
+    console.error("GET /posts error:", err);
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 });
 
 module.exports = router;
-
