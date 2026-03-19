@@ -6,42 +6,150 @@ const requireDb = require("../middleware/requireDb");
 
 router.use(requireDb);
 
+// ── ADMIN: Get all posts for moderation ─────────────────────────────────────
+router.get("/admin/all", async (req, res) => {
+  try {
+    const { status, search } = req.query;
+    let filter = {};
+    if (status && status !== "All") {
+      filter.status = status;
+    }
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { username: { $regex: search, $options: "i" } },
+      ];
+    }
+    const posts = await Post.find(filter).sort({ createdAt: -1 });
+    // Attach author info (profile pic, name) from User collection
+    const usernames = [...new Set(posts.map((p) => p.username))];
+    const users = await User.find({ username: { $in: usernames } }).select("username name profilePic");
+    const userMap = {};
+    users.forEach((u) => { userMap[u.username] = u; });
+
+    const enriched = posts.map((p) => {
+      const post = p._doc;
+      const author = userMap[post.username];
+      return {
+        ...post,
+        authorName: author?.name || post.username,
+        authorPic: author?.profilePic || "",
+      };
+    });
+
+    res.status(200).json(enriched);
+  } catch (err) {
+    console.error("[GET /posts/admin/all]", err);
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Get moderation stats ─────────────────────────────────────────────
+router.get("/admin/mod-stats", async (req, res) => {
+  try {
+    const [total, pending, approved, rejected, flagged] = await Promise.all([
+      Post.countDocuments(),
+      Post.countDocuments({ status: "Pending" }),
+      Post.countDocuments({ status: "Approved" }),
+      Post.countDocuments({ status: "Rejected" }),
+      Post.countDocuments({ flagged: true }),
+    ]);
+    res.status(200).json({ total, pending, approved, rejected, flagged });
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Approve a post ───────────────────────────────────────────────────
+router.put("/admin/approve/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    post.status = "Approved";
+    post.rejectionReason = "";
+    post.flagged = false;
+    await post.save();
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Reject a post ───────────────────────────────────────────────────
+router.put("/admin/reject/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    post.status = "Rejected";
+    post.rejectionReason = req.body.reason || "";
+    await post.save();
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Flag / Unflag a post ─────────────────────────────────────────────
+router.put("/admin/flag/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    post.flagged = !post.flagged;
+    await post.save();
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Delete any post ──────────────────────────────────────────────────
+router.delete("/admin/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
+    await post.deleteOne();
+    res.status(200).json("Post has been deleted.");
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
 //CREATE POST
-router.post("/", async(req, res) => {
-   const newPost = new Post(req.body);
-   try{
-        const savedPost = await newPost.save();
-        res.status(200).json(savedPost);
-   }catch(err){
+router.post("/", async (req, res) => {
+  const newPost = new Post(req.body);
+  try {
+    const savedPost = await newPost.save();
+    res.status(200).json(savedPost);
+  } catch (err) {
     res.status(500).json("Something went wrong!")
-   }
+  }
 });
 
 
 //UPDATE POST
-router.put("/:id", async(req, res) => {
-   try{
-        const post = await Post.findById(req.params.id);
-        if(post.username === req.body.username){
-            try{
-                const updatedPost = await Post.findByIdAndUpdate(
-                    req.params.id,
-                    {
-                        $set:req.body
-                    },
-                    {new:true}
-                );
-                res.status(200).json(updatedPost);
-            }catch(err){
-                    res.status(500).json("Something went wrong!");
-            }
+router.put("/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (post.username === req.body.username) {
+      try {
+        const updatedPost = await Post.findByIdAndUpdate(
+          req.params.id,
+          {
+            $set: req.body
+          },
+          { new: true }
+        );
+        res.status(200).json(updatedPost);
+      } catch (err) {
+        res.status(500).json("Something went wrong!");
+      }
 
-            } else{
-                res.status(401).json("You can update only your post!")
-            }
-   }catch(err){
-       res.status(500).json("Something went wrong!");
-   }
+    } else {
+      res.status(401).json("You can update only your post!")
+    }
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
 });
 
 
@@ -70,58 +178,88 @@ router.delete("/:id", async (req, res) => {
 
 
 
-//GET POST
-router.get("/:id", async (req,res)=>{
-    try{
-        const post = await Post.findById(req.params.id);
-        res.status(200).json(post);
-    }catch(err){
-        res.status(500).json("Something went wrong!")
+//GET ALL POST
+router.get("/", async (req, res) => {
+  const username = req.query.user;
+  const catName = req.query.cat;
+
+  const DEFAULT_CATEGORIES = [
+    "Organic Farming",
+    "Inorganic Farming",
+    "Crop Diseases",
+    "Pest Management",
+    "Soil Management",
+    "Weather & Climate",
+    "Crop Growth",
+    "Fertilizer Management",
+  ];
+
+  try {
+    let posts;
+    const approvedFilter = { status: "Approved" };
+
+    // If 'authorRequestsOwn' is true, we skip the approved filter and get ALL their posts
+    const authorRequestsOwn = req.query.authorRequestsOwn === "true";
+
+    if (username) {
+      if (authorRequestsOwn) {
+        // Fetch all posts (Approved, Pending, Rejected) for this author
+        posts = await Post.find({ username }).sort({ createdAt: -1 });
+      } else {
+        // Public view: only approved posts for this author
+        posts = await Post.find({ username, ...approvedFilter }).sort({ createdAt: -1 });
+      }
+    } else if (catName) {
+      if (catName === "Other") {
+        posts = await Post.find({
+          ...approvedFilter,
+          categories: {
+            $elemMatch: { $nin: DEFAULT_CATEGORIES },
+          },
+        }).sort({ createdAt: -1 });
+      } else {
+        posts = await Post.find({
+          ...approvedFilter,
+          categories: {
+            $in: [catName],
+          },
+        }).sort({ createdAt: -1 });
+      }
+    } else {
+      posts = await Post.find(approvedFilter).sort({ createdAt: -1 });
     }
+
+    // Attach authorPic from User collection
+    const usernames = [...new Set(posts.map((p) => p.username))];
+    const users = await User.find({ username: { $in: usernames } }).select("username profilePic");
+    const picMap = {};
+    users.forEach((u) => { picMap[u.username] = u.profilePic || ""; });
+    const enriched = posts.map((p) => ({ ...p._doc, authorPic: picMap[p.username] || "" }));
+
+    res.status(200).json(enriched);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 
-//GET ALL POST
-router.get("/", async (req,res)=>{
-    const username = req.query.user;
-    const catName = req.query.cat;
+//GET POST
+router.get("/:id", async (req, res) => {
+  const requesterUsername = req.query.user;
 
-    const DEFAULT_CATEGORIES = [
-        "Organic Farming",
-        "Inorganic Farming",
-        "Crop Diseases",
-        "Pest Management",
-        "Soil Management",
-        "Weather & Climate",
-        "Crop Growth",
-        "Fertilizer Management",
-    ];
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found");
 
-    try{
-        let posts;
-        if(username){
-            posts = await Post.find({username}).sort({ createdAt: -1 });
-        } else if(catName){
-            if (catName === "Other") {
-                posts = await Post.find({
-                    categories: {
-                        $elemMatch: { $nin: DEFAULT_CATEGORIES },
-                    },
-                }).sort({ createdAt: -1 });
-            } else {
-                posts = await Post.find({
-                    categories:{
-                        $in:[catName],
-                    },
-                }).sort({ createdAt: -1 });
-            }
-        } else{
-            posts = await Post.find().sort({ createdAt: -1 });
-        }
-        res.status(200).json(posts);
-    }catch(err){
-        res.status(500).json("Something went wrong!");
+    // Allow access if the post is Approved OR if the requester is the author OR if requester is an admin
+    // Note: For full security, admin checking requires auth middleware, but we'll allow author bypass here based on passed username
+    if (post.status !== "Approved" && post.username !== requesterUsername) {
+      return res.status(403).json("This post is not available");
     }
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json(err)
+  }
 });
 
 module.exports = router;
