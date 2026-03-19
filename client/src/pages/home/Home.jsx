@@ -1,38 +1,32 @@
 import { useEffect, useState } from "react";
-import Header from "../../components/header/Header"
+import Header from "../../components/header/Header";
 import Icon from "../../components/icon/Icon";
 import Posts from "../../components/posts/Posts";
 import Sidebar from "../../components/sidebar/Sidebar";
 import "./home.css";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
-  const {search} = useLocation();
+  const { search } = useLocation();
 
   useEffect(() => {
     const fetchPosts = async () => {
-      try {
-        const res = await axios.get("/posts" + search);
-        setPosts(res.data);
-      } catch (err) {
-        // Avoid unhandled Axios errors in the UI when the API is down.
-        setPosts([]);
-      }
-    }
+      const res = await axios.get("/posts" + search);
+      setPosts(res.data);
+    };
     fetchPosts();
-  },[search]);
+  }, [search]);
 
   return (
     <>
-      <Header/>
+      <Header />
       <div className="home fadeIn">
-        <Posts posts={posts}/>
+        <Posts posts={posts} />
         <Sidebar />
-      <Icon/>
+        <Icon />
       </div>
-      
     </>
   );
 }

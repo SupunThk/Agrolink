@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import "./singlePost.css";
 import RichEditor from "../richEditor/RichEditor";
+import Comments from "../comments/Comments";
 
 const PF = "http://localhost:5000/images/";
 // Handle both local filenames and any old Cloudinary URLs already in the DB
@@ -25,7 +26,8 @@ export default function SinglePost() {
   useEffect(() => {
     const getPost = async () => {
       try {
-        const res = await axios.get("/posts/" + path);
+        const urlToFetch = user?.username ? `/posts/${path}?user=${user.username}` : `/posts/${path}`;
+        const res = await axios.get(urlToFetch);
         setPost(res.data);
         setTitle(res.data.title);
         setDesc(res.data.desc);
@@ -186,6 +188,7 @@ export default function SinglePost() {
             </div>
           </div>
         )}
+        {!updateMode && post._id && <Comments postId={post._id} />}
       </div>
     </div>
   );

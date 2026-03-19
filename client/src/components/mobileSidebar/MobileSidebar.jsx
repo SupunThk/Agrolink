@@ -62,8 +62,8 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                 </Link>
               </li>
               <li className="navSidebarListItem">
-                <Link className="link" to="/" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-chart-line"></i> Part 05: Reports
+                <Link className="link" to="/ask-expert" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-comments"></i> Ask an Expert
                 </Link>
               </li>
               <li className="navSidebarListItem">

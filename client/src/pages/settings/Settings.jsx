@@ -9,6 +9,7 @@ export default function Settings() {
 
   const [file, setFile] = useState(null);
   const [username, setUsername] = useState(user.username);
+  const [name, setName] = useState(user.name || "");
   const [email, setEmail] = useState(user.email);
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
@@ -33,7 +34,7 @@ export default function Settings() {
       return;
     }
 
-    const updatedUser = { userId: user._id, username, email };
+    const updatedUser = { userId: user._id, username, name, email };
 
     if (password) {
       if (password.length < 6) {
@@ -164,6 +165,12 @@ export default function Settings() {
                   <label className="settingsLabel">Username</label>
                   <input className="settingsInput" type="text" value={username}
                     onChange={(e) => setUsername(e.target.value)} />
+                </div>
+                <div className="settingsField">
+                  <label className="settingsLabel">Full Name</label>
+                  <input className="settingsInput" type="text" value={name}
+                    placeholder="Enter your full name..."
+                    onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div className="settingsField">
                   <label className="settingsLabel">Email Address</label>
