@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import "./askExpert.css";
 import { Context } from "../../context/Context";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AI_NAME = "AgroAI Expert";
 const AI_AVATAR = "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=agroai&backgroundColor=d1fae5";
@@ -14,22 +15,6 @@ const SUGGESTED = [
   "Irrigation tips for dry seasons",
   "Signs of nutrient deficiency in plants",
 ];
-
-const AI_RESPONSES = [
-  "Great question! Based on current agricultural best practices, I recommend starting with a soil test to understand your specific conditions. This gives you a baseline to tailor any treatment or planting strategy effectively.",
-  "For sustainable farming, it's important to consider crop rotation and companion planting. These methods naturally reduce pests and improve soil fertility over time without heavy reliance on chemicals.",
-  "I'd suggest monitoring your crops weekly, especially during growth peaks. Early detection of disease or pest pressure allows for targeted, lower-impact interventions that protect both yield and ecosystem health.",
-  "Organic matter is key! Incorporating compost, cover crops, and mulch can dramatically improve soil structure, water retention, and microbial activity — all of which contribute to healthier plants and higher yields.",
-  "Water management is critical. Drip irrigation systems can reduce water usage by up to 50% while keeping plant roots consistently moist. Pair that with mulching and you'll see significant improvements.",
-  "That's a common challenge among farmers. The most effective approach combines integrated pest management (IPM) with regular scouting and threshold-based treatment decisions to minimize chemical use.",
-];
-
-let aiResponseIndex = 0;
-function getAIResponse() {
-  const resp = AI_RESPONSES[aiResponseIndex % AI_RESPONSES.length];
-  aiResponseIndex++;
-  return resp;
-}
 
 const TOPICS = [
   { icon: "fas fa-bug", label: "Pest Control" },
@@ -67,23 +52,55 @@ export default function AskExpert() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     const msg = text || input.trim();
     if (!msg) return;
+
     const userMsg = { id: Date.now(), from: "user", text: msg, time: new Date() };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
-    setTimeout(() => {
+
+    try {
+      // Call the Python chatbot API
+      const apiUrl = `/chatbot/chat?message=${encodeURIComponent(msg)}`;
+      console.log("Sending message to chatbot:", msg);
+      console.log("API URL:", apiUrl);
+      
+      const response = await axios.get(apiUrl);
+      
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.statusText);
+
+      if (response.status !== 200) {
+        const errorText = await response.data;
+        console.error("API Error:", errorText);
+        throw new Error(`API returned ${response.status}: ${errorText}`);
+      }
+
+      const data = response.data;
+      console.log("Received response:", data);
       setIsTyping(false);
+
       const aiMsg = {
         id: Date.now() + 1,
         from: "ai",
-        text: getAIResponse(),
+        text: data.botResponse,
         time: new Date(),
       };
       setMessages((prev) => [...prev, aiMsg]);
-    }, 1600 + Math.random() * 800);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setIsTyping(false);
+
+      const errorMsg = {
+        id: Date.now() + 1,
+        from: "ai",
+        text: "Backend not responding. Make sure the API server is running on port 5000.",
+        time: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    }
   };
 
   const handleKey = (e) => {

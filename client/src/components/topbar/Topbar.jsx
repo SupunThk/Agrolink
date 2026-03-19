@@ -88,6 +88,13 @@ export default function Topbar({ adminMode }) {
             </li>
             {user && (
               <li className="topListItem">
+                <Link className="link" to="/answer-questions">
+                  ANSWER QUESTIONS
+                </Link>
+              </li>
+            )}
+            {user && (
+              <li className="topListItem">
                 <Link className="link" to="/my-blogs">
                   MY BLOGS
                 </Link>

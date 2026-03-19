@@ -6,7 +6,10 @@ const authRoute = require("./routes/auth");
 const userRoute = require("./routes/users");
 const postRoute = require("./routes/posts");
 const categoryRoute = require("./routes/categories");
+const chatbotRoute = require("./routes/chatbot");
+const questionRoute = require("./routes/questions");
 const Category = require("./models/Category");
+const cors = require("cors");
 
 // Prevent unhandled promise rejections from crashing the server
 process.on("unhandledRejection", (reason) => {
@@ -22,6 +25,7 @@ const multer = require("multer");
 const path = require("path");
 
 app.use(express.json());
+app.use(cors());
 // Serve files from api/images/ at /images
 app.use("/images", express.static(path.join(__dirname, "/images")));
 
@@ -95,6 +99,8 @@ app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/categories", categoryRoute);
+app.use("/api/chatbot", chatbotRoute);
+app.use("/api/questions", questionRoute);
 
 // ── DB health check for admin settings ──────────────────────────────────────
 app.get("/api/admin/db-status", (req, res) => {
