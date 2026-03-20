@@ -1,5 +1,4 @@
-const dns = require("dns");
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 
 const express = require("express");
 const app = express();
@@ -24,7 +23,10 @@ app.use("/images", express.static(path.join(__dirname, "images")));
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err.message));
+  .catch((err) => {
+    console.error("❌ Full MongoDB connection error:");
+    console.error(err);
+  });
 
 // ✅ Routes
 const authRoute = require("./routes/auth");
