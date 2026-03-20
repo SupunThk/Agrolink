@@ -419,3 +419,7 @@
   font-size: 12px !important;
   background: var(--emerald-600) !important;
 }
+
+[data-theme='dark'] .commentItemAvatar {
+  background: var(--emerald-600);
+}
