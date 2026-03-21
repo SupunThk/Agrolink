@@ -1,0 +1,257 @@
+.diseaseDetailPage {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.diseaseDetailBackButton {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 12px 18px;
+    border-radius: 14px;
+    background: #f2faf5;
+    color: #0b6b3a;
+    text-decoration: none;
+    font-weight: 700;
+    border: 1px solid #d7eedf;
+    box-shadow: 0 8px 18px rgba(25, 87, 56, 0.08);
+}
+
+.diseaseDetailHero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 28px;
+    align-items: stretch;
+}
+
+.diseaseDetailHeroContent,
+.diseaseDetailImageWrap,
+.diseaseDetailCard,
+.diseaseDetailTreatment,
+.diseaseDetailState {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfffc 100%);
+    border: 1px solid #d8eee2;
+    border-radius: 26px;
+    box-shadow: 0 14px 34px rgba(25, 87, 56, 0.1);
+}
+
+.diseaseDetailHeroContent {
+    padding: 38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.diseaseDetailPill {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 18px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #dff7e8;
+    color: #15944b;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.diseaseDetailTitle {
+    margin: 0 0 12px;
+    color: #004d40;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1.08;
+}
+
+.diseaseDetailSubtitle {
+    margin: 0;
+    color: #4f6b5e;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 52ch;
+}
+
+.diseaseDetailImageWrap {
+    min-height: 360px;
+    overflow: hidden;
+    position: relative;
+    background:
+        radial-gradient(circle at top left, rgba(70, 185, 110, 0.28), transparent 42%),
+        linear-gradient(135deg, #e8f9ee 0%, #f7fff9 100%);
+}
+
+.diseaseDetailImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.diseaseDetailImageFallback {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 34px;
+    background:
+        linear-gradient(180deg, rgba(0, 77, 64, 0.04) 0%, rgba(0, 77, 64, 0.14) 100%);
+}
+
+.diseaseDetailImageBadge {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 18px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    color: #0d8b43;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.diseaseDetailImageFallbackTitle {
+    margin: 0 0 10px;
+    color: #004d40;
+    font-size: 2rem;
+    line-height: 1.15;
+}
+
+.diseaseDetailImageFallbackText {
+    margin: 0;
+    max-width: 34ch;
+    color: #416557;
+    line-height: 1.65;
+}
+
+.diseaseDetailGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.diseaseDetailCard,
+.diseaseDetailTreatment,
+.diseaseDetailState {
+    padding: 30px 32px;
+}
+
+.diseaseDetailCardTitle,
+.diseaseDetailStateTitle {
+    margin: 0 0 18px;
+    color: #004d40;
+    font-size: 1.5rem;
+}
+
+.diseaseDetailList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.diseaseDetailList li {
+    position: relative;
+    padding-left: 20px;
+    color: #275845;
+    line-height: 1.65;
+    font-size: 1rem;
+}
+
+.diseaseDetailList li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #12a24b;
+}
+
+.diseaseDetailTreatment {
+    background: linear-gradient(135deg, #f6fff8 0%, #eaf8ee 100%);
+}
+
+.diseaseDetailTreatmentText,
+.diseaseDetailStateText {
+    margin: 0;
+    color: #275845;
+    line-height: 1.8;
+    font-size: 1rem;
+}
+
+.diseaseDetailState {
+    max-width: 760px;
+    margin: 40px auto 0;
+    text-align: center;
+}
+
+@media screen and (max-width: 900px) {
+    .diseaseDetailHero,
+    .diseaseDetailGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .diseaseDetailImageWrap {
+        min-height: 260px;
+    }
+}
+
+@media screen and (max-width: 640px) {
+    .diseaseDetailHeroContent,
+    .diseaseDetailCard,
+    .diseaseDetailTreatment,
+    .diseaseDetailState,
+    .diseaseDetailImageFallback {
+        padding: 24px;
+    }
+
+    .diseaseDetailTitle {
+        font-size: 2.3rem;
+    }
+
+    .diseaseDetailImageFallbackTitle {
+        font-size: 1.6rem;
+    }
+}
+
+[data-theme='dark'] .diseaseDetailHeroContent,
+[data-theme='dark'] .diseaseDetailImageWrap,
+[data-theme='dark'] .diseaseDetailCard,
+[data-theme='dark'] .diseaseDetailTreatment,
+[data-theme='dark'] .diseaseDetailState {
+    background: linear-gradient(180deg, #16211b 0%, #18251e 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .diseaseDetailTitle,
+[data-theme='dark'] .diseaseDetailCardTitle,
+[data-theme='dark'] .diseaseDetailStateTitle {
+    color: #f2fff8;
+}
+
+[data-theme='dark'] .diseaseDetailSubtitle,
+[data-theme='dark'] .diseaseDetailList li,
+[data-theme='dark'] .diseaseDetailTreatmentText,
+[data-theme='dark'] .diseaseDetailStateText,
+[data-theme='dark'] .diseaseDetailImageFallbackText {
+    color: #cad9cf;
+}
+
+[data-theme='dark'] .diseaseDetailBackButton {
+    background: #1f2c24;
+    color: #d8f7e4;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .diseaseDetailImageBadge {
+    background: rgba(19, 39, 30, 0.88);
+    color: #9be8b7;
+}
+
+[data-theme='dark'] .diseaseDetailImageFallbackTitle {
+    color: #f2fff8;
+}

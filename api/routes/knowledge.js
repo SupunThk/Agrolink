@@ -1,45 +1,73 @@
 const router = require("express").Router();
+const mongoose = require("mongoose");
 const Article = require("../models/Article");
-const Disease = require("../models/Disease");
-const Crop = require("../models/Crop");
+require("../models/Disease");
+require("../models/Crop");
+const requireDb = require("../middleware/requireDb");
 
-// 1. GET ALL ARTICLES (With Deep Search and Population)
-router.get("/", async (req, res) => {
-    const qSearch = req.query.search || "";
-    const qCrop = req.query.crop || "All";
+router.get("/", requireDb, async (req, res) => {
+    const qSearch = (req.query.search || "").trim();
+    const qCrop = (req.query.crop || "All").trim();
 
     try {
-        // Step 1: Fetch and fully populate ALL articles from the database
-        let articles = await Article.find().populate({
-            path: "diseaseId",
-            populate: { path: "cropId", model: "Crop" }
-        });
+        let articles = await Article.find()
+            .populate({
+                path: "diseaseId",
+                populate: { path: "cropId", model: "Crop" }
+            })
+            .lean();
 
-        // Step 2: Filter by Crop Type using JavaScript
         if (qCrop !== "All") {
-            articles = articles.filter(article =>
+            articles = articles.filter((article) =>
                 article.diseaseId &&
                 article.diseaseId.cropId &&
                 article.diseaseId.cropId.name.toLowerCase() === qCrop.toLowerCase()
             );
         }
 
-        // Step 3: Deep Search (Checks Titles, Disease Names, and Symptoms)
         if (qSearch !== "") {
             const searchLower = qSearch.toLowerCase();
-            articles = articles.filter(article => {
+            articles = articles.filter((article) => {
                 const titleMatch = article.title?.toLowerCase().includes(searchLower);
                 const diseaseMatch = article.diseaseId?.diseaseName?.toLowerCase().includes(searchLower);
-                const symptomMatch = article.symptoms?.some(s => s.toLowerCase().includes(searchLower));
+                const symptomMatch = article.symptoms?.some((symptom) =>
+                    symptom.toLowerCase().includes(searchLower)
+                );
 
                 return titleMatch || diseaseMatch || symptomMatch;
             });
         }
 
-        res.status(200).json(articles);
+        return res.status(200).json(articles);
     } catch (err) {
-        console.error("❌ GET Knowledge Error:", err);
-        res.status(500).json(err);
+        console.error("GET /api/knowledge failed:", err);
+        return res.status(500).json({ message: "Failed to fetch knowledge articles." });
+    }
+});
+
+router.get("/:id", requireDb, async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ message: "Knowledge article not found." });
+    }
+
+    try {
+        const article = await Article.findById(id)
+            .populate({
+                path: "diseaseId",
+                populate: { path: "cropId", model: "Crop" }
+            })
+            .lean();
+
+        if (!article) {
+            return res.status(404).json({ message: "Knowledge article not found." });
+        }
+
+        return res.status(200).json(article);
+    } catch (err) {
+        console.error(`GET /api/knowledge/${id} failed:`, err);
+        return res.status(500).json({ message: "Failed to fetch knowledge article." });
     }
 });
 

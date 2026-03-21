@@ -1,6 +1,3 @@
-const dns = require('dns');
-dns.setServers(['8.8.8.8', '1.1.1.1']);
-
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const Crop = require("./models/Crop");
@@ -9,110 +6,109 @@ const Article = require("./models/Article");
 
 dotenv.config();
 
-const seedData = async () => {
+const STARTER_DATA = [
+    {
+        cropName: "Tomato",
+        diseaseName: "Tomato Late Blight",
+        aiModelLabel: "early-blight",
+        title: "Tomato Late Blight",
+        imageUrl: "/images/1771924899240biotechnology-woman-engineer-examining-plant-leaf-disease.jpg",
+        symptoms: [
+            "Dark lesions develop quickly on leaves and stems",
+            "Whitish fungal growth appears under humid conditions",
+            "Fruit develops firm brown patches that spread rapidly",
+        ],
+        preventionMethods: [
+            "Use certified disease-free seedlings",
+            "Improve airflow with proper spacing and pruning",
+            "Avoid wetting leaves during irrigation",
+        ],
+        treatmentPlan: "A devastating disease caused by Phytophthora infestans that affects leaves, stems, and fruits of tomato plants, especially during cool and wet periods."
+    },
+    {
+        cropName: "Papaya",
+        diseaseName: "Papaya Ring Spot Virus",
+        aiModelLabel: "papaya-ringspot",
+        title: "Papaya Ring Spot Virus",
+        imageUrl: "/images/1771926326516close-up-picture-hand-holding-planting-sapling-plant.jpg",
+        symptoms: [
+            "Distinct ring-shaped marks on fruit skin",
+            "Mosaic and distortion on leaves",
+            "Reduced fruit quality and plant vigor",
+        ],
+        preventionMethods: [
+            "Remove infected plants quickly",
+            "Control aphid vectors early",
+            "Use resistant or tolerant varieties where available",
+        ],
+        treatmentPlan: "A viral disease transmitted by aphids that causes distinctive ring-shaped markings on papaya fruits and severe leaf mosaic symptoms."
+    },
+    {
+        cropName: "Rice",
+        diseaseName: "Rice Blast Disease",
+        aiModelLabel: "rice-blast",
+        title: "Rice Blast Disease",
+        imageUrl: "/images/1771606256159large-green-rice-field-with-green-rice-plants-rows.jpg",
+        symptoms: [
+            "Diamond-shaped lesions appear on leaves",
+            "Neck infections reduce grain filling",
+            "Severe outbreaks stunt overall crop growth",
+        ],
+        preventionMethods: [
+            "Avoid excess nitrogen fertilizer",
+            "Use resistant rice varieties",
+            "Monitor fields closely during humid weather",
+        ],
+        treatmentPlan: "A fungal disease caused by Magnaporthe oryzae that affects rice plants at all growth stages and can severely reduce yield."
+    }
+];
+
+async function upsertStarterArticle(entry) {
+    const crop = await Crop.findOneAndUpdate(
+        { name: entry.cropName },
+        { name: entry.cropName },
+        { new: true, upsert: true }
+    );
+
+    const disease = await Disease.findOneAndUpdate(
+        { diseaseName: entry.diseaseName },
+        {
+            diseaseName: entry.diseaseName,
+            aiModelLabel: entry.aiModelLabel,
+            cropId: crop._id,
+        },
+        { new: true, upsert: true }
+    );
+
+    await Article.findOneAndUpdate(
+        { title: entry.title },
+        {
+            title: entry.title,
+            imageUrl: entry.imageUrl,
+            symptoms: entry.symptoms,
+            preventionMethods: entry.preventionMethods,
+            treatmentPlan: entry.treatmentPlan,
+            diseaseId: disease._id,
+        },
+        { new: true, upsert: true }
+    );
+}
+
+async function seedData() {
     try {
-        // 1. Connect to Database
         await mongoose.connect(process.env.MONGO_URL);
+        console.log("Connected to MongoDB for knowledge seeding.");
 
-        console.log("Connected to MongoDB for seeding...");
+        for (const entry of STARTER_DATA) {
+            await upsertStarterArticle(entry);
+        }
 
-        // 2. Clear Existing Data
-        await Crop.deleteMany({});
-        await Disease.deleteMany({});
-        await Article.deleteMany({});
-        console.log("Cleared existing Crops, Diseases, and Articles.");
-
-        // 3. Create Crops
-        const tomato = await new Crop({ name: "Tomato" }).save();
-        const paddy = await new Crop({ name: "Paddy" }).save();
-        const papaya = await new Crop({ name: "Papaya" }).save();
-        console.log("Seeded Crops: Tomato, Paddy, Papaya.");
-
-        // 4. Create Diseases
-        const earlyBlight = await new Disease({
-            diseaseName: "Early Blight",
-            aiModelLabel: "tomato-early-blight",
-            cropId: tomato._id,
-        }).save();
-
-        const riceBlast = await new Disease({
-            diseaseName: "Rice Blast",
-            aiModelLabel: "paddy-blast",
-            cropId: paddy._id,
-        }).save();
-
-        const ringSpot = await new Disease({
-            diseaseName: "Papaya Ringspot",
-            aiModelLabel: "papaya-ringspot",
-            cropId: papaya._id,
-        }).save();
-        console.log("Seeded Diseases: Early Blight, Rice Blast, Papaya Ringspot.");
-
-        // 5. Create Articles
-        await new Article({
-            title: "Managing Early Blight in Tomato Crops",
-            symptoms: [
-                "Dark, concentric spots on older leaves",
-                "Foliage yellowing around lesions",
-                "Stem lesions near the soil line (collar rot)",
-                "Sunken spots on the stem end of fruits",
-            ],
-            preventionMethods: [
-                "Use high-quality, disease-free seeds",
-                "Maintain a 3-year crop rotation without Solanaceous crops",
-                "Ensure proper spacing for air circulation",
-                "Avoid overhead irrigation to keep leaves dry",
-            ],
-            treatmentPlan: "Remove infected lower leaves immediately. Apply fungicides containing chlorothalonil or copper-based sprays every 7-10 days if environmental conditions favor the disease.",
-            imageUrl: "/images/tomato.jpg",
-            diseaseId: earlyBlight._id,
-        }).save();
-
-        await new Article({
-            title: "Combating Rice Blast (Magnaporthe oryzae)",
-            symptoms: [
-                "Spindle-shaped lesions with brown borders and gray centers",
-                "Neck rot leading to sterile or broken panicles",
-                "Brownish spots on the nodes of the stem",
-                "Reduced grain filling and stunted growth",
-            ],
-            preventionMethods: [
-                "Plant resistant rice varieties",
-                "Avoid excessive Nitrogen fertilization",
-                "Keep the water level consistent in paddy fields",
-                "Treat seeds with recommended fungicides before planting",
-            ],
-            treatmentPlan: "Apply systemic fungicides like Tricyclazole or Carbendazim at the first sign of leaf blast or before the panicle emergence (booting stage).",
-            imageUrl: "/images/Rice.png",
-            diseaseId: riceBlast._id,
-        }).save();
-
-        await new Article({
-            title: "Identifying and Preventing Papaya Ringspot Virus",
-            symptoms: [
-                "Yellowing and vein clearing in young leaves",
-                "Severe mosaic or mottling on foliage",
-                "Dark green 'water-soaked' streaks on stems and petioles",
-                "Circular C-shaped rings on fruit skin",
-            ],
-            preventionMethods: [
-                "Eradicate infected trees immediately to prevent spread",
-                "Control aphid populations using insecticidal soaps",
-                "Intercrop with non-host plants to confuse insects",
-                "Use PRSV-resistant varieties (like SunUp or Rainbow)",
-            ],
-            treatmentPlan: "There is no chemical cure for the virus itself. Management focus must be on preventing transmission through aphid control and removing any source of infection from the field.",
-            imageUrl: "/images/papaya.jpg",
-            diseaseId: ringSpot._id,
-        }).save();
-        console.log("Seeded Articles successfully with high-res images.");
-
-        console.log("Data seeded successfully!");
+        console.log("Starter knowledge data is ready.");
         process.exit(0);
     } catch (err) {
-        console.error("❌ Seeding Error:", err);
+        console.error("Knowledge seed failed:", err);
         process.exit(1);
     }
-};
+}
 
 seedData();

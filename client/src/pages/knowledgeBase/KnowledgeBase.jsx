@@ -1,37 +1,74 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./knowledgeBase.css";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+
+const IMAGE_BASE_URL = "http://localhost:5000";
+
+function getSummary(article) {
+    const sourceText =
+        article.treatmentPlan ||
+        article.symptoms?.[0] ||
+        "Practical prevention and treatment guidance for this crop disease.";
+
+    return sourceText.length > 120 ? `${sourceText.slice(0, 117)}...` : sourceText;
+}
 
 export default function KnowledgeBase() {
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [imageFailures, setImageFailures] = useState({});
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCrop, setSelectedCrop] = useState("All");
+
+    const getImageSrc = (imageUrl) => {
+        if (!imageUrl) {
+            return null;
+        }
+
+        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+            return imageUrl;
+        }
+
+        if (imageUrl.startsWith("/")) {
+            return `${IMAGE_BASE_URL}${imageUrl}`;
+        }
+
+        return `${IMAGE_BASE_URL}/images/${imageUrl}`;
+    };
 
     useEffect(() => {
         const fetchArticles = async () => {
             setLoading(true);
+            setError("");
+            setImageFailures({});
             try {
-                const res = await axios.get(`http://localhost:5000/api/knowledge?search=${searchQuery}&crop=${selectedCrop}`);
+                const res = await axios.get(
+                    `/knowledge?search=${encodeURIComponent(searchQuery)}&crop=${encodeURIComponent(selectedCrop)}`
+                );
                 setArticles(res.data);
-                setLoading(false);
             } catch (err) {
                 console.error("Error fetching knowledge articles:", err);
+                setError("Unable to load the knowledge base right now. Please make sure the backend server and MongoDB are running.");
+            } finally {
                 setLoading(false);
             }
         };
+
         fetchArticles();
     }, [searchQuery, selectedCrop]);
 
     return (
         <div className="about fadeIn">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            <div className="kbHero">
                 <div>
-                    <h1 style={{ color: '#004d40', margin: '0 0 10px 0' }}>Crop Disease Knowledge Base</h1>
-                    <p style={{ color: '#555', margin: 0 }}>Search for diseases or filter by crop type to find management strategies.</p>
+                    <h1 className="kbHeading">Crop Disease Knowledge Base</h1>
+                    <p className="kbSubheading">
+                        Search for diseases or filter by crop type to find management strategies.
+                    </p>
                 </div>
-                <Link to="/add-disease" style={{ backgroundColor: '#27ae60', color: 'white', padding: '10px 20px', textDecoration: 'none', borderRadius: '5px', fontWeight: 'bold' }}>
+                <Link className="kbAddButton" to="/add-disease">
                     + Add New Disease
                 </Link>
             </div>
@@ -55,7 +92,7 @@ export default function KnowledgeBase() {
                     >
                         <option value="All">All Crops</option>
                         <option value="Tomato">Tomato</option>
-                        <option value="Paddy">Paddy</option>
+                        <option value="Rice">Rice</option>
                         <option value="Papaya">Papaya</option>
                     </select>
                 </div>
@@ -65,42 +102,54 @@ export default function KnowledgeBase() {
                 <div className="kbLoading">
                     <i className="fas fa-spinner fa-spin"></i> Loading Articles...
                 </div>
+            ) : error ? (
+                <p className="kbEmpty">{error}</p>
             ) : (
                 <div className="kbGrid">
                     {articles.length > 0 ? (
                         articles.map((article) => (
-                            <div className="kbCard glass-panel" key={article._id}>
+                            <article className="kbCard glass-panel" key={article._id}>
                                 <div className="kbCardTop">
-                                    {article.imageUrl && (
-                                        <img className="kbImg" src={article.imageUrl} alt={article.title} />
+                                    {getImageSrc(article.imageUrl) && !imageFailures[article._id] ? (
+                                        <img
+                                            className="kbImg"
+                                            src={getImageSrc(article.imageUrl)}
+                                            alt={article.title}
+                                            onError={() =>
+                                                setImageFailures((current) => ({ ...current, [article._id]: true }))
+                                            }
+                                        />
+                                    ) : (
+                                        <div className="kbImgFallback">
+                                            <span className="kbImgFallbackBadge">
+                                                {article.diseaseId?.cropId?.name || "Knowledge"}
+                                            </span>
+                                            <h3 className="kbImgFallbackTitle">{article.title}</h3>
+                                            <p className="kbImgFallbackText">
+                                                Practical crop disease guidance with symptoms, prevention, and treatment.
+                                            </p>
+                                        </div>
                                     )}
-                                    <div className="kbBadgeContainer">
-                                        {article.diseaseId?.diseaseName && (
-                                            <span className="kbBadge disease">{article.diseaseId.diseaseName}</span>
-                                        )}
-                                        {article.diseaseId?.cropId?.name && (
-                                            <span className="kbBadge crop">{article.diseaseId.cropId.name}</span>
-                                        )}
-                                    </div>
                                 </div>
+
                                 <div className="kbCardInfo">
+                                    {article.diseaseId?.cropId?.name && (
+                                        <span className="kbCropPill">{article.diseaseId.cropId.name}</span>
+                                    )}
+
                                     <h2 className="kbCardTitle">{article.title}</h2>
+                                    <p className="kbCardSummary">{getSummary(article)}</p>
 
                                     <div className="kbCardBottom">
                                         <Link
-                                            to={`/disease-detail/${article.title.toLowerCase().includes("early blight") ? "early-blight" :
-                                                article.title.toLowerCase().includes("rice blast") ? "rice-blast" :
-                                                    article.title.toLowerCase().includes("papaya ringspot") ? "papaya-ringspot" :
-                                                        "rice-blast"
-                                                }`}
+                                            to={`/disease-detail/${article._id}`}
                                             className="kbReadMore"
-                                            style={{ textDecoration: 'none', textAlign: 'center' }}
                                         >
-                                            View Details
+                                            Read More
                                         </Link>
                                     </div>
                                 </div>
-                            </div>
+                            </article>
                         ))
                     ) : (
                         <p className="kbEmpty">No articles found matching your criteria.</p>
