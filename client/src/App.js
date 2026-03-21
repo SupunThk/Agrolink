@@ -9,14 +9,16 @@ import Write from "./pages/write/Write";
 import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
 import Marketplace from "./pages/marketplace/Marketplace";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AdminPanel from "./pages/admin/AdminPanel";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
 import DeleteModal from "./components/deleteModal/DeleteModal";
 import axios from "axios";
 
-function App() {
+function AppContent() {
   const { user, showVModal, showDModal, dispatch, theme } = useContext(Context);
+  const location = useLocation();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -62,10 +64,8 @@ function App() {
     if (user) checkAccountStatus();
   }, [location.pathname, user, checkAccountStatus]);
 
-  const isAdminRoute = location.pathname === "/admin";
-
   return (
-    <Router>
+    <>
       <Topbar />
       {showVModal && <VerificationModal setShowModal={(val) => dispatch({ type: val ? "SHOW_VMODAL" : "HIDE_VMODAL" })} />}
       {showDModal && <DeleteModal />}
@@ -91,6 +91,7 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </>
   );

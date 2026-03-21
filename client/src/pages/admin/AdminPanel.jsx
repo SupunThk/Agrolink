@@ -8,8 +8,6 @@ import {
   LogOut,
   X,
   Leaf,
-  Sprout,
-  AlertTriangle,
   Menu,
   Moon,
   Sun,

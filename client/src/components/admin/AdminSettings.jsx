@@ -173,7 +173,7 @@ const AdminSettings = () => {
       await axios.post('/upload', data);
 
       // Update user profile
-      const res = await axios.put('/users/' + user._id, { userId: user._id, profilePic: filename });
+      await axios.put('/users/' + user._id, { userId: user._id, profilePic: filename });
       dispatch({ type: 'UPDATE_SUCCESS', payload: { ...user, profilePic: filename } });
       toast.success('Profile picture updated');
       setPicFile(null);

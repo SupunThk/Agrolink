@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
+dotenv.config();
 const mongoose = require("mongoose");
 const authRoute = require("./routes/auth");
 const userRoute = require("./routes/users");
@@ -16,8 +17,8 @@ app.use("/images", express.static(path.join(__dirname, "/images")));
 
 mongoose
   .connect(process.env.MONGO_URL)
-  .then(console.log("Connected to MongoDB"))
-  .catch((err) => console.log(err));
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.log("MongoDB Connection Error: ", err));
 
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
@@ -63,4 +64,3 @@ app.listen("5000", () => {
   console.log("Backend is running.");
 });
 
-startServer();

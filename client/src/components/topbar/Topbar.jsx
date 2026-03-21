@@ -9,6 +9,7 @@ export default function Topbar({ adminMode }) {
   const navigate = useNavigate();
   const { user, isVerified, theme, dispatch } = useContext(Context);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const PF = "http://localhost:5000/images/";
   const getAvatarSrc = (src) =>
     src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
@@ -18,8 +19,16 @@ export default function Topbar({ adminMode }) {
   }
 
   const handleProfileClick = () => {
-    dispatch({ type: "SHOW_VMODAL" });
+    if (adminMode) {
+      setShowAdminDropdown(!showAdminDropdown);
+    } else {
+      dispatch({ type: "SHOW_VMODAL" });
+    }
   }
+
+  const handleHamburger = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   return (
     <>
