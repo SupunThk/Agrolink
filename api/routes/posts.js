@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Post = require("../models/Post");
 const User = require("../models/User");
 const requireDb = require("../middleware/requireDb");
+const { deleteFromCloudinary } = require("../utils/cloudinary");
 
 
 router.use(requireDb);
@@ -107,6 +108,13 @@ router.delete("/admin/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json("Post not found!");
+
+    try {
+      await deleteFromCloudinary(post.photoPublicId);
+    } catch (err) {
+      console.error("[DELETE /posts/admin/:id] cloud cleanup failed", err);
+    }
+
     await post.deleteOne();
     res.status(200).json("Post has been deleted.");
   } catch (err) {
@@ -116,6 +124,31 @@ router.delete("/admin/:id", async (req, res) => {
 
 //CREATE POST
 router.post("/", async (req, res) => {
+  const title = req.body?.title?.trim();
+  const categories = Array.isArray(req.body?.categories) ? req.body.categories.filter(Boolean) : [];
+  const desc = typeof req.body?.desc === "string" ? req.body.desc : "";
+  const storyText = desc
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!title) {
+    return res.status(400).json({ message: "Title is required." });
+  }
+
+  if (!categories.length) {
+    return res.status(400).json({ message: "Category is required." });
+  }
+
+  if (!storyText) {
+    return res.status(400).json({ message: "Story content is required." });
+  }
+
+  req.body.title = title;
+  req.body.categories = categories;
+  req.body.status = "Pending";
+
   const newPost = new Post(req.body);
   try {
     const savedPost = await newPost.save();
@@ -130,7 +163,40 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json("Post not found!");
     if (post.username === req.body.username) {
+      if (typeof req.body.title === "string") {
+        const trimmedTitle = req.body.title.trim();
+        if (!trimmedTitle) {
+          return res.status(400).json({ message: "Title cannot be empty." });
+        }
+        req.body.title = trimmedTitle;
+      }
+
+      if (typeof req.body.desc === "string") {
+        const storyText = req.body.desc
+          .replace(/<[^>]*>/g, " ")
+          .replace(/&nbsp;/gi, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (!storyText) {
+          return res.status(400).json({ message: "Story cannot be empty." });
+        }
+      }
+
+      const isReplacingPhoto =
+        typeof req.body.photoPublicId === "string"
+        && req.body.photoPublicId
+        && req.body.photoPublicId !== post.photoPublicId;
+
+      if (isReplacingPhoto && post.photoPublicId) {
+        try {
+          await deleteFromCloudinary(post.photoPublicId);
+        } catch (err) {
+          console.error("[PUT /posts/:id] old cloud image cleanup failed", err);
+        }
+      }
+
       try {
         const updatedPost = await Post.findByIdAndUpdate(
           req.params.id,
@@ -166,6 +232,11 @@ router.delete("/:id", async (req, res) => {
       return res.status(401).json("You can delete only your post!");
     }
 
+    try {
+      await deleteFromCloudinary(post.photoPublicId);
+    } catch (err) {
+      console.error("[DELETE /posts/:id] cloud cleanup failed", err);
+    }
 
     await post.deleteOne();
     return res.status(200).json("Post has been deleted...");

@@ -27,12 +27,34 @@ export default function Write() {
 
   const CATEGORY_OPTIONS = [...DEFAULT_CATEGORIES, "Other"];
 
+  const getPlainTextFromHtml = (html) => {
+    if (!html) return "";
+    return html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!title || !desc) {
-      setError("Please provide both a title and a story.");
+    const trimmedTitle = title.trim();
+    const storyText = getPlainTextFromHtml(desc);
+
+    if (!trimmedTitle) {
+      setError("Please provide a title.");
+      return;
+    }
+
+    if (!selectedCategory) {
+      setError("Please select a category.");
+      return;
+    }
+
+    if (!storyText) {
+      setError("Please write your story before publishing.");
       return;
     }
 
@@ -45,7 +67,7 @@ export default function Write() {
     const finalCategory = selectedCategory === "Other" ? trimmedOther : selectedCategory;
 
     setPublishing(true);
-    const newPost = { username: user.username, title, desc };
+    const newPost = { username: user.username, title: trimmedTitle, desc };
 
     if (finalCategory) {
       if (selectedCategory !== "Other") {
@@ -82,12 +104,15 @@ export default function Write() {
 
     if (file) {
       const data = new FormData();
-      const filename = Date.now() + file.name;
-      data.append("name", filename);
       data.append("file", file);
-      newPost.photo = filename;
+      data.append("folder", "agrolink/posts");
       try {
-        await axios.post("/upload", data);
+        const uploadRes = await axios.post("/upload", data);
+        newPost.photo = uploadRes.data?.secure_url || uploadRes.data?.url;
+        newPost.photoPublicId = uploadRes.data?.public_id || null;
+        if (!newPost.photo) {
+          throw new Error("Missing uploaded image URL");
+        }
       } catch (err) {
         setError("Cover image upload failed. Please try again.");
         setPublishing(false);
@@ -98,7 +123,8 @@ export default function Write() {
       const res = await axios.post("/posts", newPost);
       window.location.replace("/post/" + res.data._id);
     } catch (err) {
-      setError("Oops! Something went wrong while publishing.");
+      const message = err?.response?.data?.message || err?.response?.data || "Oops! Something went wrong while publishing.";
+      setError(message);
       setPublishing(false);
     }
   };

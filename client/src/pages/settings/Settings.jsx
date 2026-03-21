@@ -3,6 +3,8 @@ import Sidebar from "../../components/sidebar/Sidebar";
 import { useContext, useState, useEffect } from "react";
 import { Context } from "../../context/Context";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 
 export default function Settings() {
   const { user, isVerified, dispatch } = useContext(Context);
@@ -15,12 +17,106 @@ export default function Settings() {
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState(null);
+  const [deletingAll, setDeletingAll] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     if (user && !isVerified) {
       dispatch({ type: "SHOW_VMODAL" });
     }
   }, [user, isVerified, dispatch]);
+
+  useEffect(() => {
+    const fetchOwnPosts = async () => {
+      if (!user?.username || !isVerified) return;
+      setPostsLoading(true);
+      try {
+        const res = await axios.get(`/posts?user=${encodeURIComponent(user.username)}&authorRequestsOwn=true`);
+        setPosts(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        setPosts([]);
+      } finally {
+        setPostsLoading(false);
+      }
+    };
+
+    fetchOwnPosts();
+  }, [user?.username, isVerified]);
+
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [confirmDelete]);
+
+  const requestDeletePost = (postId) => {
+    setConfirmDelete({ type: "single", postId });
+  };
+
+  const requestDeleteAllPosts = () => {
+    if (!posts.length) return;
+    setConfirmDelete({ type: "all" });
+  };
+
+  const closeDeleteModal = () => {
+    setConfirmDelete(null);
+  };
+
+  const handleDeletePost = async (postId) => {
+    setDeletingPostId(postId);
+    setError(null);
+    try {
+      await axios.delete(`/posts/${postId}`, { data: { username: user.username } });
+      setPosts((prev) => prev.filter((p) => p._id !== postId));
+    } catch (err) {
+      const message = err?.response?.data || "Failed to delete post.";
+      setError(String(message));
+    } finally {
+      setDeletingPostId(null);
+    }
+  };
+
+  const handleDeleteAllPosts = async () => {
+    if (!posts.length) return;
+    setDeletingAll(true);
+    setError(null);
+    try {
+      const ids = posts.map((p) => p._id);
+      const results = await Promise.allSettled(
+        ids.map((id) => axios.delete(`/posts/${id}`, { data: { username: user.username } }))
+      );
+
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed === 0) {
+        setPosts([]);
+      } else {
+        const deletedIds = ids.filter((_, i) => results[i].status === "fulfilled");
+        setPosts((prev) => prev.filter((p) => !deletedIds.includes(p._id)));
+        setError(`Some posts could not be deleted (${failed}). Please try again.`);
+      }
+    } catch (err) {
+      setError("Failed to delete posts.");
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!confirmDelete) return;
+    if (confirmDelete.type === "single" && confirmDelete.postId) {
+      await handleDeletePost(confirmDelete.postId);
+    }
+    if (confirmDelete.type === "all") {
+      await handleDeleteAllPosts();
+    }
+    setConfirmDelete(null);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,12 +143,14 @@ export default function Settings() {
 
     if (file) {
       const data = new FormData();
-      const filename = Date.now() + file.name;
-      data.append("name", filename);
       data.append("file", file);
-      updatedUser.profilePic = filename;
+      data.append("folder", "agrolink/profiles");
       try {
-        await axios.post("/upload", data);
+        const uploadRes = await axios.post("/upload", data);
+        updatedUser.profilePic = uploadRes.data?.secure_url || uploadRes.data?.url;
+        if (!updatedUser.profilePic) {
+          throw new Error("Missing uploaded image URL");
+        }
       } catch (err) {
         setError("Profile image upload failed. Please try again.");
         dispatch({ type: "UPDATE_FAILURE" });
@@ -80,6 +178,36 @@ export default function Settings() {
   const getImageSrc = (src) =>
     src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
   const avatarSrc = file ? URL.createObjectURL(file) : (user.profilePic ? getImageSrc(user.profilePic) : null);
+
+  const deleteConfirmModal = confirmDelete
+    ? createPortal(
+      <div className="settingsConfirmContainer">
+        <div className="settingsConfirmBackdrop" onClick={closeDeleteModal}></div>
+        <div className="settingsConfirmModal fadeIn">
+          <div className="settingsConfirmIcon">
+            <i className="fas fa-trash-alt"></i>
+          </div>
+          <h3 className="settingsConfirmTitle">
+            {confirmDelete.type === "all" ? "Delete all posts?" : "Delete this post?"}
+          </h3>
+          <p className="settingsConfirmText">
+            {confirmDelete.type === "all"
+              ? "This will permanently remove all your posts. This action cannot be undone."
+              : "This post will be permanently deleted. This action cannot be undone."}
+          </p>
+          <div className="settingsConfirmActions">
+            <button type="button" className="settingsConfirmCancel" onClick={closeDeleteModal}>
+              Cancel
+            </button>
+            <button type="button" className="settingsConfirmDelete" onClick={confirmDeleteAction}>
+              Yes, Delete
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )
+    : null;
 
   return (
     <div className="settings fadeIn">
@@ -193,6 +321,61 @@ export default function Settings() {
               </div>
             </div>
 
+            {/* My Posts Card */}
+            <div className="settingsCard">
+              <div className="settingsCardTitle settingsPostsTitleRow">
+                <span>
+                  <i className="fas fa-newspaper"></i>
+                  My Posts
+                </span>
+                <button
+                  type="button"
+                  className="settingsDeleteAllPostsBtn"
+                  onClick={requestDeleteAllPosts}
+                  disabled={!posts.length || deletingAll || postsLoading}
+                >
+                  {deletingAll ? "Deleting..." : "Delete All"}
+                </button>
+              </div>
+
+              {postsLoading ? (
+                <div className="settingsPostsLoading">Loading your posts...</div>
+              ) : posts.length === 0 ? (
+                <div className="settingsPostsEmpty">You have no posts yet.</div>
+              ) : (
+                <div className="settingsPostsList">
+                  {posts.map((post) => (
+                    <div key={post._id} className="settingsPostItem">
+                      <div className="settingsPostInfo">
+                        <Link to={`/post/${post._id}`} className="settingsPostLink">
+                          {post.title}
+                        </Link>
+                        <div className="settingsPostMeta">
+                          <span>{new Date(post.createdAt).toDateString()}</span>
+                          <span className={`settingsPostStatus status-${String(post.status || "Approved").toLowerCase()}`}>
+                            {post.status || "Approved"}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="settingsPostDeleteBtn"
+                        onClick={() => requestDeletePost(post._id)}
+                        disabled={deletingPostId === post._id || deletingAll}
+                        title="Delete this post"
+                      >
+                        {deletingPostId === post._id ? (
+                          <i className="fas fa-spinner fa-spin"></i>
+                        ) : (
+                          <i className="fas fa-trash-alt"></i>
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </form>
         ) : (
           <div className="settingsLocked">
@@ -205,6 +388,7 @@ export default function Settings() {
         )}
       </div>
       <Sidebar />
+      {deleteConfirmModal}
     </div>
   );
 }

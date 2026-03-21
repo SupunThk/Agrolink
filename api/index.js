@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
+dotenv.config();
 const mongoose = require("mongoose");
 const authRoute = require("./routes/auth");
 const userRoute = require("./routes/users");
@@ -8,6 +9,7 @@ const postRoute = require("./routes/posts");
 const categoryRoute = require("./routes/categories");
 const commentRoute = require("./routes/comments");
 const Category = require("./models/Category");
+const { isCloudinaryConfigured, uploadToCloudinary } = require("./utils/cloudinary");
 
 // Prevent unhandled promise rejections from crashing the server
 process.on("unhandledRejection", (reason) => {
@@ -17,8 +19,6 @@ process.on("uncaughtException", (err) => {
   console.error("[UncaughtException]", err.message);
 });
 
-dotenv.config();
-
 const multer = require("multer");
 const path = require("path");
 
@@ -26,12 +26,10 @@ app.use(express.json());
 // Serve files from api/images/ at /images
 app.use("/images", express.static(path.join(__dirname, "/images")));
 
-// Save uploaded files to api/images/ using the filename sent by the client
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => { cb(null, "images"); },
-  filename:    (req, file, cb) => { cb(null, req.body.name); },
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
-const upload = multer({ storage });
 
 const DEFAULT_CATEGORIES = [
   "Organic Farming",
@@ -69,6 +67,12 @@ async function startServer() {
     console.error("Starting backend without DB (API will return 503 for DB routes).");
   }
 
+  if (!isCloudinaryConfigured()) {
+    console.error(
+      "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in api/.env"
+    );
+  }
+
 
   try {
     if (process.env.MONGO_URL) {
@@ -88,8 +92,31 @@ async function startServer() {
   });
 }
 
-app.post("/api/upload", upload.single("file"), (req, res) => {
-  res.status(200).json("File has been uploaded");
+app.post("/api/upload", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded." });
+    }
+
+    if (!isCloudinaryConfigured()) {
+      return res.status(500).json({
+        message: "Cloudinary is not configured on the server.",
+      });
+    }
+
+    const folder = req.body?.folder || "agrolink";
+    const result = await uploadToCloudinary(req.file.buffer, { folder });
+
+    return res.status(200).json({
+      url: result.secure_url,
+      secure_url: result.secure_url,
+      public_id: result.public_id,
+      original_filename: req.file.originalname,
+    });
+  } catch (err) {
+    console.error("[POST /api/upload]", err);
+    return res.status(500).json({ message: "Image upload failed." });
+  }
 });
 
 app.use("/api/auth", authRoute);
@@ -109,10 +136,6 @@ app.get("/api/admin/db-status", (req, res) => {
     host: mongoose.connection.host || "—",
     name: mongoose.connection.name || "—",
   });
-});
-
-app.listen("5000", () => {
-  console.log("Backend is running.");
 });
 
 startServer();
