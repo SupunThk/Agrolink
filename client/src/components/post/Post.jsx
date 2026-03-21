@@ -35,7 +35,25 @@ export default function Post({ post }) {
         <div className="postMeta">
           <div className="postAuthorPill">
             <div className="postAuthorAvatar">
-              <i className="fas fa-user"></i>
+              {post.authorPic ? (
+                <img
+                  src={
+                    post.authorPic.startsWith("http://") || post.authorPic.startsWith("https://")
+                      ? post.authorPic
+                      : PF + post.authorPic
+                  }
+                  alt={post.username}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling && (e.target.nextSibling.style.display = "flex");
+                  }}
+                />
+              ) : null}
+              <i
+                className="fas fa-user"
+                style={{ display: post.authorPic ? "none" : "block" }}
+              ></i>
             </div>
             <span className="postAuthorName">{post.username}</span>
           </div>

@@ -2,213 +2,59 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: 600px;
-  padding: 40px 20px;
+  min-height: 400px;
+  padding: 40px 0;
   background: linear-gradient(135deg, #f0f9f6 0%, #e6f7ff 100%);
 }
 
 .askExpert-card {
   background: #fff;
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(6, 78, 59, 0.08);
-  padding: 24px;
-  max-width: 520px;
+  box-shadow: 0 8px 32px rgba(6,78,59,0.08);
+  padding: 36px 32px;
+  max-width: 480px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  height: 600px;
-  overflow: hidden;
-}
-
-.askExpert-header {
-  text-align: center;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #f0f9f6;
-  padding-bottom: 16px;
+  align-items: center;
 }
 
 .askExpert-title {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #059669;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
 }
 
-.askExpert-subtitle {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-.askExpert-chat-area {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-right: 8px;
-}
-
-.askExpert-chat-area::-webkit-scrollbar {
-  width: 6px;
-}
-
-.askExpert-chat-area::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
-}
-
-.askExpert-chat-area::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-.askExpert-chat-area::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.askExpert-message {
-  display: flex;
-  margin-bottom: 8px;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.user-message {
-  justify-content: flex-end;
-}
-
-.bot-message {
-  justify-content: flex-start;
-}
-
-.askExpert-message-content {
-  max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 14px;
-  word-wrap: break-word;
-  line-height: 1.4;
-}
-
-.user-message .askExpert-message-content {
-  background: linear-gradient(135deg, #059669 0%, #06523c 100%);
-  color: white;
-  border-bottom-right-radius: 4px;
-}
-
-.bot-message .askExpert-message-content {
-  background: #f3f4f6;
-  color: #1f2937;
-  border-bottom-left-radius: 4px;
-}
-
-.askExpert-message-content p {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.askExpert-timestamp {
-  display: block;
-  font-size: 0.7rem;
-  margin-top: 4px;
-  opacity: 0.7;
-}
-
-.user-message .askExpert-timestamp {
-  text-align: right;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.bot-message .askExpert-timestamp {
-  text-align: left;
-  color: rgba(31, 41, 55, 0.7);
-}
-
-/* Typing indicator animation */
-.typing-indicator {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.typing-indicator span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #059669;
-  animation: typing 1.4s infinite;
-}
-
-.typing-indicator span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-indicator span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes typing {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.5;
-  }
-  30% {
-    transform: translateY(-10px);
-    opacity: 1;
-  }
+.askExpert-desc {
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 24px;
+  text-align: center;
 }
 
 .askExpert-form {
   width: 100%;
   display: flex;
-  gap: 10px;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 12px;
-}
-
-.askExpert-input-wrapper {
-  display: flex;
-  gap: 10px;
-  width: 100%;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .askExpert-input {
-  flex: 1;
   border-radius: 14px;
   border: 1px solid #d1d5db;
-  padding: 10px 14px;
-  font-size: 0.95rem;
+  padding: 16px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 80px;
   outline: none;
-  resize: none;
-  font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
-
 .askExpert-input:focus {
   border-color: #059669;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-}
-
-.askExpert-input:disabled {
-  background-color: #f9fafb;
-  cursor: not-allowed;
 }
 
 .askExpert-btn {
@@ -216,53 +62,29 @@
   color: #fff;
   border: none;
   border-radius: 14px;
-  padding: 10px 16px;
+  padding: 12px 24px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s;
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  flex-shrink: 0;
+  gap: 8px;
 }
-
-.askExpert-btn:hover:not(:disabled) {
+.askExpert-btn:hover {
   background: linear-gradient(135deg, #06523c 0%, #059669 100%);
-  transform: translateY(-2px);
 }
 
-.askExpert-btn:active:not(:disabled) {
-  transform: translateY(0);
+.askExpert-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #059669;
+  font-size: 1.1rem;
+  margin-top: 16px;
 }
-
-.askExpert-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.askExpert-success i {
+  font-size: 2rem;
+  color: #059669;
 }
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .askExpert-container {
-    padding: 20px 10px;
-  }
-
-  .askExpert-card {
-    max-width: 100%;
-    height: 500px;
-    padding: 16px;
-  }
-
-  .askExpert-title {
-    font-size: 1.4rem;
-  }
-
-  .askExpert-message-content {
-    max-width: 85%;
-  }
-
-  .askExpert-input {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-}
-

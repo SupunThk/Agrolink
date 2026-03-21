@@ -447,7 +447,7 @@ export default function AdminPanel() {
               >
                 {user?.profilePic ? (
                   <img
-                    src={PF + user.profilePic}
+                    src={user.profilePic.startsWith('http') ? user.profilePic : PF + user.profilePic}
                     alt=""
                     style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
                   />

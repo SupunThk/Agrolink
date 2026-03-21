@@ -11,7 +11,8 @@ export default function Topbar({ adminMode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const PF = "http://localhost:5000/images/";
   const getAvatarSrc = (src) =>
-    src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
+    !src ? null :
+    src.startsWith("http://") || src.startsWith("https://") ? src : PF + src;
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -81,25 +82,8 @@ export default function Topbar({ adminMode }) {
                 WRITE
               </Link>
             </li>
-            <li className="topListItem">
-              <Link className="link" to="/ask-expert">
-                ASK AN EXPERT
-              </Link>
-            </li>
-            {user && (
-              <li className="topListItem">
-                <Link className="link" to="/answer-questions">
-                  ANSWER QUESTIONS
-                </Link>
-              </li>
-            )}
-            {user && (
-              <li className="topListItem">
-                <Link className="link" to="/my-blogs">
-                  MY BLOGS
-                </Link>
-              </li>
-            )}
+
+
             {user && user.isAdmin && (
               <li className="topListItem">
                 <Link className="link" to="/admin">
@@ -121,7 +105,7 @@ export default function Topbar({ adminMode }) {
                 {user.profilePic ? (
                   <img
                     className="topImg"
-                    src={PF + user.profilePic}
+                    src={getAvatarSrc(user.profilePic)}
                     alt="Profile"
                     onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
                   />
