@@ -2,6 +2,37 @@ const express = require("express");
 const router = express.Router();
 const Question = require("../models/Question");
 
+// POST - Create a pre-answered question for training
+router.post("/training-pair", async (req, res) => {
+  try {
+    const { question, answer, category, username } = req.body;
+
+    if (!question || !answer || !username) {
+      return res.status(400).json({ error: "Question, answer, and username are required" });
+    }
+
+    const newQuestion = new Question({
+      question,
+      username,
+      category: category || "General",
+      chatbotConfidence: 0,
+      status: "Answered",
+      answers: [
+        {
+          username,
+          answer,
+          isAccepted: true
+        }
+      ]
+    });
+
+    const savedQuestion = await newQuestion.save();
+    res.status(201).json(savedQuestion);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST - Create a new question when chatbot can't answer
 router.post("/", async (req, res) => {
   try {

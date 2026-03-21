@@ -10,6 +10,7 @@ import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AskExpert from "./pages/askExpert/AskExpert";
+import AnswerQuestions from "./pages/answerQuestions/AnswerQuestions";
 import MyBlogs from "./pages/myBlogs/MyBlogs";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Context } from "./context/Context";
@@ -94,6 +95,10 @@ function AppContent() {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/ask-expert" element={<AskExpert />} />
+        <Route
+          path="/answer-questions"
+          element={user && (user.role === 'expert' || user.isAdmin) ? <AnswerQuestions /> : <Login />}
+        />
         <Route
           path="/my-blogs"
           element={user ? <MyBlogs /> : <Login />}

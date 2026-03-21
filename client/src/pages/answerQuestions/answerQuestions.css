@@ -7,8 +7,87 @@
 }
 
 .answerQuestionsHeader {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
   margin-bottom: 40px;
+  text-align: left;
+}
+
+.aqHeaderMain {
+  flex: 1;
+}
+
+.aqToggleAddBtn {
+  background-color: var(--emerald-600);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2);
+}
+
+.aqToggleAddBtn:hover {
+  background-color: var(--emerald-700);
+  transform: translateY(-2px);
+}
+
+.aqCustomFormContainer {
+  background: var(--bg-card);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+  border: 1px solid var(--slate-200);
+}
+
+.aqCustomFormTitle {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: var(--slate-900);
+}
+
+.aqInputGroup {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aqInputGroup label {
+  font-weight: 600;
+  color: #666;
+  font-size: 14px;
+}
+
+.aqSelectInput {
+  padding: 12px 15px;
+  border: 2px solid var(--slate-200);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  background-color: var(--bg-snow);
+  color: var(--slate-900);
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.aqSelectInput:focus {
+  border-color: var(--emerald-600);
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
+}
+
+.aqAnswerArea {
+  min-height: 120px;
 }
 
 .answerQuestionsTitle {

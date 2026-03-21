@@ -69,52 +69,64 @@ class AgroBotChatbot:
     
     def preprocess_text(self, text):
         """Preprocess text: lowercase, remove punctuation, split into words"""
-        text = text.lower().strip()
+        text = str(text).lower().strip()
         # Remove punctuation
         text = re.sub(r'[?!.,;:\']', '', text)
         # Split into words
         words = text.split()
-        return words
+        
+        # Remove conversational filler words
+        stop_words = {"tell", "me", "about", "what", "is", "the", "a", "an", "how", "to", "do", "i", "can", "you", "for", "in", "of", "and", "are", "which", "should", "could", "would", "please", "know", "give", "some", "details", "information", "on", "it", "this", "that"}
+        filtered = [w for w in words if w not in stop_words]
+        
+        return filtered if len(filtered) > 0 else words
     
     def exact_match(self, user_input, question):
-        """Check for exact match"""
-        user_clean = user_input.lower().strip()
-        question_clean = question.lower().strip()
+        """Check for exact match before filtering"""
+        user_clean = str(user_input).lower().strip()
+        question_clean = str(question).lower().strip()
         return user_clean == question_clean
     
     def calculate_similarity(self, user_input, question):
-        """Calculate similarity with multiple strategies"""
-        user_clean = user_input.lower().strip()
-        question_clean = question.lower().strip()
-        
-        # Strategy 1: Exact match
-        if user_clean == question_clean:
+        """Calculate similarity focusing heavily on keyword coverage"""
+        if self.exact_match(user_input, question):
             return 1.0
-        
-        # Strategy 2: Contains match
-        if user_clean in question_clean or question_clean in user_clean:
-            return 0.95
-        
-        # Strategy 3: Word-based Jaccard similarity
+            
         user_words = set(self.preprocess_text(user_input))
         question_words = set(self.preprocess_text(question))
         
         if len(user_words) == 0 or len(question_words) == 0:
             return 0.0
-        
-        # Jaccard similarity
+            
         intersection = len(user_words & question_words)
         union = len(user_words | question_words)
+        
+        # Original simple Jaccard length matching penalizes short queries heavily against long DB questions
         jaccard = intersection / union if union > 0 else 0.0
         
-        return jaccard
+        # Coverage tells us what percentage of the user's keywords were actually found
+        coverage = intersection / len(user_words)
+        
+        # Weighted combination: We care MORE that we covered the user's critical nouns
+        combined_score = (coverage * 0.7) + (jaccard * 0.3)
+        
+        # Boost score slightly if the exact phrase sequence appears after filtering
+        user_phrase = " ".join(self.preprocess_text(user_input))
+        question_phrase = " ".join(self.preprocess_text(question))
+        
+        phrase_bonus = 0.0
+        if len(user_phrase) > 3 and user_phrase in question_phrase:
+            phrase_bonus = 0.2
+            
+        final_score = combined_score + phrase_bonus
+        return min(1.0, final_score)
     
     def get_response(self, user_input):
         """Get response for user input and return both answer and confidence score"""
-        if not user_input or not user_input.strip():
+        if not user_input or not str(user_input).strip():
             return "Please ask me a question about agriculture or farming.", 0
         
-        if user_input.lower().strip() == "bye":
+        if str(user_input).lower().strip() == "bye":
             return "Goodbye! Feel free to come back anytime you have agriculture questions.", 100
         
         # Find best match

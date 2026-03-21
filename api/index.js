@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
+const cors = require("cors");
 dotenv.config();
 const mongoose = require("mongoose");
 const authRoute = require("./routes/auth");
@@ -8,6 +9,8 @@ const userRoute = require("./routes/users");
 const postRoute = require("./routes/posts");
 const categoryRoute = require("./routes/categories");
 const commentRoute = require("./routes/comments");
+const chatbotRoute = require("./routes/chatbot");
+const questionRoute = require("./routes/questions");
 const Category = require("./models/Category");
 const { isCloudinaryConfigured, uploadToCloudinary } = require("./utils/cloudinary");
 
@@ -125,6 +128,8 @@ app.use("/api/users", userRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/categories", categoryRoute);
 app.use("/api/comments", commentRoute);
+app.use("/api/chatbot", chatbotRoute);
+app.use("/api/questions", questionRoute);
 
 // ── DB health check for admin settings ──────────────────────────────────────
 app.get("/api/admin/db-status", (req, res) => {

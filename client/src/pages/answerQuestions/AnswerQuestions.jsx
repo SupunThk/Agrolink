@@ -6,6 +6,8 @@ import "./answerQuestions.css";
 export default function AnswerQuestions() {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newQA, setNewQA] = useState({ category: "", question: "", answer: "" });
   const { user } = useContext(Context);
 
   useEffect(() => {
@@ -40,20 +42,95 @@ export default function AnswerQuestions() {
       // Remove the successfully answered question from the list
       setQuestions(questions.filter((q) => q._id !== qId));
       setAnswers({ ...answers, [qId]: "" });
-      
+
     } catch (err) {
       console.error("Failed to submit answer", err);
       alert("Error submitting answer. Please try again.");
     }
   };
 
+  const handleCustomQASubmit = async (e) => {
+    e.preventDefault();
+    if (!newQA.question.trim() || !newQA.answer.trim()) return;
+
+    try {
+      await axios.post("/questions/training-pair", {
+        username: user.username,
+        question: newQA.question,
+        answer: newQA.answer,
+        category: newQA.category || "General",
+      });
+
+      alert("Training pair added successfully!");
+      setNewQA({ category: "", question: "", answer: "" });
+      setShowAddForm(false);
+    } catch (err) {
+      console.error("Failed to submit custom Q&A", err);
+      alert("Error submitting custom Q&A. Please try again.");
+    }
+  };
+
   return (
     <div className="answerQuestions">
       <div className="answerQuestionsHeader">
-        <h1 className="answerQuestionsTitle">Answer Community Questions</h1>
-        <p className="answerQuestionsSubtitle">Help farmers by providing expert answers to questions our AI couldn't resolve.</p>
+        <div className="aqHeaderMain">
+          <h1 className="answerQuestionsTitle">Answer Community Questions</h1>
+          <p className="answerQuestionsSubtitle">Help farmers by providing expert answers to questions our AI couldn't resolve.</p>
+        </div>
+        <button className="aqToggleAddBtn" onClick={() => setShowAddForm(!showAddForm)}>
+          <i className={`fas fa-${showAddForm ? 'times' : 'plus'}`}></i> {showAddForm ? 'Cancel' : 'Add Training Q&A'}
+        </button>
       </div>
-      
+
+      {showAddForm && (
+        <div className="aqCustomFormContainer">
+          <h2 className="aqCustomFormTitle">Add Custom Q&A Pair</h2>
+          <form className="aqCustomForm" onSubmit={handleCustomQASubmit}>
+            <div className="aqInputGroup">
+              <label>Category (Optional):</label>
+              <select
+                value={newQA.category}
+                onChange={(e) => setNewQA({ ...newQA, category: e.target.value })}
+                className="aqSelectInput"
+              >
+                <option value="">General</option>
+                <option value="Organic Farming">Organic Farming</option>
+                <option value="Inorganic Farming">Inorganic Farming</option>
+                <option value="Crop Diseases">Crop Diseases</option>
+                <option value="Pest Management">Pest Management</option>
+                <option value="Soil Management">Soil Management</option>
+                <option value="Weather & Climate">Weather & Climate</option>
+                <option value="Crop Growth">Crop Growth</option>
+                <option value="Fertilizer Management">Fertilizer Management</option>
+              </select>
+            </div>
+            <div className="aqInputGroup">
+              <label>Question:</label>
+              <textarea
+                className="aqInput"
+                placeholder="What is the question?"
+                value={newQA.question}
+                onChange={(e) => setNewQA({ ...newQA, question: e.target.value })}
+                required
+              ></textarea>
+            </div>
+            <div className="aqInputGroup">
+              <label>Expert Answer:</label>
+              <textarea
+                className="aqInput aqAnswerArea"
+                placeholder="Provide a detailed expert answer..."
+                value={newQA.answer}
+                onChange={(e) => setNewQA({ ...newQA, answer: e.target.value })}
+                required
+              ></textarea>
+            </div>
+            <button className="aqSubmit" type="submit" disabled={!newQA.question.trim() || !newQA.answer.trim()}>
+              <i className="fas fa-save"></i> Save Training Pair
+            </button>
+          </form>
+        </div>
+      )}
+
       {questions.length === 0 ? (
         <div className="noQuestions">
           <i className="fas fa-check-circle noQuestionsIcon"></i>
@@ -81,17 +158,17 @@ export default function AnswerQuestions() {
                   </span>
                 </div>
               </div>
-              
+
               <div className="aqQuestionBody">
                 <p className="aqQuestion">{q.question}</p>
               </div>
-              
+
               <form className="aqForm" onSubmit={(e) => handleAnswerSubmit(e, q._id)}>
                 <label className="aqFormLabel">
                   <i className="fas fa-pen"></i> Provide your expert answer:
                 </label>
                 <div className="aqInputWrapper">
-                  <textarea 
+                  <textarea
                     className="aqInput"
                     placeholder="Type a detailed and helpful answer..."
                     value={answers[q._id] || ""}

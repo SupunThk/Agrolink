@@ -20,7 +20,7 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
           <Logo />
           <p className="navSidebarSubtitle">Community Management</p>
         </div>
-        
+
         <div className="navSidebarContent">
           <div className="navSidebarSection">
             <h4 className="navSidebarSectionTitle">MAIN NAVIGATION</h4>
@@ -84,6 +84,20 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                       <i className="fas fa-user-cog"></i> Settings
                     </Link>
                   </li>
+                  {user && user.role === 'expert' && !user.isAdmin && (
+                    <li className="navSidebarListItem">
+                      <Link className="link" to="/answer-questions" onClick={() => setIsOpen(false)}>
+                        <i className="fas fa-comment-dots"></i> Answer Q&A
+                      </Link>
+                    </li>
+                  )}
+                  {user && user.isAdmin && (
+                    <li className="navSidebarListItem">
+                      <Link className="link" to="/admin" onClick={() => setIsOpen(false)}>
+                        <i className="fas fa-shield-alt"></i> Admin Panel
+                      </Link>
+                    </li>
+                  )}
                   <li className="navSidebarListItem" onClick={handleLogout}>
                     <div className="link logoutBtn">
                       <i className="fas fa-sign-out-alt"></i> Logout

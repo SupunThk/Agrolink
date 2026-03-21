@@ -12,7 +12,7 @@ export default function Topbar({ adminMode }) {
   const PF = "http://localhost:5000/images/";
   const getAvatarSrc = (src) =>
     !src ? null :
-    src.startsWith("http://") || src.startsWith("https://") ? src : PF + src;
+      src.startsWith("http://") || src.startsWith("https://") ? src : PF + src;
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -82,8 +82,20 @@ export default function Topbar({ adminMode }) {
                 WRITE
               </Link>
             </li>
+            <li className="topListItem">
+              <Link className="link" to="/ask-expert">
+                ASK EXPERT
+              </Link>
+            </li>
 
 
+            {user && user.role === 'expert' && !user.isAdmin && (
+              <li className="topListItem">
+                <Link className="link" to="/answer-questions">
+                  ANSWER Q&A
+                </Link>
+              </li>
+            )}
             {user && user.isAdmin && (
               <li className="topListItem">
                 <Link className="link" to="/admin">
