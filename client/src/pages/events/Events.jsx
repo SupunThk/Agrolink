@@ -1,6 +1,7 @@
 import "./Events.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
 import axios from "axios";
+import { Context } from "../../context/Context";
 
 const emptyForm = {
     title: "",
@@ -35,6 +36,9 @@ function getTodayInputValue() {
 }
 
 export default function Events() {
+    const { user } = useContext(Context);
+    const isAdminOrExpert = user && (user.isAdmin || user.role === "expert");
+
     const [events, setEvents] = useState([]);
     const [form, setForm] = useState(emptyForm);
     const [formErrors, setFormErrors] = useState(emptyErrors);
@@ -152,7 +156,7 @@ export default function Events() {
 
         setMsg("");
         try {
-            await axios.delete(`/events/${id}`);
+            await axios.delete(`/events/${id}`, { data: { userId: user ? user._id : null } });
             setEvents((prev) => prev.filter((e) => e._id !== id));
             setMsg("Event deleted successfully ✅");
         } catch (err) {
@@ -171,6 +175,7 @@ export default function Events() {
             date: form.date,
             location: form.location.trim(),
             description: form.description.trim(),
+            userId: user ? user._id : null
         };
 
         setFormSubmitting(true);
@@ -275,9 +280,11 @@ export default function Events() {
                     <button className="btn btn-outline" type="button" onClick={fetchEvents}>
                         🔄 Refresh
                     </button>
-                    <button className="btn btn-primary btn-add-event" type="button" onClick={openCreateModal}>
-                        ➕ Add New Event
-                    </button>
+                    {isAdminOrExpert && (
+                        <button className="btn btn-primary btn-add-event" type="button" onClick={openCreateModal}>
+                            ➕ Add New Event
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -380,13 +387,17 @@ export default function Events() {
                                             </button>
                                         )}
 
-                                        <button className="btn btn-edit" onClick={() => startEdit(ev)} type="button">
-                                            ✏️ Edit
-                                        </button>
+                                        {isAdminOrExpert && (
+                                            <>
+                                                <button className="btn btn-edit" onClick={() => startEdit(ev)} type="button">
+                                                    ✏️ Edit
+                                                </button>
 
-                                        <button className="btn btn-delete" onClick={() => removeEvent(ev._id)} type="button">
-                                            🗑 Delete
-                                        </button>
+                                                <button className="btn btn-delete" onClick={() => removeEvent(ev._id)} type="button">
+                                                    🗑 Delete
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             );

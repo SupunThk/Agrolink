@@ -72,6 +72,11 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                 </Link>
               </li>
               <li className="navSidebarListItem">
+                <Link className="link" to="/events" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-calendar-alt"></i> Events
+                </Link>
+              </li>
+              <li className="navSidebarListItem">
                 <Link className="link" to="/" onClick={() => setIsOpen(false)}>
                   <i className="fas fa-shield-alt"></i> Part 06: Security
                 </Link>

@@ -20,7 +20,7 @@ const EventSchema = new mongoose.Schema(
         // ✅ Registrations
         attendees: { type: [AttendeeSchema], default: [] },
     },
-    { timestamps: true }
+    { timestamps: true, collection: 'events' }
 );
 
 module.exports = mongoose.model("Event", EventSchema);
