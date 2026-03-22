@@ -21,10 +21,12 @@ dotenv.config();
 
 const multer = require("multer");
 const path = require("path");
+const imagesDirectory = path.join(__dirname, "images");
 
 app.use(express.json());
-// Serve files from api/images/ at /images
-app.use("/images", express.static(path.join(__dirname, "/images")));
+// Serve files from the absolute api/images directory at /images
+app.use("/images", express.static(imagesDirectory));
+console.log("Serving images from:", imagesDirectory);
 
 // Save uploaded files to api/images/ using the filename sent by the client
 const storage = multer.diskStorage({

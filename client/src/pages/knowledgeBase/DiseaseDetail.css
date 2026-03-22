@@ -103,6 +103,14 @@
     max-width: 52ch;
 }
 
+.diseaseDetailDescription {
+    margin: 18px 0 0;
+    color: #275845;
+    line-height: 1.75;
+    font-size: 1rem;
+    max-width: 56ch;
+}
+
 .diseaseDetailActionRow {
     display: flex;
     gap: 12px;
@@ -139,7 +147,7 @@
 }
 
 .diseaseDetailImageWrap {
-    min-height: 360px;
+    aspect-ratio: 16 / 11;
     overflow: hidden;
     position: relative;
     background:
@@ -331,13 +339,35 @@
 }
 
 .diseaseDetailRelatedTop {
-    min-height: 76px;
-    padding: 18px;
-    display: flex;
-    align-items: flex-end;
+    height: 180px;
+    overflow: hidden;
     background:
         radial-gradient(circle at top left, rgba(70, 185, 110, 0.18), transparent 42%),
         linear-gradient(135deg, #f2faf5 0%, #fbfffc 100%);
+}
+
+.diseaseDetailRelatedImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.diseaseDetailRelatedFallback {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 18px;
+    background:
+        linear-gradient(180deg, rgba(0, 77, 64, 0.04) 0%, rgba(0, 77, 64, 0.14) 100%);
+}
+
+.diseaseDetailRelatedFallbackTitle {
+    margin: 0;
+    color: #004d40;
+    font-size: 1.05rem;
+    line-height: 1.25;
 }
 
 .diseaseDetailRelatedBody {
@@ -491,6 +521,7 @@
 }
 
 [data-theme='dark'] .diseaseDetailSubtitle,
+[data-theme='dark'] .diseaseDetailDescription,
 [data-theme='dark'] .diseaseDetailList li,
 [data-theme='dark'] .diseaseDetailTreatmentText,
 [data-theme='dark'] .diseaseDetailStateText,
@@ -517,6 +548,10 @@
 }
 
 [data-theme='dark'] .diseaseDetailImageFallbackTitle {
+    color: #f2fff8;
+}
+
+[data-theme='dark'] .diseaseDetailRelatedFallbackTitle {
     color: #f2fff8;
 }
 

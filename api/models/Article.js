@@ -6,6 +6,11 @@ const ArticleSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        description: {
+            type: String,
+            required: false,
+            default: "",
+        },
         symptoms: {
             type: [String],
             required: true,

@@ -13,7 +13,6 @@ const EMPTY_FORM = {
     symptoms: "",
     preventionMethods: "",
     treatmentPlan: "",
-    imageUrl: "",
 };
 
 function mapArticleToForm(article) {
@@ -24,7 +23,6 @@ function mapArticleToForm(article) {
         symptoms: article?.symptoms?.join("\n") || "",
         preventionMethods: article?.preventionMethods?.join("\n") || "",
         treatmentPlan: article?.treatmentPlan || "",
-        imageUrl: article?.imageUrl || "",
     };
 }
 
@@ -164,6 +162,7 @@ export default function EditDiseaseSubmission() {
                     submitLabel="Save Changes"
                     successMessage={successMessage}
                     errorMessage={errorMessage}
+                    showImageUpload={false}
                 />
             )}
         </div>

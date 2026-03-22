@@ -6,11 +6,14 @@ export default function KnowledgeSubmissionForm({
     formData,
     fieldErrors,
     onChange,
+    onFileChange,
     onSubmit,
     submitting,
     submitLabel,
     successMessage,
     errorMessage,
+    showImageUpload = true,
+    selectedImageName = "",
 }) {
     const getFieldClassName = (fieldName, baseClass = "kbInput") =>
         fieldErrors[fieldName] ? `${baseClass} hasError` : baseClass;
@@ -110,20 +113,24 @@ export default function KnowledgeSubmissionForm({
                     {fieldErrors.treatmentPlan ? <p className="kbFieldError">{fieldErrors.treatmentPlan}</p> : null}
                 </div>
 
-                <div className="kbField">
-                    <label className="kbLabel" htmlFor="imageUrl">Reference Image URL</label>
-                    <input
-                        id="imageUrl"
-                        name="imageUrl"
-                        type="text"
-                        placeholder="Optional image path ending in .jpg, .jpeg, or .png"
-                        className={getFieldClassName("imageUrl")}
-                        value={formData.imageUrl}
-                        onChange={onChange}
-                    />
-                    <p className="kbFieldHint">Only JPG and PNG image paths are allowed.</p>
-                    {fieldErrors.imageUrl ? <p className="kbFieldError">{fieldErrors.imageUrl}</p> : null}
-                </div>
+                {showImageUpload ? (
+                    <div className="kbField">
+                        <label className="kbLabel" htmlFor="image">Upload Disease Image</label>
+                        <input
+                            id="image"
+                            name="image"
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp"
+                            className={getFieldClassName("image")}
+                            onChange={onFileChange}
+                        />
+                        <p className="kbFieldHint">
+                            Accepted formats: JPG, JPEG, PNG, and WEBP.
+                            {selectedImageName ? ` Selected: ${selectedImageName}` : ""}
+                        </p>
+                        {fieldErrors.image ? <p className="kbFieldError">{fieldErrors.image}</p> : null}
+                    </div>
+                ) : null}
 
                 <button type="submit" className="kbSubmitButton" disabled={submitting}>
                     {submitting ? "Saving..." : submitLabel}

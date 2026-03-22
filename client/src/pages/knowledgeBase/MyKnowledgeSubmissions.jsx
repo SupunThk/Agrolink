@@ -100,89 +100,90 @@ export default function MyKnowledgeSubmissions() {
             {error ? (
                 <p className="kbEmpty">{error}</p>
             ) : loading ? (
-                <div className="kbGrid">
-                    {Array.from({ length: 3 }).map((_, index) => (
-                        <article className="kbCard kbSkeletonCard" key={`my-kb-skeleton-${index}`}>
-                            <div className="kbCardTop kbSkeletonBlock"></div>
-                            <div className="kbCardInfo">
-                                <div className="kbMetaRow">
-                                    <div className="kbSkeletonPill kbSkeletonBlock"></div>
-                                    <div className="kbSkeletonStatus kbSkeletonBlock"></div>
+                <section className="kbCropSection">
+                    <div className="kbCropGrid">
+                        {Array.from({ length: 4 }).map((_, index) => (
+                            <article className="kbCard kbSkeletonCard" key={`my-kb-skeleton-${index}`}>
+                                <div className="kbCardMedia kbSkeletonBlock"></div>
+                                <div className="kbCardInfo">
+                                    <div className="kbMetaRow">
+                                        <div className="kbSkeletonPill kbSkeletonBlock"></div>
+                                        <div className="kbSkeletonStatus kbSkeletonBlock"></div>
+                                    </div>
+                                    <div className="kbSkeletonTitle kbSkeletonBlock"></div>
+                                    <div className="kbSkeletonText kbSkeletonBlock"></div>
+                                    <div className="kbSkeletonText short kbSkeletonBlock"></div>
+                                    <div className="kbMetaText">
+                                        <div className="kbSkeletonMeta kbSkeletonBlock"></div>
+                                    </div>
+                                    <div className="kbCardBottom">
+                                        <div className="kbSkeletonButton kbSkeletonBlock"></div>
+                                    </div>
                                 </div>
-                                <div className="kbSkeletonTitle kbSkeletonBlock"></div>
-                                <div className="kbSkeletonText kbSkeletonBlock"></div>
-                                <div className="kbSkeletonText short kbSkeletonBlock"></div>
-                                <div className="kbMetaText">
-                                    <div className="kbSkeletonMeta kbSkeletonBlock"></div>
-                                </div>
-                                <div className="kbCardBottom">
-                                    <div className="kbSkeletonButton kbSkeletonBlock"></div>
-                                </div>
-                            </div>
-                        </article>
-                    ))}
-                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
             ) : items.length === 0 ? (
                 <p className="kbEmpty">You have not submitted any disease articles yet.</p>
             ) : (
-                <div className="kbGrid">
-                    {items.map((item) => (
-                        <article className="kbCard glass-panel" key={item._id}>
-                            <div className="kbCardTop">
-                                {getImageSrc(item.imageUrl) && !imageFailures[item._id] ? (
-                                    <img
-                                        className="kbImg"
-                                        src={getImageSrc(item.imageUrl)}
-                                        alt={item.title}
-                                        onError={() =>
-                                            setImageFailures((current) => ({ ...current, [item._id]: true }))
-                                        }
-                                    />
-                                ) : (
-                                    <div className="kbImgFallback">
-                                        <span className="kbImgFallbackBadge">
-                                            {item.diseaseId?.cropId?.name || "Submission"}
-                                        </span>
-                                        <h3 className="kbImgFallbackTitle">{item.title}</h3>
-                                        <p className="kbImgFallbackText">
-                                            Review status, crop context, and article details for your submission.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="kbCardInfo">
-                                <div className="kbMetaRow">
-                                    {item.diseaseId?.cropId?.name && (
-                                        <span className="kbCropPill">{item.diseaseId.cropId.name}</span>
-                                    )}
-                                    <span className={`kbStatusPill ${(item.status || "pending").toLowerCase()}`}>
-                                        {(item.status || "pending").toUpperCase()}
-                                    </span>
-                                </div>
-
-                                <h2 className="kbCardTitle">{item.title}</h2>
-                                <p className="kbCardSummary">{getSummary(item)}</p>
-                                <p className="kbMetaText">
-                                    Submitted: {new Date(item.createdAt).toLocaleString()}
-                                </p>
-
-                                <div className="kbCardBottom">
-                                    <Link to={`/my-knowledge-submissions/${item._id}`} className="kbReadMore">
-                                        Read More
-                                    </Link>
-                                    {item.status !== "approved" ? (
-                                        <div className="kbPendingNote">
-                                            {item.status === "rejected"
-                                                ? "This submission was rejected and is not visible in the public knowledge base."
-                                                : "Awaiting admin approval before appearing in the public knowledge base."}
+                <section className="kbCropSection">
+                    <div className="kbCropGrid">
+                        {items.map((item) => (
+                            <article className="kbCard" key={item._id}>
+                                <div className="kbCardMedia">
+                                    {getImageSrc(item.imageUrl) && !imageFailures[item._id] ? (
+                                        <img
+                                            className="kbImg"
+                                            src={getImageSrc(item.imageUrl)}
+                                            alt={item.title}
+                                            onError={() =>
+                                                setImageFailures((current) => ({ ...current, [item._id]: true }))
+                                            }
+                                        />
+                                    ) : (
+                                        <div className="kbImgFallback">
+                                            <span className="kbImgFallbackBadge">
+                                                {item.diseaseId?.cropId?.name || "Submission"}
+                                            </span>
+                                            <h3 className="kbImgFallbackTitle">{item.title}</h3>
                                         </div>
-                                    ) : null}
+                                    )}
                                 </div>
-                            </div>
-                        </article>
-                    ))}
-                </div>
+
+                                <div className="kbCardInfo">
+                                    <div className="kbMetaRow">
+                                        {item.diseaseId?.cropId?.name && (
+                                            <span className="kbCropPill">{item.diseaseId.cropId.name}</span>
+                                        )}
+                                        <span className={`kbStatusPill ${(item.status || "pending").toLowerCase()}`}>
+                                            {(item.status || "pending").toUpperCase()}
+                                        </span>
+                                    </div>
+
+                                    <h2 className="kbCardTitle">{item.title}</h2>
+                                    <p className="kbCardSummary">{getSummary(item)}</p>
+                                    <p className="kbMetaText">
+                                        Submitted: {new Date(item.createdAt).toLocaleString()}
+                                    </p>
+
+                                    <div className="kbCardBottom">
+                                        <Link to={`/my-knowledge-submissions/${item._id}`} className="kbReadMore">
+                                            Read More
+                                        </Link>
+                                        {item.status !== "approved" ? (
+                                            <div className="kbPendingNote">
+                                                {item.status === "rejected"
+                                                    ? "This submission was rejected and is not visible in the public knowledge base."
+                                                    : "Awaiting admin approval before appearing in the public knowledge base."}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
             )}
         </div>
     );

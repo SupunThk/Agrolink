@@ -10,6 +10,11 @@ const DiseaseSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        image: {
+            type: String,
+            required: false,
+            default: "",
+        },
         cropId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Crop",

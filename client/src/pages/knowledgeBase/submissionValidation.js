@@ -1,7 +1,11 @@
 const MIN_DESCRIPTION_LENGTH = 20;
-const IMAGE_PATTERN = /\.(jpg|jpeg|png)(\?.*)?$/i;
+const ALLOWED_IMAGE_TYPES = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+]);
 
-export function validateKnowledgeSubmission(values) {
+export function validateKnowledgeSubmission(values, imageFile = null) {
     const errors = {};
     const cropName = values.cropName?.trim() || "";
     const diseaseName = values.diseaseName?.trim() || "";
@@ -9,7 +13,6 @@ export function validateKnowledgeSubmission(values) {
     const symptoms = values.symptoms?.trim() || "";
     const preventionMethods = values.preventionMethods?.trim() || "";
     const treatmentPlan = values.treatmentPlan?.trim() || "";
-    const imageUrl = values.imageUrl?.trim() || "";
 
     if (!cropName) {
         errors.cropName = "Crop type is required.";
@@ -43,8 +46,8 @@ export function validateKnowledgeSubmission(values) {
         errors.treatmentPlan = `Treatment plan must be at least ${MIN_DESCRIPTION_LENGTH} characters.`;
     }
 
-    if (imageUrl && !IMAGE_PATTERN.test(imageUrl)) {
-        errors.imageUrl = "Only .jpg, .jpeg, and .png image paths are allowed.";
+    if (imageFile && !ALLOWED_IMAGE_TYPES.has(imageFile.type)) {
+        errors.image = "Only JPG, JPEG, PNG, and WEBP files are allowed.";
     }
 
     return errors;

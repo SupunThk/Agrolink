@@ -13,12 +13,12 @@ const INITIAL_FORM = {
     symptoms: "",
     preventionMethods: "",
     treatmentPlan: "",
-    imageUrl: "",
 };
 
 export default function AddDisease() {
     const { user } = useContext(Context);
     const [formData, setFormData] = useState(INITIAL_FORM);
+    const [imageFile, setImageFile] = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
@@ -30,6 +30,12 @@ export default function AddDisease() {
         setFieldErrors((current) => ({ ...current, [name]: "" }));
     };
 
+    const handleFileChange = (event) => {
+        const file = event.target.files?.[0] || null;
+        setImageFile(file);
+        setFieldErrors((current) => ({ ...current, image: "" }));
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -38,7 +44,7 @@ export default function AddDisease() {
             return;
         }
 
-        const validationErrors = validateKnowledgeSubmission(formData);
+        const validationErrors = validateKnowledgeSubmission(formData, imageFile);
         if (Object.keys(validationErrors).length > 0) {
             setFieldErrors(validationErrors);
             setErrorMessage("Please fix the highlighted fields before submitting.");
@@ -51,13 +57,28 @@ export default function AddDisease() {
         setErrorMessage("");
 
         try {
-            await axios.post("/knowledge", {
-                ...formData,
-                userId: user._id,
+            const payload = new FormData();
+            payload.append("cropName", formData.cropName);
+            payload.append("diseaseName", formData.diseaseName);
+            payload.append("title", formData.title);
+            payload.append("symptoms", formData.symptoms);
+            payload.append("preventionMethods", formData.preventionMethods);
+            payload.append("treatmentPlan", formData.treatmentPlan);
+            payload.append("userId", user._id);
+
+            if (imageFile) {
+                payload.append("image", imageFile);
+            }
+
+            await axios.post("/knowledge", payload, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             });
             setSuccessMessage("Submitted for admin review.");
             setFieldErrors({});
             setFormData(INITIAL_FORM);
+            setImageFile(null);
         } catch (err) {
             setFieldErrors(err.response?.data?.errors || {});
             setErrorMessage(
@@ -106,16 +127,20 @@ export default function AddDisease() {
                 </div>
             </div>
 
-            <KnowledgeSubmissionForm
-                formData={formData}
-                fieldErrors={fieldErrors}
-                onChange={handleChange}
-                onSubmit={handleSubmit}
-                submitting={submitting}
-                submitLabel="Submit for Review"
-                successMessage={successMessage}
-                errorMessage={errorMessage}
-            />
+            <div className="kbFormShell">
+                <KnowledgeSubmissionForm
+                    formData={formData}
+                    fieldErrors={fieldErrors}
+                    onChange={handleChange}
+                    onFileChange={handleFileChange}
+                    onSubmit={handleSubmit}
+                    submitting={submitting}
+                    submitLabel="Submit for Review"
+                    successMessage={successMessage}
+                    errorMessage={errorMessage}
+                    selectedImageName={imageFile?.name || ""}
+                />
+            </div>
         </div>
     );
 }

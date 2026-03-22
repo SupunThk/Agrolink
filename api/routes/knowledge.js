@@ -5,8 +5,14 @@ const Disease = require("../models/Disease");
 const Crop = require("../models/Crop");
 const User = require("../models/User");
 const requireDb = require("../middleware/requireDb");
+const uploadKnowledgeImage = require("../middleware/uploadKnowledgeImage");
+const {
+    getCuratedKnowledgeArticles,
+    getCuratedKnowledgeArticleById,
+    getCuratedCropNames,
+} = require("../data/curatedKnowledgeBase");
 const MIN_DESCRIPTION_LENGTH = 20;
-const ALLOWED_IMAGE_PATTERN = /\.(jpg|jpeg|png)(\?.*)?$/i;
+const ALLOWED_IMAGE_PATTERN = /\.(jpg|jpeg|png|webp)(\?.*)?$/i;
 
 function normalizeList(value) {
     if (Array.isArray(value)) {
@@ -36,12 +42,13 @@ function getDescriptionLength(value) {
 }
 
 function validateKnowledgePayload(body) {
-    const cropName = cleanText(body?.cropName);
-    const diseaseName = cleanText(body?.diseaseName);
+    const cropName = cleanText(body?.cropName || body?.crop);
+    const diseaseName = cleanText(body?.diseaseName || body?.title);
     const title = cleanText(body?.title);
-    const treatmentPlan = cleanText(body?.treatmentPlan);
+    const description = cleanText(body?.description);
+    const treatmentPlan = cleanText(body?.treatmentPlan || body?.treatment);
     const symptoms = normalizeList(body?.symptoms);
-    const preventionMethods = normalizeList(body?.preventionMethods);
+    const preventionMethods = normalizeList(body?.preventionMethods ?? body?.prevention);
     const imageUrl = cleanText(body?.imageUrl);
     const errors = {};
 
@@ -57,6 +64,12 @@ function validateKnowledgePayload(body) {
         errors.title = "Article title is required.";
     } else if (title.length < MIN_DESCRIPTION_LENGTH) {
         errors.title = `Article title must be at least ${MIN_DESCRIPTION_LENGTH} characters.`;
+    }
+
+    if (!description) {
+        errors.description = "Description is required.";
+    } else if (description.length < MIN_DESCRIPTION_LENGTH) {
+        errors.description = `Description must be at least ${MIN_DESCRIPTION_LENGTH} characters.`;
     }
 
     if (symptoms.length === 0) {
@@ -78,13 +91,14 @@ function validateKnowledgePayload(body) {
     }
 
     if (imageUrl && !ALLOWED_IMAGE_PATTERN.test(imageUrl)) {
-        errors.imageUrl = "Image must be a JPG or PNG file path/URL.";
+        errors.imageUrl = "Image must be a JPG, JPEG, PNG, or WEBP file path/URL.";
     }
 
     return {
         cropName,
         diseaseName,
         title,
+        description,
         treatmentPlan,
         symptoms,
         preventionMethods,
@@ -152,19 +166,7 @@ function getSearchEmptyMessage(search, crop) {
     return "No approved knowledge articles are available yet.";
 }
 
-async function getPublicCropNames() {
-    const articles = await articlePopulateQuery(
-        Article.find(publicArticleFilter).select("diseaseId")
-    ).lean();
-
-    return [...new Set(
-        articles
-            .map((article) => article.diseaseId?.cropId?.name)
-            .filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b));
-}
-
-async function upsertCropAndDisease({ cropName, diseaseName, aiModelLabel }) {
+async function upsertCropAndDisease({ cropName, diseaseName, aiModelLabel, image }) {
     const crop = await Crop.findOneAndUpdate(
         { name: cropName },
         { name: cropName },
@@ -176,6 +178,7 @@ async function upsertCropAndDisease({ cropName, diseaseName, aiModelLabel }) {
         {
             diseaseName,
             aiModelLabel,
+            ...(image ? { image } : {}),
             cropId: crop._id,
         },
         { new: true, upsert: true }
@@ -184,136 +187,55 @@ async function upsertCropAndDisease({ cropName, diseaseName, aiModelLabel }) {
     return { crop, disease };
 }
 
-router.get("/", requireDb, async (req, res) => {
-    const qSearch = (req.query.search || "").trim();
-    const qCrop = (req.query.crop || "All").trim();
-    const requestedPage = Math.max(parseInt(req.query.page, 10) || 1, 1);
-    const requestedLimit = Math.max(parseInt(req.query.limit, 10) || 6, 1);
+router.get("/", (req, res) => {
+    const qSearch = (req.query.search || "").trim().toLowerCase();
+    const qCrop = (req.query.crop || "All").trim().toLowerCase();
 
-    try {
-        const articleQuery = { $and: [publicArticleFilter] };
-        let cropDiseaseIds = null;
+    const filteredArticles = getCuratedKnowledgeArticles().filter((article) => {
+        const cropName = article.diseaseId?.cropId?.name?.toLowerCase() || "";
+        const diseaseName = article.diseaseId?.diseaseName?.toLowerCase() || "";
+        const title = article.title?.toLowerCase() || "";
+        const description = article.description?.toLowerCase() || "";
 
-        if (qCrop !== "All") {
-            const crop = await Crop.findOne({ name: new RegExp(`^${qCrop}$`, "i") }).lean();
+        const matchesCrop = qCrop === "all" || cropName === qCrop;
+        const matchesSearch =
+            qSearch === "" ||
+            title.includes(qSearch) ||
+            diseaseName.includes(qSearch) ||
+            cropName.includes(qSearch) ||
+            description.includes(qSearch);
 
-            if (!crop) {
-                return res.status(200).json({
-                    articles: [],
-                    emptyMessage: getSearchEmptyMessage(qSearch, qCrop),
-                    totalCount: 0,
-                    currentPage: 1,
-                    totalPages: 0,
-                    limit: requestedLimit,
-                });
-            }
+        return matchesCrop && matchesSearch;
+    });
 
-            const cropDiseases = await Disease.find({ cropId: crop._id }).select("_id").lean();
-            cropDiseaseIds = cropDiseases.map((disease) => disease._id);
-
-            if (cropDiseaseIds.length === 0) {
-                return res.status(200).json({
-                    articles: [],
-                    emptyMessage: getSearchEmptyMessage(qSearch, qCrop),
-                    totalCount: 0,
-                    currentPage: 1,
-                    totalPages: 0,
-                    limit: requestedLimit,
-                });
-            }
-
-            articleQuery.$and.push({ diseaseId: { $in: cropDiseaseIds } });
-        }
-
-        if (qSearch !== "") {
-            const searchRegex = new RegExp(qSearch, "i");
-            const diseaseSearchQuery = { diseaseName: searchRegex };
-            const cropSearchQuery = { name: searchRegex };
-
-            if (cropDiseaseIds) {
-                diseaseSearchQuery._id = { $in: cropDiseaseIds };
-            }
-
-            const matchingDiseases = await Disease.find(diseaseSearchQuery).select("_id").lean();
-            const matchingDiseaseIds = matchingDiseases.map((disease) => disease._id);
-            const matchingCrops = await Crop.find(cropSearchQuery).select("_id").lean();
-            const matchingCropIds = matchingCrops.map((crop) => crop._id);
-
-            let cropMatchedDiseaseIds = [];
-            if (matchingCropIds.length > 0) {
-                const cropMatchedDiseases = await Disease.find({
-                    cropId: { $in: matchingCropIds },
-                    ...(cropDiseaseIds ? { _id: { $in: cropDiseaseIds } } : {})
-                }).select("_id").lean();
-                cropMatchedDiseaseIds = cropMatchedDiseases.map((disease) => disease._id);
-            }
-
-            const searchConditions = [
-                { title: searchRegex },
-                { symptoms: { $elemMatch: { $regex: searchRegex } } },
-                { preventionMethods: { $elemMatch: { $regex: searchRegex } } },
-                { treatmentPlan: searchRegex },
-            ];
-
-            if (matchingDiseaseIds.length > 0) {
-                searchConditions.push({ diseaseId: { $in: matchingDiseaseIds } });
-            }
-
-            if (cropMatchedDiseaseIds.length > 0) {
-                searchConditions.push({ diseaseId: { $in: cropMatchedDiseaseIds } });
-            }
-
-            articleQuery.$and.push({ $or: searchConditions });
-        }
-
-        const totalCount = await Article.countDocuments(articleQuery);
-        const totalPages = totalCount > 0 ? Math.ceil(totalCount / requestedLimit) : 0;
-        const currentPage = totalPages > 0 ? Math.min(requestedPage, totalPages) : 1;
-        const skip = (currentPage - 1) * requestedLimit;
-
-        const articles = await articlePopulateQuery(
-            Article.find(articleQuery)
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(requestedLimit)
-        ).lean();
-
-        return res.status(200).json({
-            articles,
-            emptyMessage: getSearchEmptyMessage(qSearch, qCrop),
-            totalCount,
-            currentPage,
-            totalPages,
-            limit: requestedLimit,
-        });
-    } catch (err) {
-        console.error("GET /api/knowledge failed:", err);
-        return res.status(500).json({ message: "Failed to fetch knowledge articles." });
-    }
+    return res.status(200).json({
+        articles: filteredArticles,
+        emptyMessage: getSearchEmptyMessage(qSearch, qCrop === "all" ? "All" : qCrop),
+        totalCount: filteredArticles.length,
+        currentPage: 1,
+        totalPages: filteredArticles.length > 0 ? 1 : 0,
+        limit: filteredArticles.length,
+    });
 });
 
-router.get("/crops", requireDb, async (req, res) => {
-    try {
-        const crops = await getPublicCropNames();
-        return res.status(200).json({ crops });
-    } catch (err) {
-        console.error("GET /api/knowledge/crops failed:", err);
-        return res.status(500).json({ message: "Failed to fetch knowledge crops." });
-    }
+router.get("/crops", (req, res) => {
+    return res.status(200).json({ crops: getCuratedCropNames() });
 });
 
-router.post("/", requireDb, async (req, res) => {
+router.post("/", requireDb, uploadKnowledgeImage, async (req, res) => {
     const userId = req.body?.userId;
     const {
         cropName,
         diseaseName,
         title,
+        description,
         treatmentPlan,
         symptoms,
         preventionMethods,
         imageUrl,
         errors,
     } = validateKnowledgePayload(req.body);
+    const uploadedImagePath = req.file ? `/images/${req.file.filename}` : imageUrl;
     const aiModelLabel =
         cleanText(req.body?.aiModelLabel) ||
         diseaseName?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -331,23 +253,34 @@ router.post("/", requireDb, async (req, res) => {
             return;
         }
 
-        const { disease } = await upsertCropAndDisease({ cropName, diseaseName, aiModelLabel });
+        const { disease } = await upsertCropAndDisease({
+            cropName,
+            diseaseName,
+            aiModelLabel,
+            image: uploadedImagePath,
+        });
 
         const article = await new Article({
             title,
+            description,
             symptoms,
             preventionMethods,
             treatmentPlan,
-            imageUrl,
+            imageUrl: uploadedImagePath,
             diseaseId: disease._id,
             status: "pending",
             submittedBy: userId,
         }).save();
 
+        const savedDisease = await Disease.findById(disease._id)
+            .populate({ path: "cropId", model: "Crop" })
+            .lean();
+
         return res.status(201).json({
             message: "Submission received and saved as pending review.",
             articleId: article._id,
             status: article.status,
+            disease: savedDisease,
         });
     } catch (err) {
         console.error("POST /api/knowledge failed:", err);
@@ -407,6 +340,7 @@ router.put("/mine/:id", requireDb, async (req, res) => {
         cropName,
         diseaseName,
         title,
+        description,
         treatmentPlan,
         symptoms,
         preventionMethods,
@@ -446,6 +380,7 @@ router.put("/mine/:id", requireDb, async (req, res) => {
         const { disease } = await upsertCropAndDisease({ cropName, diseaseName, aiModelLabel });
 
         existingArticle.title = title;
+        existingArticle.description = description;
         existingArticle.symptoms = symptoms;
         existingArticle.preventionMethods = preventionMethods;
         existingArticle.treatmentPlan = treatmentPlan;
@@ -560,63 +495,36 @@ router.put("/:id/reject", requireDb, async (req, res) => {
     return updateArticleStatus(req, res, "rejected");
 });
 
-router.get("/:id/related", requireDb, async (req, res) => {
+router.get("/:id/related", (req, res) => {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ message: "Invalid knowledge article id." });
+    const currentArticle = getCuratedKnowledgeArticleById(id);
+
+    if (!currentArticle) {
+        return res.status(404).json({ message: "Knowledge article not found." });
     }
 
-    try {
-        const currentArticle = await articlePopulateQuery(
-            Article.findOne({ _id: id, ...publicArticleFilter })
-        ).lean();
+    const relatedArticles = getCuratedKnowledgeArticles()
+        .filter((article) => article._id !== id)
+        .filter(
+            (article) =>
+                article.diseaseId?.cropId?.name === currentArticle.diseaseId?.cropId?.name
+        )
+        .slice(0, 3);
 
-        if (!currentArticle?.diseaseId?.cropId?._id) {
-            return res.status(404).json({ message: "Knowledge article not found." });
-        }
-
-        const relatedArticles = await articlePopulateQuery(
-            Article.find({
-                _id: { $ne: currentArticle._id },
-                ...publicArticleFilter,
-            })
-        ).lean();
-
-        const filteredRelated = relatedArticles
-            .filter((article) =>
-                String(article.diseaseId?.cropId?._id) === String(currentArticle.diseaseId.cropId._id)
-            )
-            .slice(0, 3);
-
-        return res.status(200).json(filteredRelated);
-    } catch (err) {
-        console.error(`GET /api/knowledge/${id}/related failed:`, err);
-        return res.status(500).json({ message: "Failed to fetch related knowledge articles." });
-    }
+    return res.status(200).json(relatedArticles);
 });
 
-router.get("/:id", requireDb, async (req, res) => {
+router.get("/:id", (req, res) => {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ message: "Invalid knowledge article id." });
+    const article = getCuratedKnowledgeArticleById(id);
+
+    if (!article) {
+        return res.status(404).json({ message: "Knowledge article not found." });
     }
 
-    try {
-        const article = await articlePopulateQuery(
-            Article.findOne({ _id: id, ...publicArticleFilter })
-        ).lean();
-
-        if (!article) {
-            return res.status(404).json({ message: "Knowledge article not found." });
-        }
-
-        return res.status(200).json(article);
-    } catch (err) {
-        console.error(`GET /api/knowledge/${id} failed:`, err);
-        return res.status(500).json({ message: "Failed to fetch knowledge article." });
-    }
+    return res.status(200).json(article);
 });
 
 module.exports = router;
