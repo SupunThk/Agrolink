@@ -37,7 +37,7 @@ export default function SinglePost() {
       }
     };
     getPost();
-  }, [path]);
+  }, [path, user?.username]);
 
   const handleDelete = async () => {
     try {

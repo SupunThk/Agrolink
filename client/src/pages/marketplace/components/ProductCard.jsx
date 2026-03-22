@@ -11,16 +11,6 @@ export default function ProductCard({ product, isOwner, onEdit, onDelete }) {
         currency: 'USD',
     }).format(product.price);
 
-    const handleDelete = async () => {
-        if (!window.confirm("Are you sure you want to delete this listing?")) return;
-        try {
-            await axios.delete(`/products/${product._id}`, { data: { username: user.username } });
-            if (onDelete) onDelete(product._id);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
     return (
         <div className="productCard">
             <div className="productCardImgWrapper">

@@ -92,6 +92,18 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
         }
     };
 
+    if (!user) {
+        return (
+            <div className="createListing">
+                <div style={{ textAlign: "center", padding: "50px", color: "var(--text-color, #555)" }}>
+                    <i className="fas fa-lock" style={{ fontSize: "3rem", color: "#ccc", marginBottom: "15px" }}></i>
+                    <h2>Login Required</h2>
+                    <p>You must be logged in to create a product listing.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="createListing">
             <form className="createListingForm" onSubmit={handleSubmit}>
@@ -154,6 +166,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                         placeholder="Price ($)"
                         className="createListingInput"
                         required
+                        min="0"
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                     />

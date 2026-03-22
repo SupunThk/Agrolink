@@ -1,0 +1,2 @@
+C:\Users\supun\OneDrive\Documents\Agrolink_full\Agrolink\client\src\components\singlePost\SinglePost.jsx:40:6 - React Hook useEffect has a missing dependency: 'user.username'. Either include it or remove the dependency array.
+C:\Users\supun\OneDrive\Documents\Agrolink_full\Agrolink\client\src\pages\marketplace\components\ProductCard.jsx:17:80 - 'user' is not defined.
