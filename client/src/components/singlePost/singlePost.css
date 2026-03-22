@@ -294,6 +294,109 @@
   color: var(--forest-900);
 }
 
+.singlePostConfirmContainer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.singlePostConfirmBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.singlePostConfirmModal {
+  position: relative;
+  width: min(92vw, 460px);
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: var(--shadow-zen);
+  text-align: center;
+}
+
+.singlePostConfirmIcon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  background: var(--mint-100);
+  color: var(--emerald-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.singlePostConfirmTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--forest-900);
+}
+
+.singlePostConfirmText {
+  margin: 10px 0 0;
+  font-family: var(--font-body);
+  color: var(--slate-600);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.singlePostConfirmActions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.singlePostConfirmCancel,
+.singlePostConfirmProceed {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-zen);
+}
+
+.singlePostConfirmCancel {
+  background: #f1f5f9;
+  color: var(--slate-600);
+  border: 1px solid var(--slate-200);
+}
+
+.singlePostConfirmCancel:hover {
+  background: var(--slate-200);
+}
+
+.singlePostConfirmProceed.success {
+  background: var(--emerald-600);
+  color: #fff;
+}
+
+.singlePostConfirmProceed.success:hover {
+  background: var(--emerald-700);
+}
+
+.singlePostConfirmProceed.danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.singlePostConfirmProceed.danger:hover {
+  background: #dc2626;
+}
+
 @media screen and (max-width: 768px) {
   .singlePostWrapper {
     padding: 24px;

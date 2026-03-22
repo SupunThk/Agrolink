@@ -67,8 +67,8 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                 </Link>
               </li>
               <li className="navSidebarListItem">
-                <Link className="link" to="/" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-chart-line"></i> Part 05: Reports
+                <Link className="link" to="/ask-expert" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-comments"></i> Ask an Expert
                 </Link>
               </li>
               <li className="navSidebarListItem">
@@ -89,6 +89,20 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                       <i className="fas fa-user-cog"></i> Settings
                     </Link>
                   </li>
+                  {user && user.role === 'expert' && !user.isAdmin && (
+                    <li className="navSidebarListItem">
+                      <Link className="link" to="/answer-questions" onClick={() => setIsOpen(false)}>
+                        <i className="fas fa-comment-dots"></i> Answer Q&A
+                      </Link>
+                    </li>
+                  )}
+                  {user && user.isAdmin && (
+                    <li className="navSidebarListItem">
+                      <Link className="link" to="/admin" onClick={() => setIsOpen(false)}>
+                        <i className="fas fa-shield-alt"></i> Admin Panel
+                      </Link>
+                    </li>
+                  )}
                   <li className="navSidebarListItem" onClick={handleLogout}>
                     <div className="link logoutBtn">
                       <i className="fas fa-sign-out-alt"></i> Logout

@@ -12,7 +12,8 @@ export default function Topbar({ adminMode }) {
   const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const PF = "http://localhost:5000/images/";
   const getAvatarSrc = (src) =>
-    src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
+    !src ? null :
+      src.startsWith("http://") || src.startsWith("https://") ? src : PF + src;
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -65,13 +66,15 @@ export default function Topbar({ adminMode }) {
             </li>
             <li className="topListItem">
               <Link className="link" to="/ask-expert">
-                ASK AN EXPERT
+                ASK EXPERT
               </Link>
             </li>
-            {user && (
+
+
+            {user && user.role === 'expert' && !user.isAdmin && (
               <li className="topListItem">
-                <Link className="link" to="/my-blogs">
-                  MY BLOGS
+                <Link className="link" to="/answer-questions">
+                  ANSWER Q&A
                 </Link>
               </li>
             )}
@@ -91,17 +94,19 @@ export default function Topbar({ adminMode }) {
         </div>
         <div className="topRight">
           {user ? (
-            <div onClick={handleProfileClick} style={{ cursor: "pointer" }} className="topProfileBtn">
-              {user.profilePic ? (
-                <img
-                  className="topImg"
-                  src={PF + user.profilePic}
-                  alt="Profile"
-                  onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
-                />
-              ) : null}
-              <div className="topImgDefault" style={{ display: user.profilePic ? "none" : "flex" }}>
-                <i className="fas fa-user"></i>
+            <div style={{ position: "relative" }}>
+              <div onClick={handleProfileClick} style={{ cursor: "pointer" }} className="topProfileBtn">
+                {user.profilePic ? (
+                  <img
+                    className="topImg"
+                    src={getAvatarSrc(user.profilePic)}
+                    alt="Profile"
+                    onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+                  />
+                ) : null}
+                <div className="topImgDefault" style={{ display: user.profilePic ? "none" : "flex" }}>
+                  <i className="fas fa-user"></i>
+                </div>
               </div>
               {adminMode && showAdminDropdown && (
                 <div className="adminDropdown">

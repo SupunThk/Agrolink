@@ -166,15 +166,18 @@ const AdminSettings = () => {
     if (!picFile) return;
     setPicLoading(true);
     try {
-      const filename = Date.now() + '_' + picFile.name;
       const data = new FormData();
-      data.append('name', filename);
       data.append('file', picFile);
-      await axios.post('/upload', data);
+      data.append('folder', 'agrolink/profiles');
+      const uploadRes = await axios.post('/upload', data);
+      const profilePic = uploadRes.data?.secure_url || uploadRes.data?.url;
+      if (!profilePic) {
+        throw new Error('Missing uploaded image URL');
+      }
 
       // Update user profile
-      await axios.put('/users/' + user._id, { userId: user._id, profilePic: filename });
-      dispatch({ type: 'UPDATE_SUCCESS', payload: { ...user, profilePic: filename } });
+      await axios.put('/users/' + user._id, { userId: user._id, profilePic });
+      dispatch({ type: 'UPDATE_SUCCESS', payload: { ...user, profilePic } });
       toast.success('Profile picture updated');
       setPicFile(null);
       setPreview(null);

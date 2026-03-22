@@ -313,6 +313,240 @@
   color: var(--slate-500);
 }
 
+.settingsPostsTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.settingsPostsTitleRow > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settingsDeleteAllPostsBtn {
+  background: rgba(239, 68, 68, 0.06);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-zen);
+}
+
+.settingsDeleteAllPostsBtn:hover:not(:disabled) {
+  background: #ef4444;
+  color: #fff;
+}
+
+.settingsDeleteAllPostsBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settingsPostsLoading,
+.settingsPostsEmpty {
+  font-family: var(--font-body);
+  color: var(--slate-500);
+  font-size: 14px;
+}
+
+.settingsPostsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settingsPostItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--bg-snow);
+}
+
+.settingsPostInfo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settingsPostLink {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--forest-900);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settingsPostLink:hover {
+  color: var(--emerald-600);
+}
+
+.settingsPostMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--slate-500);
+}
+
+.settingsPostStatus {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settingsPostStatus.status-approved {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.settingsPostStatus.status-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.settingsPostStatus.status-rejected {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.settingsPostDeleteBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
+  color: #ef4444;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.25s var(--ease-zen);
+}
+
+.settingsPostDeleteBtn:hover:not(:disabled) {
+  background: #ef4444;
+  color: #fff;
+}
+
+.settingsPostDeleteBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settingsConfirmContainer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingsConfirmBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.settingsConfirmModal {
+  position: relative;
+  width: min(92vw, 460px);
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: var(--shadow-zen);
+  text-align: center;
+}
+
+.settingsConfirmIcon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.settingsConfirmTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--forest-900);
+}
+
+.settingsConfirmText {
+  margin: 10px 0 0;
+  font-family: var(--font-body);
+  color: var(--slate-600);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.settingsConfirmActions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.settingsConfirmCancel,
+.settingsConfirmDelete {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s var(--ease-zen);
+}
+
+.settingsConfirmCancel {
+  background: #f1f5f9;
+  color: var(--slate-600);
+  border: 1px solid var(--slate-200);
+}
+
+.settingsConfirmCancel:hover {
+  background: var(--slate-200);
+}
+
+.settingsConfirmDelete {
+  background: #ef4444;
+  color: #fff;
+}
+
+.settingsConfirmDelete:hover {
+  background: #dc2626;
+}
+
 @media screen and (max-width: 992px) {
   .settings {
     flex-direction: column;
@@ -329,6 +563,13 @@
   }
   .settingsHeader {
     flex-direction: column;
+    align-items: flex-start;
+  }
+  .settingsPostsTitleRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .settingsPostItem {
     align-items: flex-start;
   }
 }

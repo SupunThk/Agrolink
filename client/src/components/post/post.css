@@ -95,15 +95,17 @@
 }
 
 .postAuthorAvatar {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #059669, #064e3b);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--emerald-600);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 11px;
+  font-size: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .postAuthorName {

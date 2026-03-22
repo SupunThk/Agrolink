@@ -2,9 +2,11 @@ import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 import { Context } from "../../context/Context";
 import "./singlePost.css";
 import RichEditor from "../richEditor/RichEditor";
+import Comments from "../comments/Comments";
 
 const PF = "http://localhost:5000/images/";
 // Handle both local filenames and any old Cloudinary URLs already in the DB
@@ -21,6 +23,7 @@ export default function SinglePost() {
   const [desc, setDesc] = useState("");
   const [file, setFile] = useState(null);
   const [updateMode, setUpdateMode] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
     const getPost = async () => {
@@ -39,6 +42,15 @@ export default function SinglePost() {
     getPost();
   }, [path]);
 
+  useEffect(() => {
+    if (!confirmAction) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [confirmAction]);
+
   const handleDelete = async () => {
     try {
       await axios.delete(`/posts/${post._id}`, {
@@ -56,22 +68,47 @@ export default function SinglePost() {
 
   const [error, setError] = useState(null);
 
+  const getPlainTextFromHtml = (html) => {
+    if (!html) return "";
+    return html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
   const handleUpdate = async () => {
     setError(null);
+    const trimmedTitle = title.trim();
+    const storyText = getPlainTextFromHtml(desc);
+
+    if (!trimmedTitle) {
+      setError("Title cannot be empty.");
+      return;
+    }
+
+    if (!storyText) {
+      setError("Story cannot be empty.");
+      return;
+    }
+
     const updatedPost = {
       username: user.username,
-      title,
+      title: trimmedTitle,
       desc,
     };
 
     if (file) {
       const data = new FormData();
-      const filename = Date.now() + file.name;
-      data.append("name", filename);
       data.append("file", file);
-      updatedPost.photo = filename;
+      data.append("folder", "agrolink/posts");
       try {
-        await axios.post("/upload", data);
+        const uploadRes = await axios.post("/upload", data);
+        updatedPost.photo = uploadRes.data?.secure_url || uploadRes.data?.url;
+        updatedPost.photoPublicId = uploadRes.data?.public_id || null;
+        if (!updatedPost.photo) {
+          throw new Error("Missing uploaded image URL");
+        }
       } catch (err) {
         setError("Failed to upload cover image. Please try again.");
         return;
@@ -87,9 +124,63 @@ export default function SinglePost() {
         window.location.reload();
       }
     } catch (err) {
-      setError("Failed to update post. Please try again.");
+      const message = err?.response?.data?.message || err?.response?.data || "Failed to update post. Please try again.";
+      setError(message);
     }
   };
+
+  const openDeleteConfirm = () => {
+    setConfirmAction("delete");
+  };
+
+  const openUpdateConfirm = () => {
+    setConfirmAction("update");
+  };
+
+  const closeConfirm = () => {
+    setConfirmAction(null);
+  };
+
+  const handleConfirmAction = async () => {
+    if (confirmAction === "delete") {
+      await handleDelete();
+    }
+    if (confirmAction === "update") {
+      await handleUpdate();
+    }
+    setConfirmAction(null);
+  };
+
+  const confirmModal = confirmAction
+    ? createPortal(
+      <div className="singlePostConfirmContainer">
+        <div className="singlePostConfirmBackdrop" onClick={closeConfirm}></div>
+        <div className="singlePostConfirmModal fadeIn">
+          <div className="singlePostConfirmIcon">
+            <i className={`fas ${confirmAction === "delete" ? "fa-trash-alt" : "fa-pen"}`}></i>
+          </div>
+          <h3 className="singlePostConfirmTitle">
+            {confirmAction === "delete" ? "Delete this post?" : "Update this post?"}
+          </h3>
+          <p className="singlePostConfirmText">
+            {confirmAction === "delete"
+              ? "Are you sure you want to delete this post? This action cannot be undone."
+              : "Are you sure you want to save these changes?"}
+          </p>
+          <div className="singlePostConfirmActions">
+            <button className="singlePostConfirmCancel" onClick={closeConfirm}>Cancel</button>
+            <button
+              className={`singlePostConfirmProceed ${confirmAction === "delete" ? "danger" : "success"}`}
+              onClick={handleConfirmAction}
+            >
+              {confirmAction === "delete" ? "Yes, Delete" : "Yes, Update"}
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )
+    : null;
 
   return (
     <div className="singlePost">
@@ -142,7 +233,7 @@ export default function SinglePost() {
                 ></i>
                 <i
                   className="singlePostIcon far fa-trash-alt"
-                  onClick={handleDelete}
+                  onClick={openDeleteConfirm}
                 ></i>
               </div>
             )}
@@ -181,12 +272,15 @@ export default function SinglePost() {
               <button className="singlePostCancelButton" onClick={() => { setUpdateMode(false); setFile(null); }}>
                 Cancel
               </button>
-              <button className="singlePostButton" onClick={handleUpdate}>
+              <button className="singlePostButton" onClick={openUpdateConfirm}>
                 Update Post
               </button>
             </div>
           </div>
         )}
+        {!updateMode && post._id && <Comments postId={post._id} />}
+
+        {confirmModal}
       </div>
     </div>
   );

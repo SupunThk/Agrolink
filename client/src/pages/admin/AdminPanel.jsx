@@ -8,6 +8,9 @@ import {
   LogOut,
   X,
   Leaf,
+  MessageSquare,
+  Sprout,
+  AlertTriangle,
   Menu,
   Moon,
   Sun,
@@ -22,6 +25,7 @@ import BlogModeration from '../../components/admin/BlogModeration.jsx';
 import DiseaseRegistry from '../../components/admin/DiseaseRegistry.jsx';
 import MarketplaceManagement from '../../components/admin/MarketplaceManagement.jsx';
 import AdminSettings from '../../components/admin/AdminSettings.jsx';
+import AnswerQuestions from '../answerQuestions/AnswerQuestions.jsx';
 import { Context } from '../../context/Context.js';
 import Logo from '../../components/logo/Logo.jsx';
 
@@ -126,6 +130,8 @@ export default function AdminPanel() {
         return <DiseaseRegistry />;
       case 'marketplace':
         return <MarketplaceManagement />;
+      case 'chatbot_qa':
+        return <AnswerQuestions />;
       case 'settings':
         return <AdminSettings />;
       default:
@@ -151,6 +157,7 @@ export default function AdminPanel() {
     switch (activeTab) {
       case 'dashboard': return 'Dashboard';
       case 'users': return 'User Management';
+      case 'chatbot_qa': return 'Chatbot Q&A';
       case 'blogs': return 'Blog Moderation';
       case 'diseases': return 'Disease Database';
       case 'marketplace': return 'Marketplace';
@@ -163,6 +170,7 @@ export default function AdminPanel() {
     switch (activeTab) {
       case 'dashboard': return `${totalRecords} total records`;
       case 'users': return 'Manage registered users';
+      case 'chatbot_qa': return 'Answer pending chatbot questions';
       case 'blogs': return 'Review and moderate posts';
       case 'diseases': return 'Browse disease entries';
       case 'marketplace': return 'Monitor listings and orders';
@@ -249,6 +257,7 @@ export default function AdminPanel() {
 
           <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
           <SidebarItem icon={Users} label="User Management" active={activeTab === 'users'} onClick={() => handleTabChange('users')} />
+          <SidebarItem icon={MessageSquare} label="Chatbot Q&A" active={activeTab === 'chatbot_qa'} onClick={() => handleTabChange('chatbot_qa')} />
           <SidebarItem icon={FileText} label="Blog Moderation" active={activeTab === 'blogs'} onClick={() => handleTabChange('blogs')} />
           <SidebarItem icon={Store} label="Marketplace" active={activeTab === 'marketplace'} onClick={() => handleTabChange('marketplace')} />
           <SidebarItem icon={Leaf} label="Disease Data" active={activeTab === 'diseases'} onClick={() => handleTabChange('diseases')} />
@@ -445,7 +454,7 @@ export default function AdminPanel() {
               >
                 {user?.profilePic ? (
                   <img
-                    src={PF + user.profilePic}
+                    src={user.profilePic.startsWith('http') ? user.profilePic : PF + user.profilePic}
                     alt=""
                     style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
                   />
