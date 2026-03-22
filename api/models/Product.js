@@ -38,6 +38,10 @@ const ProductSchema = new mongoose.Schema(
             type: String,
             required: false,
         },
+        phone: {
+            type: String,
+            required: true,
+        },
     },
     { timestamps: true }
 );

@@ -70,7 +70,7 @@ router.delete("/:id", async (req, res) => {
         const product = await Product.findById(req.params.id);
         if (product.seller_id === req.body.username) {
             try {
-                await product.delete();
+                await product.deleteOne();
                 res.status(200).json("Product has been deleted...");
             } catch (err) {
                 res.status(500).json(err);

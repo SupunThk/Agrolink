@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import "./productCard.css";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, isOwner, onEdit, onDelete }) {
+    const [showContact, setShowContact] = useState(false);
     const PF = "http://localhost:5000/images/";
 
     // Format price
@@ -22,6 +23,17 @@ export default function ProductCard({ product }) {
                 )}
                 <div className="productCardImgOverlay"></div>
                 <span className="productCardBadge">{product.category_id}</span>
+                
+                {isOwner && (
+                    <div className="productCardOwnerActions">
+                        <button className="iconBtn editBtn" onClick={onEdit} title="Edit Listing">
+                            <i className="fas fa-edit"></i>
+                        </button>
+                        <button className="iconBtn deleteBtn" onClick={onDelete} title="Delete Listing">
+                            <i className="fas fa-trash"></i>
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="productCardInfo">
@@ -50,8 +62,11 @@ export default function ProductCard({ product }) {
                         </div>
                         <span className="sellerName">{product.seller_id}</span>
                     </div>
-                    <button className="productCardContactBtn">
-                        Contact
+                    <button 
+                        className="productCardContactBtn"
+                        onClick={() => setShowContact(!showContact)}
+                    >
+                        {showContact ? (product.phone || "Not provided") : "Contact"}
                     </button>
                 </div>
             </div>

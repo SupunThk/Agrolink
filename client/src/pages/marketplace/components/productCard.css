@@ -193,3 +193,48 @@ html[data-theme='dark'] .sellerName {
   background: var(--emerald-500);
   color: white;
 }
+
+.productCardOwnerActions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.iconBtn:hover {
+  transform: scale(1.1);
+}
+
+.iconBtn.editBtn {
+  color: #2196F3;
+}
+.iconBtn.editBtn:hover {
+  background: #2196F3;
+  color: white;
+}
+
+.iconBtn.deleteBtn {
+  color: #f44336;
+}
+.iconBtn.deleteBtn:hover {
+  background: #f44336;
+  color: white;
+}

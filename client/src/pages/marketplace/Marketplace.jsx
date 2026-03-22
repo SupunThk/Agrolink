@@ -10,6 +10,7 @@ export default function Marketplace() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const { user } = useContext(Context);
 
@@ -31,6 +32,24 @@ export default function Marketplace() {
       fetchProducts();
     }
   }, [activeTab]);
+
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setActiveTab('edit');
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this listing?")) {
+      try {
+        await axios.delete(`/products/${id}`, {
+          data: { username: user.username },
+        });
+        setProducts(products.filter((p) => p._id !== id));
+      } catch (err) {
+        console.error("Failed to delete product", err);
+      }
+    }
+  };
 
   const allListings = products;
   const myListings = products.filter(p => p.seller_id === user?.username);
@@ -75,7 +94,13 @@ export default function Marketplace() {
 
               <div className="marketplaceGrid">
                 {allListings.map(product => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard 
+                      key={product._id} 
+                      product={product} 
+                      isOwner={product.seller_id === user?.username} 
+                      onEdit={() => handleEdit(product)}
+                      onDelete={() => handleDelete(product._id)}
+                  />
                 ))}
               </div>
             </div>
@@ -94,7 +119,13 @@ export default function Marketplace() {
 
               <div className="marketplaceGrid">
                 {myListings.map(product => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard 
+                      key={product._id} 
+                      product={product} 
+                      isOwner={true}
+                      onEdit={() => handleEdit(product)}
+                      onDelete={() => handleDelete(product._id)}
+                  />
                 ))}
               </div>
             </div>
@@ -104,6 +135,13 @@ export default function Marketplace() {
             <div className="marketplaceSection">
               <h2>Create a Listing</h2>
               <CreateListing setActiveTab={setActiveTab} />
+            </div>
+          )}
+
+          {activeTab === 'edit' && editingProduct && (
+            <div className="marketplaceSection">
+              <h2>Edit Listing</h2>
+              <CreateListing setActiveTab={setActiveTab} initialProduct={editingProduct} />
             </div>
           )}
         </div>
