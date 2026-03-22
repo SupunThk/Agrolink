@@ -1,10 +1,9 @@
-import React, { useContext } from "react";
-import axios from "axios";
-import { Context } from "../../../context/Context";
+import React, { useState } from "react";
 import "./productCard.css";
 
-export default function ProductCard({ product, onDelete }) {
-    const { user } = useContext(Context);
+export default function ProductCard({ product, isOwner, onEdit, onDelete }) {
+    const [showContact, setShowContact] = useState(false);
+    const PF = "http://localhost:5000/images/";
 
     // Format price
     const formattedPrice = new Intl.NumberFormat('en-US', {
@@ -34,6 +33,17 @@ export default function ProductCard({ product, onDelete }) {
                 )}
                 <div className="productCardImgOverlay"></div>
                 <span className="productCardBadge">{product.category_id}</span>
+                
+                {isOwner && (
+                    <div className="productCardOwnerActions">
+                        <button className="iconBtn editBtn" onClick={onEdit} title="Edit Listing">
+                            <i className="fas fa-edit"></i>
+                        </button>
+                        <button className="iconBtn deleteBtn" onClick={onDelete} title="Delete Listing">
+                            <i className="fas fa-trash"></i>
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="productCardInfo">
@@ -62,15 +72,12 @@ export default function ProductCard({ product, onDelete }) {
                         </div>
                         <span className="sellerName">{product.seller_id}</span>
                     </div>
-                    {user && product.seller_id === user.username ? (
-                        <button className="productCardDeleteBtn" onClick={handleDelete}>
-                            <i className="fas fa-trash-alt"></i> Delete
-                        </button>
-                    ) : (
-                        <button className="productCardContactBtn">
-                            Contact
-                        </button>
-                    )}
+                    <button 
+                        className="productCardContactBtn"
+                        onClick={() => setShowContact(!showContact)}
+                    >
+                        {showContact ? (product.phone || "Not provided") : "Contact"}
+                    </button>
                 </div>
             </div>
         </div>

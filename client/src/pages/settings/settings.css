@@ -59,7 +59,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 28px;
-  background: linear-gradient(135deg, var(--emerald-600), var(--forest-900));
+  background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -163,7 +163,7 @@
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--emerald-600), var(--forest-900));
+  background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
   border: 3px solid rgba(16, 185, 129, 0.4);
   display: flex;
   align-items: center;

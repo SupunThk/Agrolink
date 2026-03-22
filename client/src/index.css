@@ -130,6 +130,12 @@ h1, h2, h3, h4 {
   border-color: #feb2b2;
 }
 
+.alert-warning {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
 .alert-success {
   background: var(--mint-100);
   color: var(--emerald-700);

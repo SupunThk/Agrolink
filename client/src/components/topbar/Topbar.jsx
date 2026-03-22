@@ -1,29 +1,40 @@
+import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./topbar.css";
-import { useContext, useState } from "react";
 import { Context } from "../../context/Context";
 import Logo from "../logo/Logo";
 import MobileSidebar from "../mobileSidebar/MobileSidebar";
 
-export default function Topbar() {
+export default function Topbar({ adminMode }) {
   const navigate = useNavigate();
   const { user, isVerified, theme, dispatch } = useContext(Context);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const PF = "http://localhost:5000/images/"
+  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
+  const PF = "http://localhost:5000/images/";
+  const getAvatarSrc = (src) =>
+    src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
   }
 
   const handleProfileClick = () => {
-    dispatch({ type: "SHOW_VMODAL" });
+    if (adminMode) {
+      setShowAdminDropdown(!showAdminDropdown);
+    } else {
+      dispatch({ type: "SHOW_VMODAL" });
+    }
   }
+
+  const handleHamburger = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   return (
     <>
       <div className="top glass-panel">
         <div className="topLeft">
-          <button className="topHamburger" onClick={() => setSidebarOpen(true)}>
+          <button className="topHamburger" onClick={handleHamburger}>
             <i className="fas fa-bars"></i>
           </button>
           <div className="topLogoTrigger">
@@ -52,6 +63,25 @@ export default function Topbar() {
                 WRITE
               </Link>
             </li>
+            <li className="topListItem">
+              <Link className="link" to="/ask-expert">
+                ASK AN EXPERT
+              </Link>
+            </li>
+            {user && (
+              <li className="topListItem">
+                <Link className="link" to="/my-blogs">
+                  MY BLOGS
+                </Link>
+              </li>
+            )}
+            {user && user.isAdmin && (
+              <li className="topListItem">
+                <Link className="link" to="/admin">
+                  ADMIN
+                </Link>
+              </li>
+            )}
             {user && (
               <li className="topListItem" onClick={handleLogout}>
                 LOGOUT
@@ -73,6 +103,14 @@ export default function Topbar() {
               <div className="topImgDefault" style={{ display: user.profilePic ? "none" : "flex" }}>
                 <i className="fas fa-user"></i>
               </div>
+              {adminMode && showAdminDropdown && (
+                <div className="adminDropdown">
+                  <div className="adminDropdownName">{user.username}</div>
+                  <button className="adminDropdownLogout" onClick={handleLogout}>
+                    <i className="fas fa-sign-out-alt"></i> Log Out
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <ul className="topList">

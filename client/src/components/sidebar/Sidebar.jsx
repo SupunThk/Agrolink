@@ -3,6 +3,17 @@ import "./sidebar.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
+const DEFAULT_CATEGORIES = [
+  "Organic Farming",
+  "Inorganic Farming",
+  "Crop Diseases",
+  "Pest Management",
+  "Soil Management",
+  "Weather & Climate",
+  "Crop Growth",
+  "Fertilizer Management",
+];
+
 export default function Sidebar() {
   const [cats, setCats] = useState([]);
 
@@ -49,24 +60,28 @@ export default function Sidebar() {
         </div>
 
         {/* Categories Card */}
-        {cats.length > 0 && (
-          <div className="sidebarCard">
-            <div className="sidebarCardHeader">
-              <i className="fas fa-tags sidebarCardIcon"></i>
-              <span className="sidebarTitle">Categories</span>
-            </div>
-            <ul className="sidebarList">
-              {cats.map((c) => (
-                <Link key={c._id} className="link" to={`/?cat=${c.name}`}>
-                  <li className="sidebarListItem">
-                    <i className="fas fa-seedling"></i>
-                    {c.name}
-                  </li>
-                </Link>
-              ))}
-            </ul>
+        <div className="sidebarCard">
+          <div className="sidebarCardHeader">
+            <i className="fas fa-tags sidebarCardIcon"></i>
+            <span className="sidebarTitle">Categories</span>
           </div>
-        )}
+          <ul className="sidebarList">
+            {cats.map((c) => (
+              <Link key={c._id} className="link" to={`/?cat=${encodeURIComponent(c.name)}`}>
+                <li className="sidebarListItem">
+                  <i className="fas fa-seedling"></i>
+                  {c.name}
+                </li>
+              </Link>
+            ))}
+            <Link className="link" to={`/?cat=${encodeURIComponent("Other")}`}>
+              <li className="sidebarListItem">
+                <i className="fas fa-seedling"></i>
+                Other
+              </li>
+            </Link>
+          </ul>
+        </div>
 
         {/* Social Card */}
         <div className="sidebarCard">
@@ -75,15 +90,15 @@ export default function Sidebar() {
             <span className="sidebarTitle">Follow Us</span>
           </div>
           <div className="sidebarSocial">
-            <a href="#" className="sidebarSocialBtn sidebarTwitter" aria-label="Twitter">
+            <a href="https://twitter.com/" className="sidebarSocialBtn sidebarTwitter" aria-label="Twitter" target="_blank" rel="noreferrer">
               <i className="fa-brands fa-twitter"></i>
               <span>Twitter</span>
             </a>
-            <a href="#" className="sidebarSocialBtn sidebarInstagram" aria-label="Instagram">
+            <a href="https://www.instagram.com/" className="sidebarSocialBtn sidebarInstagram" aria-label="Instagram" target="_blank" rel="noreferrer">
               <i className="fa-brands fa-instagram"></i>
               <span>Instagram</span>
             </a>
-            <a href="#" className="sidebarSocialBtn sidebarFacebook" aria-label="Facebook">
+            <a href="https://www.facebook.com/" className="sidebarSocialBtn sidebarFacebook" aria-label="Facebook" target="_blank" rel="noreferrer">
               <i className="fa-brands fa-facebook"></i>
               <span>Facebook</span>
             </a>

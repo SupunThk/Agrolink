@@ -1,15 +1,21 @@
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import "./singlePost.css";
+import RichEditor from "../richEditor/RichEditor";
+
+const PF = "http://localhost:5000/images/";
+// Handle both local filenames and any old Cloudinary URLs already in the DB
+const getPhotoSrc = (src) =>
+  src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
 
 export default function SinglePost() {
   const location = useLocation();
   const path = location.pathname.split("/")[2];
   const [post, setPost] = useState({});
-  const PF = "http://localhost:5000/images/";
+  // post.photo is now a full Cloudinary HTTPS URL — no local prefix needed
   const { user } = useContext(Context);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
@@ -18,10 +24,17 @@ export default function SinglePost() {
 
   useEffect(() => {
     const getPost = async () => {
-      const res = await axios.get("/posts/" + path);
-      setPost(res.data);
-      setTitle(res.data.title);
-      setDesc(res.data.desc);
+      try {
+        const urlToFetch = user?.username ? `/posts/${path}?user=${user.username}` : `/posts/${path}`;
+        const res = await axios.get(urlToFetch);
+        setPost(res.data);
+        setTitle(res.data.title);
+        setDesc(res.data.desc);
+      } catch (err) {
+        setPost({});
+        setTitle("");
+        setDesc("");
+      }
     };
     getPost();
   }, [path]);
@@ -32,7 +45,13 @@ export default function SinglePost() {
         data: { username: user.username },
       });
       window.location.replace("/");
-    } catch (err) {}
+    } catch (err) {
+      setError(
+        typeof err.response?.data === "string"
+          ? err.response.data
+          : "Failed to delete post. Please try again."
+      );
+    }
   };
 
   const [error, setError] = useState(null);
@@ -53,7 +72,10 @@ export default function SinglePost() {
       updatedPost.photo = filename;
       try {
         await axios.post("/upload", data);
-      } catch (err) {}
+      } catch (err) {
+        setError("Failed to upload cover image. Please try again.");
+        return;
+      }
     }
 
     try {
@@ -77,7 +99,7 @@ export default function SinglePost() {
             {file ? (
               <img src={URL.createObjectURL(file)} alt="" className="singlePostImg" />
             ) : post.photo ? (
-              <img src={PF + post.photo} alt="" className="singlePostImg" />
+              <img src={getPhotoSrc(post.photo)} alt="" className="singlePostImg" />
             ) : (
               <div className="singlePostImgPlaceholder">
                 <i className="fas fa-image"></i>
@@ -98,7 +120,7 @@ export default function SinglePost() {
           </div>
         ) : (
           post.photo && (
-            <img src={PF + post.photo} alt="" className="singlePostImg" />
+            <img src={getPhotoSrc(post.photo)} alt="" className="singlePostImg" />
           )
         )}
         {updateMode ? (
@@ -138,13 +160,14 @@ export default function SinglePost() {
           </span>
         </div>
         {updateMode ? (
-          <textarea
-            className="singlePostDescInput"
+          <RichEditor
             value={desc}
-            onChange={(e) => setDesc(e.target.value)}
+            onChange={setDesc}
+            placeholder="Write your story..."
+            minHeight="360px"
           />
         ) : (
-          <p className="singlePostDesc">{desc}</p>
+          <div className="singlePostDesc" dangerouslySetInnerHTML={{ __html: desc }} />
         )}
         {updateMode && (
           <div className="singlePostUpdateActions">

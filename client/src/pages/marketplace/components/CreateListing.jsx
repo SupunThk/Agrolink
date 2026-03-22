@@ -3,13 +3,14 @@ import axios from "axios";
 import { Context } from "../../../context/Context";
 import "./createListing.css";
 
-export default function CreateListing({ setActiveTab }) {
-    const [cropName, setCropName] = useState("");
-    const [categoryId, setCategoryId] = useState("");
-    const [quantity, setQuantity] = useState("");
-    const [price, setPrice] = useState("");
-    const [location, setLocation] = useState("");
-    const [description, setDescription] = useState("");
+export default function CreateListing({ setActiveTab, initialProduct }) {
+    const [cropName, setCropName] = useState(initialProduct ? initialProduct.crop_name : "");
+    const [categoryId, setCategoryId] = useState(initialProduct ? initialProduct.category_id : "");
+    const [quantity, setQuantity] = useState(initialProduct ? initialProduct.quantity : "");
+    const [price, setPrice] = useState(initialProduct ? initialProduct.price : "");
+    const [location, setLocation] = useState(initialProduct ? initialProduct.location : "");
+    const [phone, setPhone] = useState(initialProduct ? initialProduct.phone || "" : "");
+    const [description, setDescription] = useState(initialProduct ? initialProduct.description : "");
     const [file, setFile] = useState(null);
     const [customCategory, setCustomCategory] = useState("");
     const [categories, setCategories] = useState([]);
@@ -37,6 +38,13 @@ export default function CreateListing({ setActiveTab }) {
         setError(false);
         setLoading(true);
 
+        if (!user) {
+            setError(true);
+            setLoading(false);
+            console.error("User is not logged in");
+            return;
+        }
+
         const finalCategory = categoryId === "Other (Specify)" ? customCategory : categoryId;
 
         const newProduct = {
@@ -45,7 +53,9 @@ export default function CreateListing({ setActiveTab }) {
             quantity,
             price,
             location,
+            phone,
             description,
+            username: user.username, // for validation in backend
             seller_id: user.username,
         };
 
@@ -64,10 +74,16 @@ export default function CreateListing({ setActiveTab }) {
                 setLoading(false);
                 return;
             }
+        } else if (initialProduct && initialProduct.image_url) {
+            newProduct.image_url = initialProduct.image_url;
         }
 
         try {
-            const res = await axios.post("/products", newProduct);
+            if (initialProduct) {
+                await axios.put(`/products/${initialProduct._id}`, newProduct);
+            } else {
+                await axios.post("/products", newProduct);
+            }
             setLoading(false);
             setActiveTab("listings"); // redirect back to listings
         } catch (err) {
@@ -80,9 +96,11 @@ export default function CreateListing({ setActiveTab }) {
         <div className="createListing">
             <form className="createListingForm" onSubmit={handleSubmit}>
                 <div className="createListingGroup">
-                    {file && (
+                    {file ? (
                         <img className="createListingImg" src={URL.createObjectURL(file)} alt="" />
-                    )}
+                    ) : initialProduct?.image_url ? (
+                        <img className="createListingImg" src={initialProduct.image_url} alt="" />
+                    ) : null}
                     <label htmlFor="fileInput">
                         <i className="createListingIcon fas fa-plus"></i> Add Image
                     </label>
@@ -101,6 +119,7 @@ export default function CreateListing({ setActiveTab }) {
                         className="createListingInput"
                         autoFocus={true}
                         required
+                        value={cropName}
                         onChange={(e) => setCropName(e.target.value)}
                     />
                 </div>
@@ -124,6 +143,7 @@ export default function CreateListing({ setActiveTab }) {
                             placeholder="Please specify your category"
                             className="createListingInput"
                             required
+                            value={customCategory}
                             onChange={(e) => setCustomCategory(e.target.value)}
                             style={{ marginTop: "0px" }}
                         />
@@ -134,6 +154,7 @@ export default function CreateListing({ setActiveTab }) {
                         placeholder="Price ($)"
                         className="createListingInput"
                         required
+                        value={price}
                         onChange={(e) => setPrice(e.target.value)}
                     />
                 </div>
@@ -144,6 +165,7 @@ export default function CreateListing({ setActiveTab }) {
                         placeholder="Quantity (e.g., 50 kg)"
                         className="createListingInput"
                         required
+                        value={quantity}
                         onChange={(e) => setQuantity(e.target.value)}
                     />
 
@@ -152,7 +174,19 @@ export default function CreateListing({ setActiveTab }) {
                         placeholder="Location"
                         className="createListingInput"
                         required
+                        value={location}
                         onChange={(e) => setLocation(e.target.value)}
+                    />
+                </div>
+
+                <div className="createListingGroup">
+                    <input
+                        type="text"
+                        placeholder="Phone Number"
+                        className="createListingInput"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
                     />
                 </div>
 
@@ -162,12 +196,13 @@ export default function CreateListing({ setActiveTab }) {
                         type="text"
                         className="createListingInput createListingText"
                         required
+                        value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     ></textarea>
                 </div>
 
                 <button className="createListingSubmit" type="submit" disabled={loading}>
-                    {loading ? "Publishing..." : "Publish Listing"}
+                    {loading ? (initialProduct ? "Updating..." : "Publishing...") : (initialProduct ? "Update Listing" : "Publish Listing")}
                 </button>
                 {error && <span className="createListingError">Something went wrong!</span>}
             </form>

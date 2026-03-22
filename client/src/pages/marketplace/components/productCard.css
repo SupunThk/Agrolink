@@ -194,24 +194,47 @@ html[data-theme='dark'] .sellerName {
   color: white;
 }
 
-.productCardDeleteBtn {
-  background: none;
-  border: 1px solid #ef4444;
-  color: #ef4444;
-  font-family: var(--font-display);
-  font-size: 13px;
-  font-weight: 700;
-  padding: 6px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.productCardOwnerActions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
   display: flex;
-  align-items: center;
-  gap: 6px;
+  gap: 8px;
+  z-index: 10;
 }
 
-.productCardDeleteBtn:hover {
-  background: #ef4444;
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.iconBtn:hover {
+  transform: scale(1.1);
+}
+
+.iconBtn.editBtn {
+  color: #2196F3;
+}
+.iconBtn.editBtn:hover {
+  background: #2196F3;
   color: white;
 }
 
+.iconBtn.deleteBtn {
+  color: #f44336;
+}
+.iconBtn.deleteBtn:hover {
+  background: #f44336;
+  color: white;
+}

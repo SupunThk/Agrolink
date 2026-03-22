@@ -9,11 +9,11 @@ export default function Settings() {
 
   const [file, setFile] = useState(null);
   const [username, setUsername] = useState(user.username);
+  const [name, setName] = useState(user.name || "");
   const [email, setEmail] = useState(user.email);
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
-  const PF = "http://localhost:5000/images/";
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function Settings() {
       return;
     }
 
-    const updatedUser = { userId: user._id, username, email };
+    const updatedUser = { userId: user._id, username, name, email };
 
     if (password) {
       if (password.length < 6) {
@@ -51,7 +51,13 @@ export default function Settings() {
       data.append("name", filename);
       data.append("file", file);
       updatedUser.profilePic = filename;
-      try { await axios.post("/upload", data); } catch (err) {}
+      try {
+        await axios.post("/upload", data);
+      } catch (err) {
+        setError("Profile image upload failed. Please try again.");
+        dispatch({ type: "UPDATE_FAILURE" });
+        return;
+      }
     }
 
     setSaving(true);
@@ -69,7 +75,11 @@ export default function Settings() {
     }
   };
 
-  const avatarSrc = file ? URL.createObjectURL(file) : (user.profilePic ? PF + user.profilePic : null);
+  const PF = "http://localhost:5000/images/";
+  // Handle both local filenames and old Cloudinary URLs already in the DB
+  const getImageSrc = (src) =>
+    src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
+  const avatarSrc = file ? URL.createObjectURL(file) : (user.profilePic ? getImageSrc(user.profilePic) : null);
 
   return (
     <div className="settings fadeIn">
@@ -155,6 +165,12 @@ export default function Settings() {
                   <label className="settingsLabel">Username</label>
                   <input className="settingsInput" type="text" value={username}
                     onChange={(e) => setUsername(e.target.value)} />
+                </div>
+                <div className="settingsField">
+                  <label className="settingsLabel">Full Name</label>
+                  <input className="settingsInput" type="text" value={name}
+                    placeholder="Enter your full name..."
+                    onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div className="settingsField">
                   <label className="settingsLabel">Email Address</label>
