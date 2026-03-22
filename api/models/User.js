@@ -16,6 +16,10 @@ const UserSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        isAdmin: {
+            type: Boolean,
+            default: false,
+        },
         /**
          * profilePic — Full Cloudinary secure URL for the user's avatar.
          */

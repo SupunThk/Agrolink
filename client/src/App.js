@@ -10,7 +10,11 @@ import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
 import KnowledgeBase from "./pages/knowledgeBase/KnowledgeBase";
 import AddDisease from "./pages/knowledgeBase/AddDisease";
+import EditDiseaseSubmission from "./pages/knowledgeBase/EditDiseaseSubmission";
 import DiseaseDetail from "./pages/knowledgeBase/DiseaseDetail";
+import AdminPendingReview from "./pages/knowledgeBase/AdminPendingReview";
+import MyKnowledgeSubmissions from "./pages/knowledgeBase/MyKnowledgeSubmissions";
+import MySubmissionDetail from "./pages/knowledgeBase/MySubmissionDetail";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
@@ -51,6 +55,10 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/knowledge" element={<KnowledgeBase />} />
         <Route path="/add-disease" element={<AddDisease />} />
+        <Route path="/my-knowledge-submissions" element={<MyKnowledgeSubmissions />} />
+        <Route path="/my-knowledge-submissions/:id" element={<MySubmissionDetail />} />
+        <Route path="/my-knowledge-submissions/:id/edit" element={<EditDiseaseSubmission />} />
+        <Route path="/knowledge-review" element={<AdminPendingReview />} />
         <Route path="/disease-detail/:id" element={<DiseaseDetail />} />
       </Routes>
     </Router>

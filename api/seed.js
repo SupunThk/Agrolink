@@ -89,6 +89,7 @@ async function upsertStarterArticle(entry) {
             preventionMethods: entry.preventionMethods,
             treatmentPlan: entry.treatmentPlan,
             diseaseId: disease._id,
+            status: "approved",
         },
         { new: true, upsert: true }
     );

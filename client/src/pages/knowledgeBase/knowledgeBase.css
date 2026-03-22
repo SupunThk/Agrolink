@@ -30,6 +30,144 @@
     box-shadow: 0 12px 24px rgba(15, 173, 67, 0.18);
 }
 
+.kbHeroActions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.kbSecondaryButton {
+    background: #f2faf5;
+    color: #0b6b3a;
+    padding: 14px 22px;
+    text-decoration: none;
+    border-radius: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid #d7eedf;
+}
+
+.kbFormCard {
+    background: #fff;
+    border: 1px solid #d8eee2;
+    border-radius: 26px;
+    box-shadow: 0 12px 28px rgba(25, 87, 56, 0.1);
+    padding: 32px;
+}
+
+.kbForm {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.kbFormGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.kbField {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.kbFieldHint {
+    margin: 0;
+    color: #7b8d83;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.kbFieldError {
+    margin: 0;
+    color: #c05044;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.kbLabel {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #5d6d7e;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.kbInput,
+.kbTextarea {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: #f8fbf9;
+    font-size: 1rem;
+    color: #214637;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kbTextarea {
+    min-height: 140px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.kbInput.hasError,
+.kbTextarea.hasError {
+    border-color: #d96a5d;
+    box-shadow: 0 0 0 4px rgba(217, 106, 93, 0.08);
+}
+
+.kbInput:focus,
+.kbTextarea:focus {
+    outline: none;
+    border-color: #25b05a;
+    box-shadow: 0 0 0 4px rgba(37, 176, 90, 0.08);
+}
+
+.kbMessage {
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+.kbMessage.success {
+    background: #edf9f0;
+    color: #1d7a41;
+    border: 1px solid #bfe2c8;
+}
+
+.kbMessage.error {
+    background: #fff3f2;
+    color: #b0413e;
+    border: 1px solid #f1c1be;
+}
+
+.kbSubmitButton {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: none;
+    background: #0fad43;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 12px 24px rgba(15, 173, 67, 0.18);
+}
+
+.kbSubmitButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 .kbFilterContainer {
     display: flex;
     justify-content: center;
@@ -199,9 +337,98 @@
     font-size: 0.98rem;
 }
 
+.kbMetaRow {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.kbStatusPill {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.kbStatusPill.pending {
+    background: #fff2df;
+    color: #b26a13;
+}
+
+.kbStatusPill.approved {
+    background: #dff7e8;
+    color: #15944b;
+}
+
+.kbStatusPill.rejected {
+    background: #ffe7e4;
+    color: #b64b40;
+}
+
+.kbMetaText {
+    margin: 14px 0 0;
+    color: #628171;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
 .kbCardBottom {
     margin-top: auto;
     padding-top: 24px;
+}
+
+.kbActionRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.kbActionButton {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 16px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.kbActionButton.approve {
+    background: #0fad43;
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(15, 173, 67, 0.18);
+}
+
+.kbActionButton.reject {
+    background: #fff2df;
+    color: #b26a13;
+}
+
+.kbActionButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.kbPendingNote {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: #fff6e8;
+    color: #9d641f;
+    line-height: 1.55;
+    font-weight: 600;
+}
+
+.kbInlineLink {
+    color: #0b6b3a;
+    font-weight: 700;
+    text-decoration: none;
 }
 
 .kbReadMore {
@@ -219,6 +446,102 @@
 
 .kbReadMore:hover {
     background: #0a9a3b;
+}
+
+.kbPagination {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.kbPaginationButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 1px solid #d7eedf;
+    background: #f2faf5;
+    color: #0b6b3a;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.kbPaginationButton:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.kbPaginationInfo {
+    color: #628171;
+    font-weight: 600;
+    text-align: center;
+}
+
+.kbSkeletonCard {
+    pointer-events: none;
+}
+
+.kbSkeletonBlock {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, #edf4ef 0%, #f7fbf8 50%, #edf4ef 100%);
+}
+
+.kbSkeletonBlock::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: kbShimmer 1.6s infinite;
+}
+
+.kbSkeletonPill {
+    width: 96px;
+    height: 38px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+}
+
+.kbSkeletonStatus {
+    width: 110px;
+    height: 38px;
+    border-radius: 999px;
+}
+
+.kbSkeletonTitle {
+    width: 82%;
+    height: 28px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+
+.kbSkeletonText {
+    width: 100%;
+    height: 18px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.kbSkeletonText.short {
+    width: 74%;
+}
+
+.kbSkeletonMeta {
+    width: 55%;
+    height: 16px;
+    border-radius: 8px;
+}
+
+.kbSkeletonButton {
+    width: 100%;
+    height: 48px;
+    border-radius: 16px;
 }
 
 .kbLoading,
@@ -240,6 +563,14 @@
         width: fit-content;
     }
 
+    .kbHeroActions {
+        width: 100%;
+    }
+
+    .kbFormGrid {
+        grid-template-columns: 1fr;
+    }
+
     .kbGrid {
         grid-template-columns: 1fr;
     }
@@ -259,6 +590,36 @@
     color: #9be8b7;
 }
 
+[data-theme='dark'] .kbSecondaryButton {
+    background: #1f2c24;
+    color: #d8f7e4;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .kbFormCard {
+    background: #16211b;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .kbInput,
+[data-theme='dark'] .kbTextarea {
+    background: #1f2c24;
+    color: #f2fff8;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .kbLabel {
+    color: #b7c8be;
+}
+
+[data-theme='dark'] .kbFieldHint {
+    color: #9db0a5;
+}
+
+[data-theme='dark'] .kbFieldError {
+    color: #ffaaa0;
+}
+
 [data-theme='dark'] .kbHeading,
 [data-theme='dark'] .kbCardTitle,
 [data-theme='dark'] .kbImgFallbackTitle {
@@ -269,8 +630,33 @@
 [data-theme='dark'] .kbCardSummary,
 [data-theme='dark'] .kbLoading,
 [data-theme='dark'] .kbEmpty,
-[data-theme='dark'] .kbImgFallbackText {
+[data-theme='dark'] .kbImgFallbackText,
+[data-theme='dark'] .kbMetaText {
     color: #cad9cf;
+}
+
+[data-theme='dark'] .kbPendingNote {
+    background: #3b2f1b;
+    color: #ffd49a;
+}
+
+[data-theme='dark'] .kbPaginationButton {
+    background: #1f2c24;
+    color: #d8f7e4;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .kbPaginationInfo {
+    color: #cad9cf;
+}
+
+[data-theme='dark'] .kbActionButton.reject {
+    background: #3a241f;
+    color: #ffc0b8;
+}
+
+[data-theme='dark'] .kbSkeletonBlock {
+    background: linear-gradient(90deg, #233129 0%, #1c2821 50%, #233129 100%);
 }
 
 [data-theme='dark'] .kbSearchInput,
@@ -278,4 +664,10 @@
     background: #1f2c24;
     color: #f2fff8;
     border-color: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes kbShimmer {
+    100% {
+        transform: translateX(100%);
+    }
 }

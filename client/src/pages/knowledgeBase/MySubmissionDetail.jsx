@@ -1,72 +1,110 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Context } from "../../context/Context";
 import "./DiseaseDetail.css";
-import { getKnowledgeImage } from "./knowledgeImageResolver";
+
+const IMAGE_BASE_URL = "http://localhost:5000";
 
 function InfoState({ title, message }) {
     return (
         <div className="diseaseDetailState">
             <h1 className="diseaseDetailStateTitle">{title}</h1>
             <p className="diseaseDetailStateText">{message}</p>
-            <Link to="/knowledge" className="diseaseDetailBackButton">
-                Back to Knowledge Base
+            <Link to="/my-knowledge-submissions" className="diseaseDetailBackButton">
+                Back to My Submissions
             </Link>
         </div>
     );
 }
 
-export default function DiseaseDetail() {
+export default function MySubmissionDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useContext(Context);
     const [article, setArticle] = useState(null);
-    const [relatedArticles, setRelatedArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [notFound, setNotFound] = useState(false);
     const [invalidId, setInvalidId] = useState(false);
     const [imageFailed, setImageFailed] = useState(false);
-    const [relatedLoading, setRelatedLoading] = useState(true);
-    const [relatedError, setRelatedError] = useState("");
+    const [deleting, setDeleting] = useState(false);
+    const [actionError, setActionError] = useState("");
 
     useEffect(() => {
         const fetchArticle = async () => {
+            if (!user?._id) {
+                setError("Please log in to view your submission details.");
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             setError("");
             setNotFound(false);
             setInvalidId(false);
             setImageFailed(false);
-            setRelatedLoading(true);
-            setRelatedError("");
-            setRelatedArticles([]);
+            setActionError("");
 
             try {
-                const articleRes = await axios.get(`/knowledge/${id}`);
-                setArticle(articleRes.data);
-
-                try {
-                    const relatedRes = await axios.get(`/knowledge/${id}/related`);
-                    setRelatedArticles(relatedRes.data || []);
-                } catch (relatedErr) {
-                    if (relatedErr.response?.status >= 500) {
-                        setRelatedError("Related diseases are unavailable right now.");
-                    }
-                }
+                const res = await axios.get(`/knowledge/mine/${id}?userId=${user._id}`);
+                setArticle(res.data);
             } catch (err) {
                 if (err.response?.status === 400) {
                     setInvalidId(true);
                 } else if (err.response?.status === 404) {
                     setNotFound(true);
+                } else if (err.response?.status === 401) {
+                    setError("Please log in to view your submission details.");
                 } else {
-                    setError("Unable to load this knowledge article right now. Please try again after the backend is running.");
+                    setError("Unable to load this submission right now.");
                 }
             } finally {
                 setLoading(false);
-                setRelatedLoading(false);
             }
         };
 
         fetchArticle();
-    }, [id]);
+    }, [id, user]);
+
+    const getImageSrc = (imageUrl) => {
+        if (!imageUrl) {
+            return null;
+        }
+
+        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+            return imageUrl;
+        }
+
+        if (imageUrl.startsWith("/")) {
+            return `${IMAGE_BASE_URL}${imageUrl}`;
+        }
+
+        return `${IMAGE_BASE_URL}/images/${imageUrl}`;
+    };
+
+    const handleDelete = async () => {
+        if (!user?._id || !article || article.status !== "pending") {
+            return;
+        }
+
+        const shouldDelete = window.confirm("Delete this pending submission?");
+        if (!shouldDelete) {
+            return;
+        }
+
+        setDeleting(true);
+        setActionError("");
+
+        try {
+            await axios.delete(`/knowledge/mine/${id}`, { data: { userId: user._id } });
+            navigate("/my-knowledge-submissions");
+        } catch (err) {
+            setActionError(err.response?.data?.message || "Unable to delete this submission.");
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -95,7 +133,7 @@ export default function DiseaseDetail() {
     if (notFound) {
         return (
             <div className="about fadeIn">
-                <InfoState title="Article not found" message="This knowledge article could not be found or may have been removed." />
+                <InfoState title="Submission not found" message="This submission could not be found under your account." />
             </div>
         );
     }
@@ -103,7 +141,7 @@ export default function DiseaseDetail() {
     if (invalidId) {
         return (
             <div className="about fadeIn">
-                <InfoState title="Invalid article link" message="This knowledge article link is invalid. Please return to the knowledge base and try again." />
+                <InfoState title="Invalid submission link" message="The submission link is invalid. Please open it again from My Submissions." />
             </div>
         );
     }
@@ -111,28 +149,48 @@ export default function DiseaseDetail() {
     if (error) {
         return (
             <div className="about fadeIn">
-                <InfoState title="Unable to load article" message={error} />
+                <InfoState title="Unable to load submission" message={error} />
             </div>
         );
     }
 
     const cropName = article?.diseaseId?.cropId?.name || "Unknown Crop";
     const diseaseName = article?.diseaseId?.diseaseName || "Disease";
-    const heroImage = getKnowledgeImage(article);
+    const heroImage = getImageSrc(article?.imageUrl);
     const showImageFallback = !heroImage || imageFailed;
+    const status = (article?.status || "pending").toLowerCase();
 
     return (
         <div className="about fadeIn">
             <div className="diseaseDetailPage">
-                <Link to="/knowledge" className="diseaseDetailBackButton">
-                    Back to Knowledge Base
+                <Link to="/my-knowledge-submissions" className="diseaseDetailBackButton">
+                    Back to My Submissions
                 </Link>
 
                 <section className="diseaseDetailHero">
                     <div className="diseaseDetailHeroContent">
-                        <span className="diseaseDetailPill">{cropName}</span>
+                        <div className="diseaseDetailStatusRow">
+                            <span className="diseaseDetailPill">{cropName}</span>
+                            <span className={`diseaseDetailStatusPill ${status}`}>{status.toUpperCase()}</span>
+                        </div>
                         <h1 className="diseaseDetailTitle">{article.title}</h1>
                         <p className="diseaseDetailSubtitle">{diseaseName}</p>
+                        {actionError ? <p className="diseaseDetailCardIntro">{actionError}</p> : null}
+                        {article.status === "pending" ? (
+                            <div className="diseaseDetailActionRow">
+                                <Link to={`/my-knowledge-submissions/${id}/edit`} className="diseaseDetailActionButton primary">
+                                    Edit Submission
+                                </Link>
+                                <button
+                                    type="button"
+                                    className="diseaseDetailActionButton secondary"
+                                    disabled={deleting}
+                                    onClick={handleDelete}
+                                >
+                                    {deleting ? "Deleting..." : "Delete Submission"}
+                                </button>
+                            </div>
+                        ) : null}
                     </div>
                     <div className="diseaseDetailImageWrap">
                         {showImageFallback ? (
@@ -140,7 +198,7 @@ export default function DiseaseDetail() {
                                 <span className="diseaseDetailImageBadge">{cropName}</span>
                                 <h2 className="diseaseDetailImageFallbackTitle">{article.title}</h2>
                                 <p className="diseaseDetailImageFallbackText">
-                                    Detailed diagnosis, prevention, and treatment guidance for this crop disease.
+                                    Review status, diagnosis, prevention, and treatment guidance for your submission.
                                 </p>
                             </div>
                         ) : (
@@ -158,7 +216,7 @@ export default function DiseaseDetail() {
                     <article className="diseaseDetailCard">
                         <h2 className="diseaseDetailCardTitle">Symptoms</h2>
                         <p className="diseaseDetailCardIntro">
-                            Key visual signs and field symptoms that help identify this disease early.
+                            Key visual signs and field symptoms included in your submitted disease article.
                         </p>
                         <ul className="diseaseDetailList">
                             {article.symptoms?.map((symptom, index) => (
@@ -170,7 +228,7 @@ export default function DiseaseDetail() {
                     <article className="diseaseDetailCard">
                         <h2 className="diseaseDetailCardTitle">Prevention</h2>
                         <p className="diseaseDetailCardIntro">
-                            Practical steps to reduce risk and stop the disease from spreading further.
+                            Preventive measures and management suggestions provided with your submission.
                         </p>
                         <ul className="diseaseDetailList">
                             {article.preventionMethods?.map((method, index) => (
@@ -183,63 +241,9 @@ export default function DiseaseDetail() {
                 <section className="diseaseDetailTreatment">
                     <h2 className="diseaseDetailCardTitle">Treatment Plan</h2>
                     <p className="diseaseDetailCardIntro">
-                        Recommended treatment guidance and next actions once the disease is confirmed.
+                        The treatment guidance attached to your submission for admin review.
                     </p>
                     <p className="diseaseDetailTreatmentText">{article.treatmentPlan}</p>
-                </section>
-
-                <section className="diseaseDetailRelatedSection">
-                    <div className="diseaseDetailSectionHeading">
-                        <span className="diseaseDetailRelatedEyebrow">More from {cropName}</span>
-                        <h2 className="diseaseDetailCardTitle">Related Diseases</h2>
-                        <p className="diseaseDetailCardIntro">
-                            More approved knowledge articles from the same crop category.
-                        </p>
-                    </div>
-
-                    <div className="diseaseDetailRelatedContent">
-                        {relatedLoading ? (
-                            <div className="diseaseDetailRelatedGrid">
-                                {Array.from({ length: 3 }).map((_, index) => (
-                                    <article className="diseaseDetailRelatedCard diseaseDetailSkeletonCard" key={`related-skeleton-${index}`}>
-                                        <div className="diseaseDetailRelatedTop diseaseDetailSkeletonCard"></div>
-                                        <div className="diseaseDetailRelatedBody">
-                                            <div className="diseaseDetailSkeletonPill"></div>
-                                            <div className="diseaseDetailSkeletonTitle"></div>
-                                            <div className="diseaseDetailSkeletonSubtitle"></div>
-                                        </div>
-                                    </article>
-                                ))}
-                            </div>
-                        ) : relatedError ? (
-                            <p className="diseaseDetailStateText">{relatedError}</p>
-                        ) : relatedArticles.length === 0 ? (
-                            <p className="diseaseDetailStateText">No related approved diseases were found for this crop yet.</p>
-                        ) : (
-                            <div className="diseaseDetailRelatedGrid">
-                                {relatedArticles.map((relatedArticle) => (
-                                    <article className="diseaseDetailRelatedCard" key={relatedArticle._id}>
-                                        <div className="diseaseDetailRelatedTop">
-                                            <span className="diseaseDetailImageBadge">
-                                                {relatedArticle.diseaseId?.cropId?.name || "Knowledge"}
-                                            </span>
-                                        </div>
-                                        <div className="diseaseDetailRelatedBody">
-                                            <h3 className="diseaseDetailRelatedTitle">{relatedArticle.title}</h3>
-                                            <p className="diseaseDetailRelatedText">
-                                                {relatedArticle.treatmentPlan?.length > 110
-                                                    ? `${relatedArticle.treatmentPlan.slice(0, 107)}...`
-                                                    : relatedArticle.treatmentPlan}
-                                            </p>
-                                            <Link to={`/disease-detail/${relatedArticle._id}`} className="diseaseDetailRelatedLink">
-                                                Read More
-                                            </Link>
-                                        </div>
-                                    </article>
-                                ))}
-                            </div>
-                        )}
-                    </div>
                 </section>
             </div>
         </div>

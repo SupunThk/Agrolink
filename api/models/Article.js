@@ -22,6 +22,17 @@ const ArticleSchema = new mongoose.Schema(
             type: String,
             required: false,
         },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+            required: true,
+        },
+        submittedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: false,
+        },
         diseaseId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Disease",
