@@ -11,6 +11,7 @@ const categoryRoute = require("./routes/categories");
 const commentRoute = require("./routes/comments");
 const chatbotRoute = require("./routes/chatbot");
 const questionRoute = require("./routes/questions");
+const eventRoute = require("./routes/events");
 const Category = require("./models/Category");
 const { isCloudinaryConfigured, uploadToCloudinary } = require("./utils/cloudinary");
 
@@ -130,6 +131,7 @@ app.use("/api/categories", categoryRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/chatbot", chatbotRoute);
 app.use("/api/questions", questionRoute);
+app.use("/api/events", eventRoute);
 
 // ── DB health check for admin settings ──────────────────────────────────────
 app.get("/api/admin/db-status", (req, res) => {

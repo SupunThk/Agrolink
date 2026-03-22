@@ -12,6 +12,7 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import AskExpert from "./pages/askExpert/AskExpert";
 import AnswerQuestions from "./pages/answerQuestions/AnswerQuestions";
 import MyBlogs from "./pages/myBlogs/MyBlogs";
+import Events from "./pages/events/Events";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
@@ -106,6 +107,10 @@ function AppContent() {
         <Route
           path="/admin"
           element={user && user.isAdmin ? <AdminPanel /> : <Login />}
+        />
+        <Route
+          path="/events"
+          element={user ? <Events /> : <Login />}
         />
       </Routes>
     </>
