@@ -1,10 +1,19 @@
 const router = require("express").Router();
 const Event = require("../models/Event");
+const User = require("../models/User");
 
 // ✅ CREATE EVENT
 router.post("/", async (req, res) => {
     try {
-        const { title, date, location, description } = req.body;
+        const { title, date, location, description, userId } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: Missing user ID" });
+        }
+        const user = await User.findById(userId);
+        if (!user || (!user.isAdmin && user.role !== "expert")) {
+            return res.status(403).json({ message: "Forbidden: Only admins and experts can create events" });
+        }
 
         if (!title || !date) {
             return res.status(400).json({ message: "Title and date are required" });
@@ -80,9 +89,19 @@ router.post("/:id/register", async (req, res) => {
 // ✅ UPDATE EVENT
 router.put("/:id", async (req, res) => {
     try {
+        const { userId, ...updateData } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: Missing user ID" });
+        }
+        const user = await User.findById(userId);
+        if (!user || (!user.isAdmin && user.role !== "expert")) {
+            return res.status(403).json({ message: "Forbidden: Only admins and experts can update events" });
+        }
+
         const updatedEvent = await Event.findByIdAndUpdate(
             req.params.id,
-            { $set: req.body },
+            { $set: updateData },
             { new: true }
         );
 
@@ -97,6 +116,16 @@ router.put("/:id", async (req, res) => {
 // ✅ DELETE EVENT
 router.delete("/:id", async (req, res) => {
     try {
+        const userId = req.body.userId;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: Missing user ID" });
+        }
+        const user = await User.findById(userId);
+        if (!user || (!user.isAdmin && user.role !== "expert")) {
+            return res.status(403).json({ message: "Forbidden: Only admins and experts can delete events" });
+        }
+
         const deleted = await Event.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ message: "Event not found" });
 
