@@ -11,6 +11,8 @@ export default function Marketplace() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   const { user } = useContext(Context);
 
@@ -51,13 +53,59 @@ export default function Marketplace() {
     }
   };
 
-  const allListings = products;
-  const myListings = products.filter(p => p.seller_id === user?.username);
+  const agricultureCategories = [
+    "Vegetables", "Fruits", "Grains & Cereals", "Pulses & Legumes", 
+    "Spices & Herbs", "Cash Crops", "Leafy Greens", "Root & Tubers", 
+    "Seeds & Seedlings", "Organic Produce"
+  ];
+
+  const filteredProducts = products.filter(product => {
+    const searchString = searchTerm.toLowerCase();
+    const matchesSearch = product.crop_name?.toLowerCase().includes(searchString) || 
+                          product.description?.toLowerCase().includes(searchString);
+    
+    // Some products might have a custom category not in agricultureCategories list
+    // We handle it simply by checking exact match with selectedCategory (or empty meaning all)
+    const matchesCategory = selectedCategory === "" || product.category_id === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const allListings = filteredProducts;
+  const myListings = filteredProducts.filter(p => p.seller_id === user?.username);
 
   return (
     <div className="marketplace fadeIn">
       <div className="marketplaceWrapper">
         <h1 className="marketplaceTitle">AgroLink Marketplace</h1>
+
+        {(activeTab === 'listings' || activeTab === 'mylistings') && (
+          <div className="marketplaceControls">
+            <div className="searchWrapper">
+              <i className="fas fa-search searchIcon"></i>
+              <input 
+                type="text" 
+                placeholder="Search products by name or description..." 
+                className="marketplaceSearchInput"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="filterWrapper">
+              <i className="fas fa-filter filterIcon"></i>
+              <select 
+                className="marketplaceFilterSelect" 
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="">All Categories</option>
+                {agricultureCategories.map((cat, index) => (
+                  <option key={index} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         <div className="marketplaceTabs">
           <button

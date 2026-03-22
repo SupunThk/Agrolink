@@ -78,3 +78,61 @@
   }
 }
 
+/* Search and Filter Controls */
+.marketplaceControls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  align-items: center;
+}
+
+.searchWrapper, .filterWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon, .filterIcon {
+  position: absolute;
+  left: 15px;
+  color: var(--slate-400);
+}
+
+.marketplaceSearchInput, .marketplaceFilterSelect {
+  padding: 12px 15px 12px 40px;
+  border-radius: var(--radius-zen);
+  border: 1px solid var(--glass-border);
+  background-color: var(--bg-card);
+  font-size: 16px;
+  color: var(--slate-700);
+  outline: none;
+  transition: all var(--duration-zen) var(--ease-zen);
+  box-shadow: var(--shadow-subtle);
+}
+
+.marketplaceSearchInput {
+  width: 300px;
+}
+
+.marketplaceFilterSelect {
+  width: max-content;
+  min-width: 200px;
+  cursor: pointer;
+  appearance: none;
+}
+
+.marketplaceSearchInput:focus, .marketplaceFilterSelect:focus {
+  border-color: var(--emerald-500);
+  box-shadow: 0 0 0 3px var(--mint-200);
+}
+
+@media screen and (max-width: 768px) {
+  .marketplaceControls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .marketplaceSearchInput, .marketplaceFilterSelect {
+    width: 100%;
+  }
+}
