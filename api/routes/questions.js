@@ -67,7 +67,8 @@ router.get("/", async (req, res) => {
     if (category) filter.category = category;
     if (username) filter.username = username;
 
-    const questions = await Question.find(filter).sort({ createdAt: -1 });
+    const limit = parseInt(req.query.limit) || 100;
+    const questions = await Question.find(filter).sort({ createdAt: -1 }).limit(limit);
     res.status(200).json(questions);
   } catch (err) {
     res.status(500).json({ error: err.message });

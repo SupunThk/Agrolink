@@ -21,6 +21,7 @@ export default function AnswerQuestions() {
 
   const [activeStatus, setActiveStatus] = useState('Pending');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [loading, setLoading] = useState(false);
 
   const [editingQId, setEditingQId] = useState(null);
   const [editFormData, setEditFormData] = useState({ question: "", category: "" });
@@ -29,17 +30,25 @@ export default function AnswerQuestions() {
   const [actionLoading, setActionLoading] = useState(false);
   const { toast, ToastContainer } = useToast();
 
+  const fetchQuestions = async () => {
+    try {
+      setLoading(true);
+      let url = "/questions?limit=50";
+      if (activeStatus !== 'All') url += `&status=${activeStatus}`;
+      if (activeCategory !== 'All') url += `&category=${activeCategory}`;
+
+      const res = await axios.get(url);
+      setQuestions(res.data);
+    } catch (err) {
+      console.error("Failed to fetch questions", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const res = await axios.get("/questions");
-        setQuestions(res.data);
-      } catch (err) {
-        console.error("Failed to fetch questions", err);
-      }
-    };
     fetchQuestions();
-  }, []);
+  }, [activeStatus, activeCategory]);
 
   const handleAnswerChange = (qId, value) => {
     setAnswers({ ...answers, [qId]: value });
@@ -104,8 +113,7 @@ export default function AnswerQuestions() {
       setShowAddForm(false);
 
       // Refresh list to show the new custom QA
-      const res = await axios.get("/questions");
-      setQuestions(res.data);
+      fetchQuestions();
     } catch (err) {
       console.error("Failed to submit custom Q&A", err);
       alert("Error submitting custom Q&A. Please try again.");
@@ -138,12 +146,6 @@ export default function AnswerQuestions() {
       alert("Error updating question.");
     }
   };
-
-  const filteredQuestions = questions.filter(q => {
-    const matchStatus = activeStatus === 'All' ? true : q.status === activeStatus;
-    const matchCategory = activeCategory === 'All' ? true : (q.category || 'General') === activeCategory;
-    return matchStatus && matchCategory;
-  });
 
   return (
     <div className="answerQuestions">
@@ -258,7 +260,11 @@ export default function AnswerQuestions() {
       </div>
 
       {/* List */}
-      {filteredQuestions.length === 0 ? (
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 40, color: 'var(--slate-500)', fontFamily: 'var(--font-body)' }}>
+          Loading questions...
+        </div>
+      ) : questions.length === 0 ? (
         <div className="noQuestions" style={{ background: 'var(--bg-card)', border: '1px solid var(--glass-border)' }}>
           <i className="fas fa-check-circle noQuestionsIcon"></i>
           <h2 className="noQuestionsText">Nothing to show!</h2>
@@ -266,7 +272,7 @@ export default function AnswerQuestions() {
         </div>
       ) : (
         <div className="aqList">
-          {filteredQuestions.map((q) => (
+          {questions.map((q) => (
             <div className="aqItem" key={q._id}>
               <div className="aqHeaderInfo">
                 <div className="aqUserInfo">
