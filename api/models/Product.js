@@ -45,10 +45,8 @@ const ProductSchema = new mongoose.Schema(
                 validator: function(v) {
                     if (!v) return false;
                     const cleanPhone = v.toString().replace(/[-.\s]/g, "");
-                    return /^\+?\d{10,15}$/.test(cleanPhone);
                     return /^\d{10}$/.test(cleanPhone);
                 },
-                message: props => `${props.value} is not a valid phone number! (Must be 10-15 digits)`
                 message: props => `${props.value} is not a valid phone number! (Must be exactly 10 digits)`
             }
         },
