@@ -64,17 +64,6 @@ export default function Topbar({ adminMode }) {
                 WRITE
               </Link>
             </li>
-            <li className="topListItem">
-              <Link className="link" to="/ask-expert">
-                ASK EXPERT
-              </Link>
-            </li>
-            <li className="topListItem">
-              <Link className="link" to="/events">
-                EVENTS
-              </Link>
-            </li>
-
 
             {user && user.role === 'expert' && !user.isAdmin && (
               <li className="topListItem">

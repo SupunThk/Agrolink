@@ -4,6 +4,17 @@ const User = require("../models/User");
 const requireDb = require("../middleware/requireDb");
 const { deleteFromCloudinary } = require("../utils/cloudinary");
 
+const DEFAULT_CATEGORIES = [
+  "Organic Farming",
+  "Inorganic Farming",
+  "Crop Diseases",
+  "Pest Management",
+  "Soil Management",
+  "Weather & Climate",
+  "Crop Growth",
+  "Fertilizer Management",
+];
+
 router.use(requireDb);
 
 // ── ADMIN: Get all posts for moderation ─────────────────────────────────────

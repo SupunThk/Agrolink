@@ -35,11 +35,6 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                   <i className="fas fa-plus-circle"></i> Create Post
                 </Link>
               </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/marketplace" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-store"></i> Marketplace
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -47,23 +42,8 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
             <h4 className="navSidebarSectionTitle">GROUP PARTS</h4>
             <ul className="navSidebarList">
               <li className="navSidebarListItem">
-                <Link className="link" to="/about" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-info-circle"></i> Part 01: About Us
-                </Link>
-              </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/about" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-users"></i> Part 02: Our Team
-                </Link>
-              </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/contact" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-comment-alt"></i> Part 03: Discussion
-                </Link>
-              </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-file-alt"></i> Part 04: Research
+                <Link className="link" to="/marketplace" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-shopping-bag"></i> Marketplace
                 </Link>
               </li>
               <li className="navSidebarListItem">
@@ -74,11 +54,6 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
               <li className="navSidebarListItem">
                 <Link className="link" to="/events" onClick={() => setIsOpen(false)}>
                   <i className="fas fa-calendar-alt"></i> Events
-                </Link>
-              </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-shield-alt"></i> Part 06: Security
                 </Link>
               </li>
             </ul>
