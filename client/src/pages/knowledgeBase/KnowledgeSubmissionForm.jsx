@@ -1,9 +1,8 @@
 import "./knowledgeBase.css";
 
-const CROP_OPTIONS = ["Rice", "Tomato", "Papaya"];
-
 export default function KnowledgeSubmissionForm({
     formData,
+    cropOptions = [],
     fieldErrors,
     onChange,
     onFileChange,
@@ -35,7 +34,7 @@ export default function KnowledgeSubmissionForm({
                             onChange={onChange}
                         >
                             <option value="">Select Crop...</option>
-                            {CROP_OPTIONS.map((crop) => (
+                            {cropOptions.map((crop) => (
                                 <option key={crop} value={crop}>{crop}</option>
                             ))}
                         </select>

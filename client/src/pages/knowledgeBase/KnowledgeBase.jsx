@@ -4,6 +4,7 @@ import "./knowledgeBase.css";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { getKnowledgeImage } from "./knowledgeImageResolver";
+import { fetchKnowledgeCropOptions } from "./knowledgeCropOptions";
 
 function groupArticlesByCrop(articles) {
     return articles.reduce((groups, article) => {
@@ -39,11 +40,11 @@ export default function KnowledgeBase() {
 
             try {
                 const [cropRes, articleRes] = await Promise.all([
-                    axios.get("/knowledge/crops"),
+                    fetchKnowledgeCropOptions(),
                     axios.get("/knowledge"),
                 ]);
 
-                setCropOptions(["All", ...(cropRes.data.crops || [])]);
+                setCropOptions(["All", ...cropRes]);
                 setArticles(articleRes.data.articles || []);
                 setEmptyMessage(articleRes.data.emptyMessage || "No approved knowledge articles are available yet.");
             } catch (err) {

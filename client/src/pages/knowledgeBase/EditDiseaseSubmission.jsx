@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Context } from "../../context/Context";
 import KnowledgeSubmissionForm from "./KnowledgeSubmissionForm";
 import { validateKnowledgeSubmission } from "./submissionValidation";
+import { fetchKnowledgeCropOptions } from "./knowledgeCropOptions";
 import "./knowledgeBase.css";
 
 const EMPTY_FORM = {
@@ -36,6 +37,7 @@ export default function EditDiseaseSubmission() {
     const [loading, setLoading] = useState(true);
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [cropOptions, setCropOptions] = useState([]);
 
     useEffect(() => {
         const fetchSubmission = async () => {
@@ -67,6 +69,18 @@ export default function EditDiseaseSubmission() {
 
         fetchSubmission();
     }, [id, user]);
+
+    useEffect(() => {
+        const loadCropOptions = async () => {
+            try {
+                setCropOptions(await fetchKnowledgeCropOptions());
+            } catch (err) {
+                console.error("Error fetching knowledge crop options:", err);
+            }
+        };
+
+        loadCropOptions();
+    }, []);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -155,6 +169,7 @@ export default function EditDiseaseSubmission() {
             ) : (
                 <KnowledgeSubmissionForm
                     formData={formData}
+                    cropOptions={cropOptions}
                     fieldErrors={fieldErrors}
                     onChange={handleChange}
                     onSubmit={handleSubmit}

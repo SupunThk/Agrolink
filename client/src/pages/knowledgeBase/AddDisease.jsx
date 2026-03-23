@@ -1,9 +1,10 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import KnowledgeSubmissionForm from "./KnowledgeSubmissionForm";
 import { validateKnowledgeSubmission } from "./submissionValidation";
+import { fetchKnowledgeCropOptions } from "./knowledgeCropOptions";
 import "./knowledgeBase.css";
 
 const INITIAL_FORM = {
@@ -23,6 +24,19 @@ export default function AddDisease() {
     const [submitting, setSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [cropOptions, setCropOptions] = useState([]);
+
+    useEffect(() => {
+        const loadCropOptions = async () => {
+            try {
+                setCropOptions(await fetchKnowledgeCropOptions());
+            } catch (err) {
+                console.error("Error fetching knowledge crop options:", err);
+            }
+        };
+
+        loadCropOptions();
+    }, []);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -58,9 +72,12 @@ export default function AddDisease() {
 
         try {
             const payload = new FormData();
+            const derivedDescription = formData.symptoms.trim();
+
             payload.append("cropName", formData.cropName);
             payload.append("diseaseName", formData.diseaseName);
             payload.append("title", formData.title);
+            payload.append("description", derivedDescription);
             payload.append("symptoms", formData.symptoms);
             payload.append("preventionMethods", formData.preventionMethods);
             payload.append("treatmentPlan", formData.treatmentPlan);
@@ -130,6 +147,7 @@ export default function AddDisease() {
             <div className="kbFormShell">
                 <KnowledgeSubmissionForm
                     formData={formData}
+                    cropOptions={cropOptions}
                     fieldErrors={fieldErrors}
                     onChange={handleChange}
                     onFileChange={handleFileChange}
