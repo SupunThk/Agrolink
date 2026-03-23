@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Product = require("../models/Product");
+const User = require("../models/User");
 
 // CREATE PRODUCT
 router.post("/", async (req, res) => {
@@ -43,7 +44,16 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
-        if (product.seller_id === req.body.username) {
+
+        let isAdmin = false;
+        if (req.body.userId) {
+            const user = await User.findById(req.body.userId);
+            if (user && user.isAdmin) {
+                isAdmin = true;
+            }
+        }
+
+        if (product.seller_id === req.body.username || isAdmin) {
             try {
                 const updatedProduct = await Product.findByIdAndUpdate(
                     req.params.id,
@@ -68,7 +78,16 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
-        if (product.seller_id === req.body.username) {
+
+        let isAdmin = false;
+        if (req.body.userId) {
+            const user = await User.findById(req.body.userId);
+            if (user && user.isAdmin) {
+                isAdmin = true;
+            }
+        }
+
+        if (product.seller_id === req.body.username || isAdmin) {
             try {
                 await product.deleteOne();
                 res.status(200).json("Product has been deleted...");

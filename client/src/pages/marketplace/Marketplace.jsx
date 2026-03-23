@@ -51,7 +51,7 @@ export default function Marketplace() {
     }
   };
 
-  const allListings = products;
+  const allListings = products.filter(p => p.status === 'available');
   const myListings = products.filter(p => p.seller_id === user?.username);
 
   return (
@@ -94,12 +94,12 @@ export default function Marketplace() {
 
               <div className="marketplaceGrid">
                 {allListings.map(product => (
-                  <ProductCard 
-                      key={product._id} 
-                      product={product} 
-                      isOwner={product.seller_id === user?.username} 
-                      onEdit={() => handleEdit(product)}
-                      onDelete={() => handleDelete(product._id)}
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    isOwner={product.seller_id === user?.username}
+                    onEdit={() => handleEdit(product)}
+                    onDelete={() => handleDelete(product._id)}
                   />
                 ))}
               </div>
@@ -119,12 +119,12 @@ export default function Marketplace() {
 
               <div className="marketplaceGrid">
                 {myListings.map(product => (
-                  <ProductCard 
-                      key={product._id} 
-                      product={product} 
-                      isOwner={true}
-                      onEdit={() => handleEdit(product)}
-                      onDelete={() => handleDelete(product._id)}
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    isOwner={true}
+                    onEdit={() => handleEdit(product)}
+                    onDelete={() => handleDelete(product._id)}
                   />
                 ))}
               </div>

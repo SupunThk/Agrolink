@@ -68,9 +68,11 @@ function AppContent() {
     if (user) checkAccountStatus();
   }, [location.pathname, user, checkAccountStatus]);
 
+  const isAdminRoute = location.pathname === "/admin";
+
   return (
     <>
-      <Topbar />
+      {!isAdminRoute && <Topbar />}
       {showVModal && <VerificationModal setShowModal={(val) => dispatch({ type: val ? "SHOW_VMODAL" : "HIDE_VMODAL" })} />}
       {showDModal && <DeleteModal />}
       <Routes>

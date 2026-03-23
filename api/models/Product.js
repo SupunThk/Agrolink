@@ -32,7 +32,7 @@ const ProductSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            default: "available",
+            default: "Pending",
         },
         image_url: {
             type: String,
