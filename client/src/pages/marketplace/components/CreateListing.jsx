@@ -14,7 +14,8 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
     const [file, setFile] = useState(null);
     const [customCategory, setCustomCategory] = useState("");
     const [categories, setCategories] = useState([]);
-    const [error, setError] = useState(false);
+    const [error, setError] = useState(null);
+    const [phoneError, setPhoneError] = useState("");
     const [loading, setLoading] = useState(false);
 
     const { user } = useContext(Context);
@@ -35,15 +36,24 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(false);
+        setError(null);
         setLoading(true);
 
         if (!user) {
-            setError(true);
+            setError("User is not logged in");
             setLoading(false);
             console.error("User is not logged in");
             return;
         }
+
+        const phoneRegex = /^\+?\d{10,15}$/;
+        const cleanPhone = phone.replace(/[-.\s]/g, "");
+        if (!phoneRegex.test(cleanPhone)) {
+            setPhoneError("Please enter a valid phone number (10-15 digits)");
+            setLoading(false);
+            return;
+        }
+        setPhoneError("");
 
         const finalCategory = categoryId === "Other (Specify)" ? customCategory : categoryId;
 
@@ -70,7 +80,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                 newProduct.image_url = uploadRes.data.url || uploadRes.data;
             } catch (err) {
                 console.log(err);
-                setError(true);
+                setError(err.response?.data?.message || err.response?.data || err.message || "Image upload failed");
                 setLoading(false);
                 return;
             }
@@ -87,7 +97,8 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
             setLoading(false);
             setActiveTab("listings"); // redirect back to listings
         } catch (err) {
-            setError(true);
+            console.error("API error:", err);
+            setError(err.response?.data?.message || err.response?.data || err.message || "Something went wrong!");
             setLoading(false);
         }
     };
@@ -179,15 +190,19 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                     />
                 </div>
 
-                <div className="createListingGroup">
+                <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                     <input
-                        type="text"
+                        type="tel"
                         placeholder="Phone Number"
                         className="createListingInput"
                         required
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={(e) => {
+                            setPhone(e.target.value);
+                            setPhoneError("");
+                        }}
                     />
+                    {phoneError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{phoneError}</span>}
                 </div>
 
                 <div className="createListingGroup">
@@ -204,7 +219,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                 <button className="createListingSubmit" type="submit" disabled={loading}>
                     {loading ? (initialProduct ? "Updating..." : "Publishing...") : (initialProduct ? "Update Listing" : "Publish Listing")}
                 </button>
-                {error && <span className="createListingError">Something went wrong!</span>}
+                {error && <span className="createListingError" style={{color: 'red', marginTop: '10px'}}>{typeof error === 'string' ? error : "Something went wrong!"}</span>}
             </form>
         </div>
     );
