@@ -103,8 +103,11 @@ export default function EditDiseaseSubmission() {
         setErrorMessage("");
 
         try {
+            const derivedDescription = formData.symptoms.trim();
+
             await axios.put(`/knowledge/mine/${id}`, {
                 ...formData,
+                description: derivedDescription,
                 userId: user._id,
             });
             setSuccessMessage("Pending submission updated successfully.");
