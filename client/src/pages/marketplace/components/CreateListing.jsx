@@ -46,10 +46,10 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
             return;
         }
 
-        const phoneRegex = /^\+?\d{10,15}$/;
+        const phoneRegex = /^\d{10}$/;
         const cleanPhone = phone.replace(/[-.\s]/g, "");
         if (!phoneRegex.test(cleanPhone)) {
-            setPhoneError("Please enter a valid phone number (10-15 digits)");
+            setPhoneError("Please enter a valid 10-digit phone number (e.g., 0716615672)");
             setLoading(false);
             return;
         }
@@ -193,7 +193,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                 <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                     <input
                         type="tel"
-                        placeholder="Phone Number"
+                        placeholder="Phone Number (e.g., 0716615672)"
                         className="createListingInput"
                         required
                         value={phone}
