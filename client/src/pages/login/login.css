@@ -1,15 +1,15 @@
 .login {
-  height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 40px 20px;
   background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.4)),
               url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=3432&auto=format&fit=crop');
   background-size: cover;
   background-position: center;
   position: relative;
-  overflow: hidden;
 }
 
 .login::before {
@@ -31,8 +31,8 @@
 .loginCard {
   width: 460px;
   background: var(--glass-zen);
-  backdrop-filter: blur(40px) saturate(1.8);
-  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   padding: 60px;
   border-radius: 40px;
   box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
@@ -41,6 +41,7 @@
   flex-direction: column;
   z-index: 2;
   animation: zenEntrance 0.8s var(--ease-zen) forwards;
+  will-change: transform, opacity;
 }
 
 .loginBranding {
@@ -104,7 +105,7 @@
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--slate-900);
-  transition: all 0.3s var(--ease-zen);
+  transition: border-color 0.3s var(--ease-zen), box-shadow 0.3s var(--ease-zen), transform 0.3s var(--ease-zen), background-color 0.3s var(--ease-zen);
 }
 
 .loginInput:focus {
@@ -127,7 +128,7 @@
   font-size: 16px;
   cursor: pointer;
   box-shadow: 0 10px 30px -5px rgba(5, 150, 105, 0.4);
-  transition: all 0.4s var(--ease-zen);
+  transition: transform 0.4s var(--ease-zen), box-shadow 0.4s var(--ease-zen), filter 0.4s var(--ease-zen);
   pointer-events: auto;
   position: relative;
   z-index: 10;
@@ -163,7 +164,7 @@
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.4s var(--ease-zen);
+  transition: transform 0.4s var(--ease-zen), background-color 0.4s var(--ease-zen), color 0.4s var(--ease-zen), box-shadow 0.4s var(--ease-zen);
   z-index: 2;
 }
 

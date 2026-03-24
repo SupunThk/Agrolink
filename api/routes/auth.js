@@ -9,9 +9,11 @@ router.use(requireDb);
 //REGISTER
 router.post("/register", async(req, res) => {
     try {
+        const normalizedEmail = req.body.email ? req.body.email.toLowerCase() : "";
+
         // Validate input
         const validation = validateRegistrationInput({
-            email: req.body.email,
+            email: normalizedEmail,
             password: req.body.password,
             confirmPassword: req.body.confirmPassword,
             phone: req.body.phone,
@@ -23,7 +25,7 @@ router.post("/register", async(req, res) => {
         }
 
         // Check if email already exists
-        const existingEmail = await User.findOne({ email: req.body.email });
+        const existingEmail = await User.findOne({ email: normalizedEmail });
         if (existingEmail) {
             return res.status(400).json({ errors: { email: "Email already registered" } });
         }
@@ -61,7 +63,7 @@ router.post("/register", async(req, res) => {
         // Create new user
         const newUser = new User({
             name: req.body.name,
-            email: req.body.email,
+            email: normalizedEmail,
             phone: normalizedPhone,
             password: hashedPass,
             role: role,
@@ -95,9 +97,11 @@ router.post("/register", async(req, res) => {
 //LOGIN
 router.post("/login", async(req, res) => {
     try {
+        const normalizedEmail = req.body.email ? req.body.email.toLowerCase() : "";
+
         // Validate login input
         const validation = validateLoginInput({
-            email: req.body.email,
+            email: normalizedEmail,
             password: req.body.password
         });
 
@@ -106,7 +110,7 @@ router.post("/login", async(req, res) => {
         }
 
         // Find user by email (not username)
-        const user = await User.findOne({ email: req.body.email });
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
             return res.status(400).json({ errors: { email: "Email or password is incorrect" } });
         }
@@ -171,7 +175,8 @@ router.post("/verify", async (req, res) => {
         if (!req.body?.email || !req.body?.password) {
             return res.status(400).json({ errors: { general: "Email and password are required!" } });
         }
-        const user = await User.findOne({ email: req.body.email });
+        const normalizedEmail = req.body.email.toLowerCase();
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
             return res.status(400).json({ errors: { email: "Email or password is incorrect" } });
         }
