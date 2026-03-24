@@ -178,11 +178,9 @@ export default function Login() {
           )}
         </form>
       </div>
-      <button className="loginRegisterButton">
-        <Link className="link" to="/register">
-          Create Account
-        </Link>
-      </button>
+      <Link className="loginRegisterButton" to="/register" style={{ textDecoration: 'none' }}>
+        Create Account
+      </Link>
     </div>
   );
 }
