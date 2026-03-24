@@ -89,6 +89,21 @@ const Reducer = (state, action) => {
                 ...state,
                 theme: state.theme === "light" ? "dark" : "light"
             };
+        case "SHOW_INACTIVITY_WARNING":
+            return {
+                ...state,
+                showInactivityWarning: true
+            };
+        case "HIDE_INACTIVITY_WARNING":
+            return {
+                ...state,
+                showInactivityWarning: false
+            };
+        case "EXTEND_SESSION":
+            return {
+                ...state,
+                showInactivityWarning: false
+            };
         default:
             return state;
     }

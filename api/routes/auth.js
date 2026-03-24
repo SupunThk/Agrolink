@@ -147,6 +147,24 @@ router.post("/login", async(req, res) => {
     }
 });
 
+//LOGOUT
+router.post("/logout/:userId", async(req, res) => {
+    try {
+        const userId = req.params.userId;
+        if (!userId) {
+            return res.status(400).json({ errors: { general: "User ID is required" } });
+        }
+
+        // Update user's lastLogout timestamp
+        await User.findByIdAndUpdate(userId, { lastLogout: new Date() });
+
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (err) {
+        console.error("Logout error:", err);
+        res.status(500).json({ errors: { general: "Something went wrong during logout!" } });
+    }
+});
+
 //VERIFY
 router.post("/verify", async (req, res) => {
     try {
