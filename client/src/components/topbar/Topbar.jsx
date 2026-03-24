@@ -9,44 +9,26 @@ export default function Topbar({ adminMode }) {
   const navigate = useNavigate();
   const { user, isVerified, theme, dispatch } = useContext(Context);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const PF = "http://localhost:5000/images/";
   const getAvatarSrc = (src) =>
     !src ? null :
-    src.startsWith("http://") || src.startsWith("https://") ? src : PF + src;
+      src.startsWith("http://") || src.startsWith("https://") ? src : PF + src;
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
   }
 
-  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
-  // Hide dropdown when clicking outside
-  React.useEffect(() => {
-    if (!adminMode || !showAdminDropdown) return;
-    const handleClick = (e) => {
-      const dropdown = document.querySelector('.adminDropdown');
-      const profileBtn = document.querySelector('.topProfileBtn');
-      if (dropdown && !dropdown.contains(e.target) && profileBtn && !profileBtn.contains(e.target)) {
-        setShowAdminDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [adminMode, showAdminDropdown]);
   const handleProfileClick = () => {
     if (adminMode) {
-      setShowAdminDropdown((v) => !v);
+      setShowAdminDropdown(!showAdminDropdown);
     } else {
       dispatch({ type: "SHOW_VMODAL" });
     }
   }
 
-  // Hamburger button handler: if adminMode, toggle admin sidebar, else open global sidebar
   const handleHamburger = () => {
-    if (adminMode) {
-      dispatch({ type: "SET_ADMIN_SIDEBAR", payload: true });
-    } else {
-      setSidebarOpen(true);
-    }
+    setSidebarOpen(!sidebarOpen);
   };
 
   return (
@@ -83,7 +65,13 @@ export default function Topbar({ adminMode }) {
               </Link>
             </li>
 
-
+            {user && user.role === 'expert' && !user.isAdmin && (
+              <li className="topListItem">
+                <Link className="link" to="/answer-questions">
+                  ANSWER Q&A
+                </Link>
+              </li>
+            )}
             {user && user.isAdmin && (
               <li className="topListItem">
                 <Link className="link" to="/admin">

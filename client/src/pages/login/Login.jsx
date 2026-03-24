@@ -39,6 +39,11 @@ export default function Login() {
         password,
       });
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
+      
+      // Explicitly write to sessionStorage before forcing a page reload
+      // to avoid a race condition with Context.js's useEffect
+      sessionStorage.setItem("user", JSON.stringify(res.data));
+
       // Redirect based on role
       if (res.data.isAdmin || res.data.role === "admin") {
         window.location.replace("/admin");

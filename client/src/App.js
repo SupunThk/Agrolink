@@ -8,9 +8,12 @@ import Single from "./pages/single/Single";
 import Write from "./pages/write/Write";
 import About from "./pages/about/About";
 import Contact from "./pages/contact/Contact";
+import Marketplace from "./pages/marketplace/Marketplace";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AskExpert from "./pages/askExpert/AskExpert";
+import AnswerQuestions from "./pages/answerQuestions/AnswerQuestions";
 import MyBlogs from "./pages/myBlogs/MyBlogs";
+import Events from "./pages/events/Events";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
@@ -93,7 +96,12 @@ function AppContent() {
         />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/ask-expert" element={<AskExpert />} />
+        <Route
+          path="/answer-questions"
+          element={user && (user.role === 'expert' || user.isAdmin) ? <AnswerQuestions /> : <Login />}
+        />
         <Route
           path="/my-blogs"
           element={user ? <MyBlogs /> : <Login />}
@@ -101,6 +109,10 @@ function AppContent() {
         <Route
           path="/admin"
           element={user && user.isAdmin ? <AdminPanel /> : <Login />}
+        />
+        <Route
+          path="/events"
+          element={user ? <Events /> : <Login />}
         />
       </Routes>
     </>
