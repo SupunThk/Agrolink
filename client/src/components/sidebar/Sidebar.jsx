@@ -21,13 +21,8 @@ export default function Sidebar() {
     const getCats = async () => {
       try {
         const res = await axios.get("/categories");
-        const byName = new Map(res.data.map((c) => [c.name, c]));
-        const orderedDefaults = DEFAULT_CATEGORIES.map((name) => byName.get(name)).filter(Boolean);
-        setCats(orderedDefaults);
-      } catch (err) {
-        // Fallback: show default categories even if API/DB is down.
-        setCats(DEFAULT_CATEGORIES.map((name) => ({ _id: name, name })));
-      }
+        setCats(res.data);
+      } catch (err) { }
     };
     getCats();
   }, []);

@@ -20,7 +20,7 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
           <Logo />
           <p className="navSidebarSubtitle">Community Management</p>
         </div>
-        
+
         <div className="navSidebarContent">
           <div className="navSidebarSection">
             <h4 className="navSidebarSectionTitle">MAIN NAVIGATION</h4>
@@ -42,23 +42,8 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
             <h4 className="navSidebarSectionTitle">GROUP PARTS</h4>
             <ul className="navSidebarList">
               <li className="navSidebarListItem">
-                <Link className="link" to="/about" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-info-circle"></i> Part 01: About Us
-                </Link>
-              </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/about" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-users"></i> Part 02: Our Team
-                </Link>
-              </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/contact" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-comment-alt"></i> Part 03: Discussion
-                </Link>
-              </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-file-alt"></i> Part 04: Research
+                <Link className="link" to="/marketplace" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-shopping-bag"></i> Marketplace
                 </Link>
               </li>
               <li className="navSidebarListItem">
@@ -67,8 +52,8 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                 </Link>
               </li>
               <li className="navSidebarListItem">
-                <Link className="link" to="/" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-shield-alt"></i> Part 06: Security
+                <Link className="link" to="/events" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-calendar-alt"></i> Events
                 </Link>
               </li>
             </ul>
@@ -84,6 +69,20 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                       <i className="fas fa-user-cog"></i> Settings
                     </Link>
                   </li>
+                  {user && user.role === 'expert' && !user.isAdmin && (
+                    <li className="navSidebarListItem">
+                      <Link className="link" to="/answer-questions" onClick={() => setIsOpen(false)}>
+                        <i className="fas fa-comment-dots"></i> Answer Q&A
+                      </Link>
+                    </li>
+                  )}
+                  {user && user.isAdmin && (
+                    <li className="navSidebarListItem">
+                      <Link className="link" to="/admin" onClick={() => setIsOpen(false)}>
+                        <i className="fas fa-shield-alt"></i> Admin Panel
+                      </Link>
+                    </li>
+                  )}
                   <li className="navSidebarListItem" onClick={handleLogout}>
                     <div className="link logoutBtn">
                       <i className="fas fa-sign-out-alt"></i> Logout
