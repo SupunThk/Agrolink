@@ -42,6 +42,22 @@ router.post("/register", async(req, res) => {
             role = "expert";
         }
 
+        // For experts, validate farm images
+        let farmImages = [];
+        if (role === "expert") {
+            if (!req.body.farmImages || !Array.isArray(req.body.farmImages)) {
+                return res.status(400).json({ errors: { farmImages: "Farm images are required for expert registration" } });
+            }
+            if (req.body.farmImages.length < 3) {
+                return res.status(400).json({ errors: { farmImages: "Minimum 3 farm images required for expert verification" } });
+            }
+            // Convert farm images to proper format
+            farmImages = req.body.farmImages.map(img => ({
+                image: img,
+                uploadedAt: new Date()
+            }));
+        }
+
         // Create new user
         const newUser = new User({
             name: req.body.name,
@@ -51,6 +67,8 @@ router.post("/register", async(req, res) => {
             role: role,
             description: role === "expert" ? (req.body.description || "") : "",
             approved: role === "expert" ? false : true,
+            farmImages: farmImages,
+            verificationStatus: role === "expert" ? "pending" : "approved",
             isAdmin: false
         });
 
@@ -99,10 +117,17 @@ router.post("/login", async(req, res) => {
             return res.status(400).json({ errors: { password: "Email or password is incorrect" } });
         }
 
-        // Block unapproved experts from logging in
-        if (user.role === "expert" && !user.approved) {
+        // Block rejected experts from logging in
+        if (user.role === "expert" && user.verificationStatus === "rejected") {
             return res.status(403).json({ 
-                errors: { general: "Your expert account is pending admin approval. Please wait for approval before logging in." } 
+                errors: { general: "Your expert account was rejected. Reason: " + (user.verificationNotes || "No details provided") } 
+            });
+        }
+
+        // Block unapproved experts from logging in
+        if (user.role === "expert" && user.verificationStatus === "pending") {
+            return res.status(403).json({ 
+                errors: { general: "Your expert account is pending admin verification of your farm images. Please wait for approval before logging in." } 
             });
         }
 

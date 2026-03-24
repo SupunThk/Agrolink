@@ -13,6 +13,7 @@ const chatbotRoute = require("./routes/chatbot");
 const questionRoute = require("./routes/questions");
 const eventRoute = require("./routes/events");
 const productRoute = require("./routes/products");
+const expertImagesRoute = require("./routes/expert-images");
 const Category = require("./models/Category");
 const {
   isCloudinaryConfigured,
@@ -33,7 +34,9 @@ process.on("uncaughtException", (err) => {
 const multer = require("multer");
 const path = require("path");
 
-app.use(express.json());
+// Increase JSON body size limit for Base64 encoded farm images (up to 50MB)
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors());
 // Serve files from api/images/ at /images
 app.use("/images", express.static(path.join(__dirname, "/images")));
@@ -141,6 +144,7 @@ app.use("/api/chatbot", chatbotRoute);
 app.use("/api/questions", questionRoute);
 app.use("/api/events", eventRoute);
 app.use("/api/products", productRoute);
+app.use("/api/expert-images", expertImagesRoute);
 
 // ── DB health check for admin settings ──────────────────────────────────────
 app.get("/api/admin/db-status", (req, res) => {

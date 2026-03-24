@@ -48,6 +48,25 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    farmImages: [{
+        image: {
+            type: String,
+            required: true,
+        },
+        uploadedAt: {
+            type: Date,
+            default: Date.now,
+        }
+    }],
+    verificationStatus: {
+        type: String,
+        enum: ["pending", "approved", "rejected"],
+        default: "pending",
+    },
+    verificationNotes: {
+        type: String,
+        default: "",
+    },
 },
 { timestamps: true }
 );

@@ -2,6 +2,7 @@ import { useState } from "react"
 import "./register.css"
 import { Link } from "react-router-dom"
 import axios from "axios"
+import FarmImageUpload from "../../components/farmImageUpload/FarmImageUpload"
 import { 
   validateEmail, 
   validatePhone, 
@@ -22,6 +23,7 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [role, setRole] = useState("user");
   const [description, setDescription] = useState("");
+  const [farmImages, setFarmImages] = useState([]);
   
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -81,6 +83,13 @@ export default function Register() {
           delete newErrors.description;
         }
         break;
+      case "farmImages":
+        if (role === "expert" && (!value || value.length < 3)) {
+          newErrors.farmImages = "Minimum 3 farm images required for expert verification";
+        } else {
+          delete newErrors.farmImages;
+        }
+        break;
       default:
         break;
     }
@@ -126,6 +135,8 @@ export default function Register() {
       validateField("description", description);
     } else {
       delete errors.description;
+      delete errors.farmImages;
+      setFarmImages([]);
       setErrors(errors);
     }
   };
@@ -168,13 +179,18 @@ export default function Register() {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    if (role === "expert" && !description.trim()) {
-      setIsSubmitting(false);
-      newErrors.description = "Please provide a description about your expertise";
+    if (role === "expert") {
+      if (!description.trim()) {
+        newErrors.description = "Please provide a description about your expertise";
+      }
+      if (!farmImages || farmImages.length < 3) {
+        newErrors.farmImages = "Minimum 3 farm images required for expert verification";
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setIsSubmitting(false);
       return;
     }
 
@@ -186,11 +202,11 @@ export default function Register() {
         password,
         confirmPassword,
         role,
-        ...(role === "expert" ? { description } : {}),
+        ...(role === "expert" ? { description, farmImages } : {}),
       });
       
       if (res.data && res.data.pendingApproval) {
-        setSuccess("Your expert account has been created! Please wait for admin approval before you can log in.");
+        setSuccess("Your expert account has been created! Please wait for admin approval of your farm images before you can log in.");
         // Clear form
         setName("");
         setEmail("");
@@ -198,6 +214,7 @@ export default function Register() {
         setPassword("");
         setConfirmPassword("");
         setDescription("");
+        setFarmImages([]);
       } else {
         res.data && window.location.replace("/login");
       }
@@ -272,9 +289,19 @@ export default function Register() {
                   {errors.description}
                 </span>
               )}
+
+              <FarmImageUpload
+                images={farmImages}
+                onChange={setFarmImages}
+                error={errors.farmImages}
+                minImages={3}
+                maxImages={10}
+                disabled={isSubmitting}
+              />
+
               <div className="registerExpertNote">
                 <i className="fas fa-info-circle"></i>
-                <span>Expert accounts require admin approval before you can log in.</span>
+                <span>Expert accounts require admin approval of your farm images before you can log in.</span>
               </div>
             </>
           )}
@@ -315,7 +342,7 @@ export default function Register() {
           <input
             className={`registerInput ${errors.phone ? "error" : ""}`}
             type="tel"
-            placeholder="Enter your phone (10-15 digits)..."
+            placeholder="Enter your 10-digit phone number..."
             value={phone}
             onChange={handlePhoneChange}
             onBlur={() => handleBlur("phone")}

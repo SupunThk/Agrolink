@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from 'react';
+import './AdminPanel.css';
 import {
   LayoutDashboard,
   Users,
@@ -28,6 +29,7 @@ import MarketplaceManagement from '../../components/admin/MarketplaceManagement.
 import AdminSettings from '../../components/admin/AdminSettings.jsx';
 import AnswerQuestions from '../answerQuestions/AnswerQuestions.jsx';
 import AdminEvents from '../../components/admin/AdminEvents.jsx';
+import PendingExpertVerification from '../../components/admin/PendingExpertVerification.jsx';
 import { Context } from '../../context/Context.js';
 import Logo from '../../components/logo/Logo.jsx';
 
@@ -136,6 +138,8 @@ export default function AdminPanel() {
         return <AnswerQuestions />;
       case 'events':
         return <AdminEvents />;
+      case 'expert_verification':
+        return <PendingExpertVerification />;
       case 'settings':
         return <AdminSettings />;
       default:
@@ -248,7 +252,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '20px 12px', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: '20px 12px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="adminSidebarNav">
           {/* Section label */}
           <p style={{
             padding: '0 14px',
@@ -268,6 +272,7 @@ export default function AdminPanel() {
           <SidebarItem icon={FileText} label="Blog Moderation" active={activeTab === 'blogs'} onClick={() => handleTabChange('blogs')} />
           <SidebarItem icon={Store} label="Marketplace" active={activeTab === 'marketplace'} onClick={() => handleTabChange('marketplace')} />
           <SidebarItem icon={Leaf} label="Disease Data" active={activeTab === 'diseases'} onClick={() => handleTabChange('diseases')} />
+          <SidebarItem icon={AlertTriangle} label="Expert Verification" active={activeTab === 'expert_verification'} onClick={() => handleTabChange('expert_verification')} />
 
           <div style={{ margin: '16px 0 6px', height: 1, background: 'var(--glass-border)' }} />
 

@@ -14,7 +14,7 @@ export const validateEmail = (email) => {
 };
 
 /**
- * Validate phone number format
+ * Validate phone number format (exactly 10 digits)
  * @param {string} phone - Phone number to validate
  * @returns {object} - { isValid: boolean, error?: string }
  */
@@ -25,18 +25,8 @@ export const validatePhone = (phone) => {
 
   const cleaned = phone.replace(/\D/g, "");
 
-  if (cleaned.length < 10 || cleaned.length > 15) {
-    return { isValid: false, error: "Phone number must be between 10 and 15 digits" };
-  }
-
-  if (cleaned.length === 11 && !cleaned.startsWith("1")) {
-    return { isValid: false, error: "Invalid phone number format" };
-  }
-
-  if (cleaned.length === 10) {
-    if (cleaned[0] === "0" || cleaned[0] === "1") {
-      return { isValid: false, error: "Invalid phone number format" };
-    }
+  if (cleaned.length !== 10) {
+    return { isValid: false, error: "Phone number must be exactly 10 digits" };
   }
 
   return { isValid: true };

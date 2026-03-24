@@ -53,7 +53,25 @@ router.get("/admin/stats", async (req, res) => {
 // ── ADMIN: Get pending expert approvals ─────────────────────────────────────
 router.get("/admin/pending-experts", async (req, res) => {
   try {
-    const pendingExperts = await User.find({ role: "expert", approved: false })
+    const pendingExperts = await User.find({ 
+      role: "expert", 
+      verificationStatus: { $in: ["pending", "rejected"] }
+    })
+      .select("-password")
+      .sort({ createdAt: -1 });
+    res.status(200).json(pendingExperts);
+  } catch (err) {
+    res.status(500).json("Something went wrong!");
+  }
+});
+
+// ── ADMIN: Get pending experts with farm images (detailed view) ──────────────
+router.get("/admin/pending-experts-with-images", async (req, res) => {
+  try {
+    const pendingExperts = await User.find({ 
+      role: "expert", 
+      verificationStatus: "pending"
+    })
       .select("-password")
       .sort({ createdAt: -1 });
     res.status(200).json(pendingExperts);
@@ -68,7 +86,13 @@ router.put("/admin/approve/:id", async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json("User not found!");
     if (user.role !== "expert") return res.status(400).json("User is not an expert!");
+    
     user.approved = true;
+    user.verificationStatus = "approved";
+    if (req.body.verificationNotes) {
+      user.verificationNotes = req.body.verificationNotes;
+    }
+    
     await user.save();
     res.status(200).json("Expert has been approved!");
   } catch (err) {
@@ -76,14 +100,19 @@ router.put("/admin/approve/:id", async (req, res) => {
   }
 });
 
-// ── ADMIN: Reject expert (delete account) ───────────────────────────────────
+// ── ADMIN: Reject expert (keep account, mark as rejected) ────────────────────
 router.put("/admin/reject/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json("User not found!");
     if (user.role !== "expert") return res.status(400).json("User is not an expert!");
-    await User.findByIdAndDelete(req.params.id);
-    res.status(200).json("Expert has been rejected and removed!");
+    
+    user.approved = false;
+    user.verificationStatus = "rejected";
+    user.verificationNotes = req.body.verificationNotes || "Farm image verification failed. Please reapply.";
+    
+    await user.save();
+    res.status(200).json("Expert has been rejected!");
   } catch (err) {
     res.status(500).json("Something went wrong!");
   }
