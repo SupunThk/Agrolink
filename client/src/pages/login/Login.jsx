@@ -3,13 +3,16 @@ import "./login.css";
 import { useRef, useContext, useState, useEffect } from "react";
 import { Context } from "../../context/Context";
 import axios from "axios";
+import { validateEmail } from "../../utils/validation";
 
 export default function Login() {
-  const userRef = useRef();
+  const emailRef = useRef();
   const passwordRef = useRef();
   const { dispatch, isFetching } = useContext(Context);
-  const [error, setError] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [deactivatedMsg, setDeactivatedMsg] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Show deactivation message if redirected from a forced logout
   useEffect(() => {
@@ -20,22 +23,73 @@ export default function Login() {
     }
   }, []);
 
+  const validateField = (fieldName, value) => {
+    const newErrors = { ...errors };
+
+    switch (fieldName) {
+      case "email":
+        if (!value) {
+          newErrors.email = "Email is required";
+        } else if (!validateEmail(value)) {
+          newErrors.email = "Please enter a valid email address";
+        } else {
+          delete newErrors.email;
+        }
+        break;
+      case "password":
+        if (!value) {
+          newErrors.password = "Password is required";
+        } else {
+          delete newErrors.password;
+        }
+        break;
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+  };
+
+  const handleBlur = (fieldName) => {
+    setTouched({ ...touched, [fieldName]: true });
+    if (fieldName === "email") validateField("email", emailRef.current.value);
+    if (fieldName === "password") validateField("password", passwordRef.current.value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(false);
     
-    const username = userRef.current.value;
+    // Prevent double submission
+    if (isSubmitting) return;
+    
+    setErrors({});
+    setIsSubmitting(true);
+
+    const email = emailRef.current.value;
     const password = passwordRef.current.value;
 
-    if (!username || !password) {
-      setError("Please enter both username and password.");
+    const newErrors = {};
+
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!validateEmail(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      setIsSubmitting(false);
+      newErrors.password = "Password is required";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     dispatch({ type: "LOGIN_START" });
     try {
       const res = await axios.post("/auth/login", {
-        username,
+        email,
         password,
       });
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
@@ -52,10 +106,17 @@ export default function Login() {
       }
     } catch (err) {
       dispatch({ type: "LOGIN_FAILURE" });
-      const errorMsg = typeof err.response?.data === "string" 
-        ? err.response.data 
-        : "Something went wrong!";
-      setError(errorMsg);
+      const errorData = err.response?.data;
+      if (errorData?.errors) {
+        setErrors(errorData.errors);
+      } else {
+        const errorMsg = typeof errorData === "string" 
+          ? errorData 
+          : "Something went wrong!";
+        setErrors({ general: errorMsg });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -74,27 +135,45 @@ export default function Login() {
               <span>{deactivatedMsg}</span>
             </div>
           )}
-          <label>Username</label>
+          
+          <label>Email</label>
           <input
-            className="loginInput"
-            type="text"
-            placeholder="Enter your username..."
-            ref={userRef}
+            className={`loginInput ${errors.email ? "error" : ""}`}
+            type="email"
+            placeholder="Enter your email..."
+            ref={emailRef}
+            onBlur={() => handleBlur("email")}
           />
+          {errors.email && (
+            <span className="loginFieldError">
+              <i className="fas fa-exclamation-circle"></i>
+              {errors.email}
+            </span>
+          )}
+          
           <label>Password</label>
           <input
-            className="loginInput"
+            className={`loginInput ${errors.password ? "error" : ""}`}
             type="password"
             placeholder="Enter your password..."
             ref={passwordRef}
+            onBlur={() => handleBlur("password")}
           />
-          <button className="loginButton" type="submit" disabled={isFetching}>
-            {isFetching ? "Authenticating..." : "Sign In"}
+          {errors.password && (
+            <span className="loginFieldError">
+              <i className="fas fa-exclamation-circle"></i>
+              {errors.password}
+            </span>
+          )}
+          
+          <button className="loginButton" type="submit" disabled={isSubmitting || isFetching}>
+            {isSubmitting || isFetching ? "Authenticating..." : "Sign In"}
           </button>
-          {error && (
+          
+          {errors.general && (
             <div className="alert alert-error">
               <i className="fas fa-exclamation-circle"></i>
-              <span>{String(error)}</span>
+              <span>{String(errors.general)}</span>
             </div>
           )}
         </form>

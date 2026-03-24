@@ -128,12 +128,19 @@
   cursor: pointer;
   box-shadow: 0 10px 30px -5px rgba(5, 150, 105, 0.4);
   transition: all 0.4s var(--ease-zen);
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
 }
 
 .loginButton:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px -5px rgba(5, 150, 105, 0.5);
   filter: brightness(1.1);
+}
+
+.loginButton:active {
+  transform: translateY(-2px);
 }
 
 .loginButton:disabled {
@@ -165,6 +172,66 @@
   color: var(--forest-900);
   transform: translateY(-3px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Input error state */
+.loginInput.error {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.loginInput.error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Field error message */
+.loginFieldError {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+.loginFieldError i {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: #dc2626;
+}
+
+.alert-error i {
+  flex-shrink: 0;
+}
+
+.alert-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(249, 115, 22, 0.08);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: #d97706;
 }
 
 @media screen and (max-width: 768px) {
