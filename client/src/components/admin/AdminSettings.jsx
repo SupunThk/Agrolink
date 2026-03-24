@@ -150,7 +150,7 @@ const AdminSettings = () => {
   const [picLoading, setPicLoading] = useState(false);
 
   const currentPic = user?.profilePic
-    ? (user.profilePic.startsWith('http') ? user.profilePic : `/images/${user.profilePic}`)
+    ? user.profilePic
     : null;
 
   const handleFileSelect = (e) => {
@@ -162,26 +162,30 @@ const AdminSettings = () => {
     setPreview(URL.createObjectURL(file));
   };
 
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handlePicUpload = async () => {
     if (!picFile) return;
     setPicLoading(true);
     try {
-      const data = new FormData();
-      data.append('file', picFile);
-      data.append('folder', 'agrolink/profiles');
-      const uploadRes = await axios.post('/upload', data);
-      const profilePic = uploadRes.data?.secure_url || uploadRes.data?.url;
-      if (!profilePic) {
-        throw new Error('Missing uploaded image URL');
-      }
+      // Convert file to Base64
+      const profilePic = await convertToBase64(picFile);
 
-      // Update user profile
+      // Update user profile with Base64 image
       await axios.put('/users/' + user._id, { userId: user._id, profilePic });
       dispatch({ type: 'UPDATE_SUCCESS', payload: { ...user, profilePic } });
       toast.success('Profile picture updated');
       setPicFile(null);
       setPreview(null);
-    } catch {
+    } catch (err) {
+      console.error('Failed to upload profile picture:', err);
       toast.error('Failed to upload profile picture');
     } finally {
       setPicLoading(false);

@@ -234,6 +234,17 @@
   color: #d97706;
 }
 
+/* Link styling */
+.link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
 @media screen and (max-width: 768px) {
   .loginCard {
     width: 90%;

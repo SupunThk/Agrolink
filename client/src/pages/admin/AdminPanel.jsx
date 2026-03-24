@@ -1,4 +1,5 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './AdminPanel.css';
 import {
   LayoutDashboard,
@@ -17,7 +18,6 @@ import {
   Sun,
   Calendar,
 } from 'lucide-react';
-import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import SidebarItem from '../../components/admin/SidebarItem.jsx';
@@ -38,7 +38,8 @@ const SIDEBAR_WIDTH = 260;
 
 export default function AdminPanel() {
   const { user, adminSidebarOpen, theme, dispatch } = useContext(Context);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'dashboard');
   const navigate = useNavigate();
   const PF = 'http://localhost:5000/images/';
   const [stats, setStats] = useState([]);
@@ -91,6 +92,14 @@ export default function AdminPanel() {
     fetchStats();
   }, []);
 
+  // Sync activeTab with URL query parameter
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
   // Auto-open sidebar on large screens (both on mount and on resize)
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -104,6 +113,7 @@ export default function AdminPanel() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    setSearchParams({ tab });
     dispatch({ type: 'SET_ADMIN_TAB', payload: tab });
     // Close sidebar on mobile after selecting
     if (!window.matchMedia('(min-width: 1024px)').matches) {
@@ -466,7 +476,7 @@ export default function AdminPanel() {
               >
                 {user?.profilePic ? (
                   <img
-                    src={user.profilePic.startsWith('http') ? user.profilePic : PF + user.profilePic}
+                    src={user.profilePic}
                     alt=""
                     style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
                   />
