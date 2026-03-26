@@ -1,4 +1,4 @@
-.register {
+﻿.register {
   min-height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
@@ -324,7 +324,7 @@
 }
 
 .registerLoginButton:hover {
-  background: #fff;
+  background: var(--bg-snow);
   color: var(--forest-900);
   transform: translateY(-3px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
@@ -516,3 +516,5 @@
     padding: 10px 18px;
   }
 }
+
+

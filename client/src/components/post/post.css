@@ -1,4 +1,4 @@
-.post {
+﻿.post {
   display: flex;
   flex-direction: column;
   width: calc(33.33% - 30px);
@@ -189,3 +189,4 @@
     height: auto;
   }
 }
+

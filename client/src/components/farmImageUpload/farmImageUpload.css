@@ -1,4 +1,4 @@
-.farmImageUploadContainer {
+﻿.farmImageUploadContainer {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -8,7 +8,7 @@
 .farmImageLabel {
   font-size: 14px;
   font-weight: 600;
-  color: #2d3436;
+  color: var(--slate-900);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -21,7 +21,7 @@
 
 .farmImageHelperText {
   font-size: 12px;
-  color: #7f8c8d;
+  color: var(--slate-600);
   margin: 0;
   padding: 0;
 }
@@ -101,7 +101,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .farmImageUploadMain span {
@@ -112,7 +112,7 @@
 .farmImageUploadSub {
   margin: 0;
   font-size: 12px;
-  color: #7f8c8d;
+  color: var(--slate-600);
 }
 
 /* Error Message */
@@ -145,7 +145,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #7f8c8d;
+  color: var(--slate-600);
   font-weight: 500;
 }
 
@@ -328,3 +328,5 @@
     align-items: flex-start;
   }
 }
+
+

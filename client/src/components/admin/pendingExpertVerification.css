@@ -1,4 +1,4 @@
-.expertVerificationContainer {
+﻿.expertVerificationContainer {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -21,7 +21,7 @@
   margin: 0;
   font-size: 28px;
   font-weight: 700;
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .expertVerificationHeader i {
@@ -57,7 +57,7 @@
 
 .expertVerificationLoader p {
   font-size: 16px;
-  color: #7f8c8d;
+  color: var(--slate-600);
 }
 
 /* Empty State */
@@ -67,7 +67,7 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   text-align: center;
 }
@@ -82,12 +82,12 @@
   margin: 12px 0 8px;
   font-size: 18px;
   font-weight: 600;
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .expertVerificationEmpty p {
   margin: 0;
-  color: #7f8c8d;
+  color: var(--slate-600);
 }
 
 /* List */
@@ -99,7 +99,7 @@
 
 /* Card */
 .expertVerificationCard {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   border: 1px solid #ecf0f1;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -140,14 +140,14 @@
   margin: 0 0 8px;
   font-size: 16px;
   font-weight: 600;
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .expertEmail,
 .expertPhone {
   margin: 4px 0;
   font-size: 12px;
-  color: #7f8c8d;
+  color: var(--slate-600);
 }
 
 .expertVerificationCardStatus {
@@ -179,13 +179,13 @@
 .expertVerificationCardDescription {
   padding: 16px;
   border-bottom: 1px solid #ecf0f1;
-  background: #ffffff;
+  background: var(--bg-card);
 }
 
 .expertDescription {
   margin: 0;
   font-size: 13px;
-  color: #555;
+  color: var(--slate-600);
   line-height: 1.5;
 }
 
@@ -201,7 +201,7 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #2d3436;
+  color: var(--slate-900);
   margin: 0 0 12px;
 }
 
@@ -264,7 +264,7 @@
   border-radius: 8px;
   border: 1px dashed #bdc3c7;
   text-align: center;
-  color: #7f8c8d;
+  color: var(--slate-600);
 }
 
 .expertNoImages i {
@@ -381,7 +381,7 @@
 
 .expertVerificationModalContent {
   position: relative;
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   max-width: 600px;
@@ -418,7 +418,7 @@
   gap: 12px;
   font-size: 16px;
   font-weight: 600;
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .expertVerificationModalHeader h3 i {
@@ -429,14 +429,14 @@
   background: none;
   border: none;
   font-size: 20px;
-  color: #7f8c8d;
+  color: var(--slate-600);
   cursor: pointer;
   padding: 4px;
   transition: color 0.3s ease;
 }
 
 .expertModalClose:hover {
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .expertVerificationModalBody {
@@ -458,11 +458,11 @@
 
 .expertVerificationModalInfo p {
   margin: 0;
-  color: #555;
+  color: var(--slate-600);
 }
 
 .expertVerificationModalInfo strong {
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .expertModalImagePreview {
@@ -474,7 +474,7 @@
 .expertModalImagePreview label {
   font-size: 12px;
   font-weight: 600;
-  color: #2d3436;
+  color: var(--slate-900);
 }
 
 .expertModalImageGallery {
@@ -506,7 +506,7 @@
 .expertVerificationModalForm label {
   font-size: 12px;
   font-weight: 600;
-  color: #2d3436;
+  color: var(--slate-900);
   display: block;
 }
 
@@ -516,7 +516,7 @@
   border-radius: 6px;
   font-family: inherit;
   font-size: 13px;
-  color: #2d3436;
+  color: var(--slate-900);
   resize: vertical;
   transition: border-color 0.3s ease;
 }
@@ -557,7 +557,7 @@
 
 .expertVerificationFormBtn.cancel {
   background-color: #ecf0f1;
-  color: #7f8c8d;
+  color: var(--slate-600);
 }
 
 .expertVerificationFormBtn.cancel:hover:not(:disabled) {
@@ -867,3 +867,5 @@
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
   }
 }
+
+

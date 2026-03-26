@@ -1,4 +1,4 @@
-/* Delete Account Modal - Premium Editorial Redesign */
+﻿/* Delete Account Modal - Premium Editorial Redesign */
 .deleteModalContainer {
   position: fixed;
   top: 0;
@@ -143,7 +143,7 @@
 
 .deleteModalConfirm:hover {
   background: #ef4444;
-  color: #000;
+  color: var(--slate-900);
   box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
   transform: translateY(-2px);
 }
@@ -169,3 +169,5 @@
   color: var(--forest-900);
   transform: translateY(-2px);
 }
+
+

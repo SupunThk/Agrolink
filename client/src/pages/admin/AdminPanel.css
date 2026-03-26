@@ -1,4 +1,4 @@
-/* Hide scrollbar for all browsers */
+﻿/* Hide scrollbar for all browsers */
 .adminSidebarNav::-webkit-scrollbar {
   display: none;
 }
@@ -12,3 +12,5 @@
 .adminSidebarNav {
   -ms-overflow-style: none;
 }
+
+

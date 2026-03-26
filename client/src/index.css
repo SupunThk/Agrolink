@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
   /* Zen Emerald Final Palette */
@@ -7,10 +7,18 @@
   --forest-900: #064e3b;
   --mint-100: #ecfdf5;
   --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-700: #334155;
   --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-300: #cbd5e1;
   --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+  --slate-50:  #f8fafc;
   --bg-snow: #ffffff; /* Pure White */
   --bg-card: #ffffff;
+  --bg-surface: #f8fafc; /* Added for surface colors */
   --glass-zen: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(6, 78, 59, 0.15);
   
@@ -34,16 +42,27 @@
 }
 
 [data-theme='dark'] {
-  --bg-snow: #000000; /* Pure Black Background */
-  --bg-card: #0a0a0a; /* Slighly elevated card */
-  --slate-900: #ffffff; 
-  --slate-600: #a1a1aa; 
-  --slate-200: #18181b; 
-  --glass-zen: rgba(10, 10, 10, 0.8);
-  --glass-border: rgba(16, 185, 129, 0.4);
-  --emerald-600: #10b981; 
-  --forest-900: #ffffff; 
-  --mint-100: #064e3b; 
+  --bg-snow: #0f172a; /* Deep Slate Background */
+  --bg-card: #1e293b; /* Elevated Slate Card */
+  --bg-surface: #1e293b; /* Elevated surface matching card */
+  --slate-900: #f8fafc; /* Soft off-white for primary text */
+  --slate-800: #f1f5f9;
+  --slate-700: #e2e8f0;
+  --slate-600: #cbd5e1; /* Muted slate for secondary text */
+  --slate-500: #94a3b8;
+  --slate-400: #64748b;
+  --slate-300: #475569;
+  --slate-200: #334155; /* Slate for borders/inputs */
+  --slate-100: #1e293b;
+  --slate-50:  #0f172a;
+  --glass-zen: rgba(30, 41, 59, 0.85);
+  --glass-border: rgba(51, 65, 85, 0.8);
+  --emerald-600: #10b981; /* Brighter green for pop */
+  --forest-900: #f1f5f9; /* Light text for headings */
+  --mint-100: #064e3b; /* Dark green accent for buttons/tags */
+  --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-zen: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  --shadow-input: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
 
 * {
@@ -174,3 +193,11 @@ h1, h2, h3, h4 {
   border-color: rgba(5, 150, 105, 0.2);
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.05);
 }
+
+
+
+select, option { background-color: var(--bg-card); color: var(--slate-900); }
+
+
+input, textarea, select { background-color: var(--bg-card); color: var(--slate-900); }
+

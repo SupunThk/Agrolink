@@ -1,4 +1,4 @@
-.myBlogs {
+﻿.myBlogs {
     padding: 40px 20px;
     max-width: 1200px;
     margin: 0 auto;
@@ -216,3 +216,4 @@
 .btn-view:hover {
     background-color: var(--primary-dark);
 }
+

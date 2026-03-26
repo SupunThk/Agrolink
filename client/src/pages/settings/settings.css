@@ -206,7 +206,7 @@
 
 .settingsPPBtn:hover {
   background: var(--emerald-600);
-  color: #000;
+  color: var(--slate-900);
   border-color: var(--emerald-600);
 }
 
@@ -579,7 +579,7 @@
 .settingsWarningAlert p {
   margin: 4px 0;
   font-size: 13px;
-  color: #7f8c8d;
+  color: var(--slate-600);
   line-height: 1.5;
 }
 
@@ -617,7 +617,7 @@
 .settingsFarmImagesInfo p {
   margin: 4px 0;
   font-size: 13px;
-  color: #555;
+  color: var(--slate-600);
 }
 
 .settingsFarmImagesInfo p:first-child {
@@ -626,7 +626,7 @@
 
 .settingsEditHint {
   font-size: 12px !important;
-  color: #7f8c8d !important;
+  color: var(--slate-600) !important;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -755,3 +755,5 @@
     align-items: flex-start;
   }
 }
+
+

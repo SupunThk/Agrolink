@@ -1,4 +1,4 @@
-/* Identity Verification Modal - Premium Secure Redesign */
+﻿/* Identity Verification Modal - Premium Secure Redesign */
 .vModalContainer {
   position: fixed;
   top: 0;
@@ -140,7 +140,7 @@
 
 .vModalButton:hover {
   background: var(--emerald-600);
-  color: #000;
+  color: var(--slate-900);
   box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
   transform: translateY(-2px);
 }
@@ -169,3 +169,5 @@
   border-color: #ef4444;
   transform: rotate(90deg) scale(1.1);
 }
+
+
