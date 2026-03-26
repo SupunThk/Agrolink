@@ -59,6 +59,11 @@ router.post("/:id/register", async (req, res) => {
             return res.status(400).json({ message: "Name and phone are required" });
         }
 
+        // Validate phone: only 10 digits
+        if (!/^\d{10}$/.test(String(phone).trim())) {
+            return res.status(400).json({ message: "Phone number must be exactly 10 digits" });
+        }
+
         const event = await Event.findById(req.params.id);
         if (!event) return res.status(404).json({ message: "Event not found" });
 

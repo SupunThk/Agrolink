@@ -23,6 +23,11 @@ const INITIAL_STATE = {
   adminSidebarOpen: false,
   theme: localStorage.getItem("theme") || "light",
   showInactivityWarning: false,
+  sessionTimeoutEnabled: (() => {
+    const stored = localStorage.getItem("sessionTimeoutEnabled");
+    if (stored === null) return true;
+    return stored === "true";
+  })(),
 };
 
 export const Context = createContext(INITIAL_STATE);
@@ -31,39 +36,6 @@ export const ContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(Reducer, INITIAL_STATE);
   const inactivityTimerRef = useRef(null);
   const warningTimerRef = useRef(null);
-
-  // Start inactivity timer (15 seconds)
-  const startInactivityTimer = useCallback(() => {
-    // Clear any existing timers
-    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
-
-    inactivityTimerRef.current = setTimeout(() => {
-      console.log("Inactivity timeout reached - showing warning modal");
-      dispatch({ type: "SHOW_INACTIVITY_WARNING" });
-
-      // Start warning countdown (10 seconds) - auto logout if no response
-      warningTimerRef.current = setTimeout(() => {
-        console.log("Warning timeout reached - auto logging out");
-        handleAutoLogout();
-      }, 10000); // 10 seconds
-    }, 30000); // 30 seconds of inactivity
-  }, []);
-
-  // Reset inactivity timer on activity
-  const resetInactivityTimer = useCallback(() => {
-    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
-    dispatch({ type: "HIDE_INACTIVITY_WARNING" });
-    startInactivityTimer();
-  }, [startInactivityTimer]);
-
-  // Handle extend session
-  const handleExtendSession = useCallback(() => {
-    console.log("Session extended");
-    dispatch({ type: "EXTEND_SESSION" });
-    resetInactivityTimer();
-  }, [resetInactivityTimer]);
 
   // Handle auto logout
   const handleAutoLogout = useCallback(async () => {
@@ -83,6 +55,49 @@ export const ContextProvider = ({ children }) => {
     window.location.replace("/login");
   }, [state.user]);
 
+  // Start inactivity timer (15 seconds)
+  const startInactivityTimer = useCallback(() => {
+    // Clear any existing timers
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+
+    // Respect user/admin preference: if disabled, don't start timers.
+    if (!state.sessionTimeoutEnabled) {
+      dispatch({ type: "HIDE_INACTIVITY_WARNING" });
+      return;
+    }
+
+    inactivityTimerRef.current = setTimeout(() => {
+      console.log("Inactivity timeout reached - showing warning modal");
+      dispatch({ type: "SHOW_INACTIVITY_WARNING" });
+
+      // Start warning countdown (10 seconds) - auto logout if no response
+      warningTimerRef.current = setTimeout(() => {
+        console.log("Warning timeout reached - auto logging out");
+        handleAutoLogout();
+      }, 10000); // 10 seconds
+    }, 30000); // 30 seconds of inactivity
+  }, [state.sessionTimeoutEnabled, dispatch, handleAutoLogout]);
+
+  // Reset inactivity timer on activity
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    dispatch({ type: "HIDE_INACTIVITY_WARNING" });
+    startInactivityTimer();
+  }, [startInactivityTimer]);
+
+  const setSessionTimeoutEnabled = useCallback((enabled) => {
+    dispatch({ type: "SET_SESSION_TIMEOUT_ENABLED", payload: Boolean(enabled) });
+  }, []);
+
+  // Handle extend session
+  const handleExtendSession = useCallback(() => {
+    console.log("Session extended");
+    dispatch({ type: "EXTEND_SESSION" });
+    resetInactivityTimer();
+  }, [resetInactivityTimer]);
+
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
@@ -93,14 +108,15 @@ export const ContextProvider = ({ children }) => {
 
   // Start inactivity timer when user logs in
   useEffect(() => {
-    if (state.user) {
+    if (state.user && state.sessionTimeoutEnabled) {
       startInactivityTimer();
     } else {
       // Clear timers when user logs out
       if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
       if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+      dispatch({ type: "HIDE_INACTIVITY_WARNING" });
     }
-  }, [state.user, startInactivityTimer]);
+  }, [state.user, state.sessionTimeoutEnabled, startInactivityTimer]);
 
   useEffect(() => {
     sessionStorage.setItem("user", JSON.stringify(state.user));
@@ -109,6 +125,10 @@ export const ContextProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem("theme", state.theme);
   }, [state.theme]);
+
+  useEffect(() => {
+    localStorage.setItem("sessionTimeoutEnabled", String(state.sessionTimeoutEnabled));
+  }, [state.sessionTimeoutEnabled]);
 
   return (
     <Context.Provider
@@ -121,8 +141,10 @@ export const ContextProvider = ({ children }) => {
         adminSidebarOpen: state.adminSidebarOpen,
         theme: state.theme,
         showInactivityWarning: state.showInactivityWarning,
+        sessionTimeoutEnabled: state.sessionTimeoutEnabled,
         dispatch,
         resetInactivityTimer,
+        setSessionTimeoutEnabled,
         handleExtendSession,
         handleAutoLogout,
         inactivityTimerRef,

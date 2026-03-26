@@ -22,7 +22,7 @@ import InactivityWarningModal from "./components/inactivityWarning/InactivityWar
 import axios from "axios";
 
 function AppContent() {
-  const { user, showVModal, showDModal, dispatch, theme, resetInactivityTimer } = useContext(Context);
+  const { user, showVModal, showDModal, dispatch, theme, resetInactivityTimer, sessionTimeoutEnabled } = useContext(Context);
   const location = useLocation();
 
   useEffect(() => {
@@ -35,12 +35,12 @@ function AppContent() {
     return () => {
       if (timeout) clearTimeout(timeout);
       timeout = setTimeout(() => {
-        if (user) {
+        if (user && sessionTimeoutEnabled) {
           resetInactivityTimer();
         }
       }, 300); // Debounce 300ms to avoid excessive timer resets
     };
-  }, [user, resetInactivityTimer])();
+  }, [user, sessionTimeoutEnabled, resetInactivityTimer])();
 
   useEffect(() => {
     if (!user) return; // Only track activity when user is logged in

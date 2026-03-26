@@ -53,7 +53,7 @@ const btnPrimary = {
    Component
    ═══════════════════════════════════════════════════════════════════════════ */
 const AdminSettings = () => {
-  const { user, dispatch } = useContext(Context);
+  const { user, dispatch, sessionTimeoutEnabled, setSessionTimeoutEnabled } = useContext(Context);
   const { toast, ToastContainer } = useToast();
 
   /* ── DB status ─────────────────────────────────────────────────────────── */
@@ -212,6 +212,72 @@ const AdminSettings = () => {
   /* ═══════════════════════════════════════════════════════════════════════ */
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+      {/* ── 0. Session Timeout ─────────────────────────────────────────── */}
+      <div style={{ ...sectionCard, animationDelay: '0s' }}>
+        <div style={sectionHeader}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+            background: 'rgba(16,185,129,0.10)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Shield size={18} style={{ color: 'var(--emerald-600)' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--slate-900)' }}>
+              Session Timeout
+            </h3>
+            <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
+              Enable inactivity warning and auto logout for all users
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSessionTimeoutEnabled(!sessionTimeoutEnabled)}
+            style={{
+              padding: '7px 14px', borderRadius: 999,
+              border: '1px solid',
+              borderColor: sessionTimeoutEnabled ? 'var(--emerald-600)' : 'var(--glass-border)',
+              background: sessionTimeoutEnabled ? 'rgba(16,185,129,0.12)' : 'var(--bg-surface)',
+              color: sessionTimeoutEnabled ? 'var(--emerald-700)' : 'var(--slate-600)',
+              fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            title="Toggle session timeout"
+          >
+            {sessionTimeoutEnabled ? 'Enabled' : 'Disabled'}
+          </button>
+        </div>
+        <div style={sectionBody}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+            padding: 14, borderRadius: 14,
+            border: '1px solid var(--glass-border)',
+            background: 'var(--bg-surface)',
+          }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: 'var(--slate-800)' }}>
+                Inactivity-based logout
+              </div>
+              <div style={{ marginTop: 4, fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
+                When enabled, inactive sessions show a warning and then log out automatically.
+              </div>
+            </div>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 700, color: 'var(--slate-600)' }}>
+                {sessionTimeoutEnabled ? 'On' : 'Off'}
+              </span>
+              <input
+                type="checkbox"
+                checked={!!sessionTimeoutEnabled}
+                onChange={(e) => setSessionTimeoutEnabled(e.target.checked)}
+                style={{ width: 18, height: 18, accentColor: 'var(--emerald-600)', cursor: 'pointer' }}
+              />
+            </label>
+          </div>
+        </div>
+      </div>
 
       {/* ── 1. Database Status ──────────────────────────────────────────── */}
       <div style={{ ...sectionCard, animationDelay: '0s' }}>

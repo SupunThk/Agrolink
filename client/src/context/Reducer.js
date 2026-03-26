@@ -104,6 +104,12 @@ const Reducer = (state, action) => {
                 ...state,
                 showInactivityWarning: false
             };
+        case "SET_SESSION_TIMEOUT_ENABLED":
+            return {
+                ...state,
+                sessionTimeoutEnabled: Boolean(action.payload),
+                showInactivityWarning: Boolean(action.payload) ? state.showInactivityWarning : false,
+            };
         default:
             return state;
     }

@@ -132,6 +132,19 @@ export default function Events() {
     const [registerForm, setRegisterForm] = useState({ name: "", phone: "", email: "" });
     const [registerLoading, setRegisterLoading] = useState(false);
 
+    const [locationModalOpen, setLocationModalOpen] = useState(false);
+    const [selectedLocationEvent, setSelectedLocationEvent] = useState(null);
+
+    const openLocationModal = (event) => {
+        setSelectedLocationEvent(event);
+        setLocationModalOpen(true);
+    };
+
+    const closeLocationModal = () => {
+        setLocationModalOpen(false);
+        setSelectedLocationEvent(null);
+    };
+
     const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
     const fetchEvents = async () => {
@@ -312,8 +325,29 @@ export default function Events() {
 
     const openRegister = (ev) => {
         setRegisteringEvent(ev);
-        setRegisterForm({ name: "", phone: "", email: "" });
+        // Auto-populate with user's details if logged in
+        if (user) {
+            setRegisterForm({
+                name: user.name || user.username || "",
+                phone: user.phone || "",
+                email: user.email || "",
+            });
+        } else {
+            setRegisterForm({ name: "", phone: "", email: "" });
+        }
         setRegisterOpen(true);
+    };
+
+    const isUserAlreadyRegistered = (event) => {
+        if (!user) return false;
+        if (!event?.attendees || event.attendees.length === 0) return false;
+        
+        // Check if current user's phone or email is already in attendees list
+        return event.attendees.some((a) => {
+            if (user.phone && a.phone === user.phone) return true;
+            if (user.email && a.email && a.email.toLowerCase() === user.email.toLowerCase()) return true;
+            return false;
+        });
     };
 
     const closeRegister = () => {
@@ -324,7 +358,15 @@ export default function Events() {
     };
 
     const handleRegisterChange = (e) => {
-        setRegisterForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        
+        // Phone number validation: only digits, max 10
+        if (name === "phone") {
+            const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+            setRegisterForm((prev) => ({ ...prev, [name]: digitsOnly }));
+        } else {
+            setRegisterForm((prev) => ({ ...prev, [name]: value }));
+        }
     };
 
     const submitRegister = async (e) => {
@@ -341,6 +383,10 @@ export default function Events() {
         }
         if (!phone) {
             toast.error("Phone is required to register");
+            return;
+        }
+        if (phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+            toast.error("Phone number must be exactly 10 digits");
             return;
         }
 
@@ -470,9 +516,22 @@ export default function Events() {
                                                 {mapLink && (
                                                     <>
                                                         <span className="event-meta-sep">•</span>
-                                                        <a className="event-map-link" href={mapLink} target="_blank" rel="noreferrer">
+                                                        <button
+                                                            type="button"
+                                                            className="event-map-link"
+                                                            onClick={() => openLocationModal(ev)}
+                                                            style={{
+                                                                background: 'none',
+                                                                border: 'none',
+                                                                color: 'inherit',
+                                                                cursor: 'pointer',
+                                                                padding: 0,
+                                                                font: 'inherit',
+                                                                textDecoration: 'none',
+                                                            }}
+                                                        >
                                                             🗺 View on map
-                                                        </a>
+                                                        </button>
                                                     </>
                                                 )}
 
@@ -490,8 +549,13 @@ export default function Events() {
 
                                     <div className="event-card-actions">
                                         {badge === "Upcoming" && (
-                                            <button className="btn btn-register" onClick={() => openRegister(ev)} type="button">
-                                                📝 Register
+                                            <button 
+                                                className={`btn ${isUserAlreadyRegistered(ev) ? "btn-registered" : "btn-register"}`} 
+                                                onClick={() => !isUserAlreadyRegistered(ev) && openRegister(ev)} 
+                                                type="button"
+                                                disabled={isUserAlreadyRegistered(ev)}
+                                            >
+                                                {isUserAlreadyRegistered(ev) ? "✅ Registered" : "📝 Register"}
                                             </button>
                                         )}
 
@@ -694,7 +758,55 @@ export default function Events() {
                     </div>
                 </div>
             )}
+            {locationModalOpen && selectedLocationEvent && (
+                <div className="modal-overlay" onClick={closeLocationModal}>
+                    <div className="modal modal--map" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header modal-header--map">
+                            <h3 className="modal-title">
+                                📍 {selectedLocationEvent.location}
+                            </h3>
+                            <button className="modal-close" onClick={closeLocationModal} type="button">
+                                ✕
+                            </button>
+                        </div>
 
+                        <div className="modal-body" style={{ padding: 0, overflow: 'hidden' }}>
+                            <iframe
+                                title={`Map for ${selectedLocationEvent.title}`}
+                                className="register-map-embed"
+                                src={buildOsmEmbedUrl({
+                                    lat: selectedLocationEvent?.geo?.lat,
+                                    lng: selectedLocationEvent?.geo?.lng,
+                                    zoom: 14,
+                                })}
+                                style={{ width: '100%', height: '500px', border: 'none' }}
+                            />
+                        </div>
+
+                        <div className="modal-footer" style={{
+                            padding: '12px 24px',
+                            borderTop: '1px solid var(--glass-border)',
+                            textAlign: 'center',
+                        }}>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--slate-600)' }}>
+                                <strong>Event:</strong> {selectedLocationEvent.title}
+                            </p>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--slate-600)' }}>
+                                <strong>Date:</strong> {new Date(selectedLocationEvent.date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                })}
+                            </p>
+                            {selectedLocationEvent?.geo?.lat && selectedLocationEvent?.geo?.lng && (
+                                <p style={{ margin: '0', fontSize: '12px', color: 'var(--slate-500)' }}>
+                                    Coordinates: {selectedLocationEvent.geo.lat.toFixed(4)}, {selectedLocationEvent.geo.lng.toFixed(4)}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
             {registerOpen && registeringEvent && (
                 <div className="modal-overlay" onClick={closeRegister}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -705,68 +817,79 @@ export default function Events() {
                             </button>
                         </div>
 
-                        <form onSubmit={submitRegister} className="modal-form">
-                            {buildOsmViewLink({ lat: registeringEvent?.geo?.lat, lng: registeringEvent?.geo?.lng }) && (
-                                <div className="register-map">
-                                    <iframe
-                                        title="Event map"
-                                        className="register-map-embed"
-                                        src={buildOsmEmbedUrl({ lat: registeringEvent.geo.lat, lng: registeringEvent.geo.lng, zoom: 12 })}
-                                    />
-                                    <a
-                                        className="event-map-link"
-                                        href={buildOsmViewLink({ lat: registeringEvent.geo.lat, lng: registeringEvent.geo.lng })}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        🗺 Open in map
-                                    </a>
+                        {isUserAlreadyRegistered(registeringEvent) ? (
+                            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', gap: '16px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '3rem' }}>✅</div>
+                                <h3 style={{ margin: '0', fontSize: '1.1rem', fontWeight: '600', color: 'var(--gray-900)' }}>Already Registered</h3>
+                                <p style={{ margin: '0', color: 'var(--gray-600)', fontSize: '0.9rem' }}>You are already registered for this event. Please wait for confirmation details.</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={submitRegister} className="modal-form">
+                                <div className="modal-body">
+                                    {buildOsmViewLink({ lat: registeringEvent?.geo?.lat, lng: registeringEvent?.geo?.lng }) && (
+                                        <div className="register-map">
+                                            <div className="register-map-wrapper">
+                                                <iframe
+                                                    title="Event map"
+                                                    className="register-map-embed"
+                                                    src={buildOsmEmbedUrl({ lat: registeringEvent.geo.lat, lng: registeringEvent.geo.lng, zoom: 12 })}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="form-group">
+                                        <label className="form-label">Name *</label>
+                                        <input
+                                            className="form-input"
+                                            name="name"
+                                            value={registerForm.name}
+                                            onChange={handleRegisterChange}
+                                            placeholder="Your name"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Phone *</label>
+                                        <input
+                                            className="form-input"
+                                            name="phone"
+                                            value={registerForm.phone}
+                                            onChange={handleRegisterChange}
+                                            placeholder="07XXXXXXXX"
+                                            maxLength="10"
+                                        />
+                                        <span style={{ fontSize: '0.75rem', color: registerForm.phone.length === 10 ? 'var(--green-600)' : 'var(--gray-500)', marginTop: '4px', display: 'block' }}>
+                                            Digits: {registerForm.phone.length}/10
+                                        </span>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            Email <span className="form-label-optional">(optional)</span>
+                                        </label>
+                                        <input
+                                            className="form-input"
+                                            name="email"
+                                            value={registerForm.email}
+                                            onChange={handleRegisterChange}
+                                            placeholder="example@gmail.com"
+                                            disabled={!!user}
+                                        />
+                                    </div>
                                 </div>
-                            )}
-                            <div className="form-group">
-                                <label className="form-label">Name *</label>
-                                <input
-                                    className="form-input"
-                                    name="name"
-                                    value={registerForm.name}
-                                    onChange={handleRegisterChange}
-                                    placeholder="Your name"
-                                />
-                            </div>
 
-                            <div className="form-group">
-                                <label className="form-label">Phone *</label>
-                                <input
-                                    className="form-input"
-                                    name="phone"
-                                    value={registerForm.phone}
-                                    onChange={handleRegisterChange}
-                                    placeholder="07XXXXXXXX"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    Email <span className="form-label-optional">(optional)</span>
-                                </label>
-                                <input
-                                    className="form-input"
-                                    name="email"
-                                    value={registerForm.email}
-                                    onChange={handleRegisterChange}
-                                    placeholder="example@gmail.com"
-                                />
-                            </div>
-
-                            <div className="modal-actions">
-                                <button className="btn btn-primary" type="submit" disabled={registerLoading}>
-                                    {registerLoading ? "Registering..." : "✅ Confirm Registration"}
-                                </button>
-                                <button className="btn btn-ghost" type="button" onClick={closeRegister} disabled={registerLoading}>
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
+                                <div className="modal-footer">
+                                    <div className="modal-actions">
+                                        <button className="btn btn-ghost" type="button" onClick={closeRegister} disabled={registerLoading}>
+                                            Cancel
+                                        </button>
+                                        <button className="btn btn-primary" type="submit" disabled={registerLoading}>
+                                            {registerLoading ? "Registering..." : "✅ Confirm Registration"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}
