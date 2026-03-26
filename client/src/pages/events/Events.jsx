@@ -548,7 +548,7 @@ export default function Events() {
                                     {ev.description && <p className="event-card-description">{ev.description}</p>}
 
                                     <div className="event-card-actions">
-                                        {badge === "Upcoming" && (
+                                        {badge === "Upcoming" && !isAdminOrExpert && (
                                             <button 
                                                 className={`btn ${isUserAlreadyRegistered(ev) ? "btn-registered" : "btn-register"}`} 
                                                 onClick={() => !isUserAlreadyRegistered(ev) && openRegister(ev)} 
