@@ -12,6 +12,7 @@ const commentRoute = require("./routes/comments");
 const chatbotRoute = require("./routes/chatbot");
 const questionRoute = require("./routes/questions");
 const eventRoute = require("./routes/events");
+const geocodeRoute = require("./routes/geocode");
 const productRoute = require("./routes/products");
 const expertImagesRoute = require("./routes/expert-images");
 const Category = require("./models/Category");
@@ -143,6 +144,7 @@ app.use("/api/comments", commentRoute);
 app.use("/api/chatbot", chatbotRoute);
 app.use("/api/questions", questionRoute);
 app.use("/api/events", eventRoute);
+app.use("/api/geocode", geocodeRoute);
 app.use("/api/products", productRoute);
 app.use("/api/expert-images", expertImagesRoute);
 
