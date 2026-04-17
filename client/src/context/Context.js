@@ -2,12 +2,23 @@ import { createContext, useEffect, useReducer, useRef, useCallback } from "react
 import Reducer from "./Reducer";
 import axios from "axios";
 
+function normalizeUser(user) {
+  if (!user || typeof user !== "object") return user;
+  const username = (user.username || "").trim();
+  if (username) return user;
+
+  const fallback = (user.name || "").trim() || (user.email || "").trim();
+  if (!fallback) return user;
+
+  return { ...user, username: fallback };
+}
+
 const INITIAL_STATE = {
   user: (() => {
     const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
       try {
-        return JSON.parse(storedUser);
+        return normalizeUser(JSON.parse(storedUser));
       } catch (err) {
         console.log("Failed to parse user:", err);
         return null;
@@ -119,7 +130,7 @@ export const ContextProvider = ({ children }) => {
   }, [state.user, state.sessionTimeoutEnabled, startInactivityTimer]);
 
   useEffect(() => {
-    sessionStorage.setItem("user", JSON.stringify(state.user));
+    sessionStorage.setItem("user", JSON.stringify(normalizeUser(state.user)));
   }, [state.user]);
 
   useEffect(() => {

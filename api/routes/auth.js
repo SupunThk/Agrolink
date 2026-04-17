@@ -62,6 +62,7 @@ router.post("/register", async(req, res) => {
 
         // Create new user
         const newUser = new User({
+            username: (req.body.username || req.body.name || "").trim(),
             name: req.body.name,
             email: normalizedEmail,
             phone: normalizedPhone,
@@ -77,7 +78,8 @@ router.post("/register", async(req, res) => {
         const user = await newUser.save();
 
         // Remove password from response
-        const { password, ...userWithoutPassword } = user._doc;
+        // Avoid returning potentially large Base64 payloads (farmImages) in auth responses.
+        const { password, farmImages: _farmImages, ...userWithoutPassword } = user._doc;
 
         // Let the client know if they need approval
         if (role === "expert") {
@@ -143,7 +145,8 @@ router.post("/login", async(req, res) => {
         }
 
         // Remove password from response
-        const { password, ...others } = user._doc;
+        // Avoid returning potentially large Base64 payloads (farmImages) on login.
+        const { password, farmImages: _farmImages, ...others } = user._doc;
         res.status(200).json({ ...others, isAdmin: user.isAdmin, role: user.role });
     } catch (err) {
         console.error("Login error:", err);

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect, useContext, useCallback } from "react";
 import "./askExpert.css";
 import { Context } from "../../context/Context";
 import { useNavigate } from "react-router-dom";
@@ -28,7 +28,8 @@ const TOPICS = [
 export default function AskExpert() {
   const { user } = useContext(Context);
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
+
+  const getInitialMessages = () => ([
     {
       id: 1,
       from: "ai",
@@ -36,33 +37,312 @@ export default function AskExpert() {
       time: new Date(),
     },
   ]);
+
+  const [activeTab, setActiveTab] = useState("chatbot"); // "chatbot" | "experts"
+  const [messages, setMessages] = useState(getInitialMessages);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [activeConv, setActiveConv] = useState(0);
+  const [activeConv, setActiveConv] = useState(null); // conversation _id
+
+  const [chatConversations, setChatConversations] = useState([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState("");
+
+  const [expertQuestionText, setExpertQuestionText] = useState("");
+  const [expertQuestions, setExpertQuestions] = useState([]);
+  const [expertLoading, setExpertLoading] = useState(false);
+  const [expertError, setExpertError] = useState("");
+  const [highlightQuestionId, setHighlightQuestionId] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const ignoreNextConversationLoadRef = useRef(false);
 
-  const conversations = [
-    { id: 0, title: "New Conversation", icon: "fas fa-comment-dots" },
-    { id: 1, title: "Pest Control Tips", icon: "fas fa-bug" },
-    { id: 2, title: "Soil Analysis", icon: "fas fa-leaf" },
-  ];
+  const getOrCreateGuestKey = () => {
+    try {
+      const keyName = "agrolink_guest_key";
+      const existing = localStorage.getItem(keyName);
+      if (existing) return existing;
+      const created = (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2));
+      localStorage.setItem(keyName, created);
+      return created;
+    } catch {
+      return "guest";
+    }
+  };
+
+  const ownerKey = user?._id ? `user:${user._id}` : `guest:${getOrCreateGuestKey()}`;
+
+  useEffect(() => {
+    // Owner changed (login/logout) — reset chat UI state to avoid mixing histories
+    setActiveConv(null);
+    setChatConversations([]);
+    setChatError("");
+    setMessages(getInitialMessages());
+  }, [ownerKey]);
+
+  const fetchChatConversations = useCallback(async ({ silent } = { silent: false }) => {
+    if (!silent) {
+      setChatLoading(true);
+      setChatError("");
+    }
+
+    try {
+      const res = await axios.get("/chatbot/conversations", {
+        params: { ownerKey, limit: 50 }
+      });
+      const convs = Array.isArray(res.data) ? res.data : [];
+      setChatConversations(convs);
+      if (!activeConv && convs.length > 0) {
+        setActiveConv(convs[0]._id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch conversations", err);
+      if (!silent) setChatError("Failed to load chat history.");
+    } finally {
+      if (!silent) setChatLoading(false);
+    }
+  }, [ownerKey, activeConv]);
+
+  const loadConversation = useCallback(async (conversationId) => {
+    if (!conversationId) {
+      setMessages(getInitialMessages());
+      return;
+    }
+
+    try {
+      const res = await axios.get(`/chatbot/conversations/${conversationId}`, {
+        params: { ownerKey }
+      });
+      const conv = res.data;
+      const convMessages = Array.isArray(conv?.messages) ? conv.messages : [];
+      const mapped = convMessages
+        .filter((m) => m?.text)
+        .map((m, idx) => ({
+          id: Date.now() + idx,
+          from: m.from,
+          text: m.text,
+          time: m.createdAt ? new Date(m.createdAt) : new Date(),
+        }));
+      setMessages([...getInitialMessages(), ...mapped]);
+    } catch (err) {
+      console.error("Failed to load conversation", err);
+      setMessages(getInitialMessages());
+    }
+  }, [ownerKey]);
+
+  const createNewConversation = useCallback(async () => {
+    try {
+      const res = await axios.post("/chatbot/conversations", {
+        ownerKey,
+        username: user?.username || "Guest",
+        title: "New Conversation",
+      });
+      const conv = res.data;
+      await fetchChatConversations({ silent: true });
+      if (conv?._id) {
+        ignoreNextConversationLoadRef.current = true;
+        setActiveConv(conv._id);
+      } else {
+        setActiveConv(null);
+      }
+      setMessages(getInitialMessages());
+    } catch (err) {
+      console.error("Failed to create conversation", err);
+      ignoreNextConversationLoadRef.current = false;
+      // fallback: still allow chatting in-memory
+      setMessages(getInitialMessages());
+    }
+  }, [ownerKey, user?.username, fetchChatConversations]);
+
+  useEffect(() => {
+    if (activeTab !== "chatbot") return;
+    fetchChatConversations({ silent: false });
+    const interval = setInterval(() => {
+      fetchChatConversations({ silent: true });
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [activeTab, fetchChatConversations]);
+
+  useEffect(() => {
+    if (activeTab !== "chatbot") return;
+    if (ignoreNextConversationLoadRef.current) return;
+    loadConversation(activeConv);
+  }, [activeTab, activeConv, loadConversation]);
+
+  useEffect(() => {
+    if (!ignoreNextConversationLoadRef.current) return;
+    ignoreNextConversationLoadRef.current = false;
+  }, [activeConv]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  useEffect(() => {
+    if (!user) return;
+    const pending = sessionStorage.getItem("pendingExpertQuestion");
+    if (pending && !expertQuestionText) {
+      setExpertQuestionText(pending);
+      sessionStorage.removeItem("pendingExpertQuestion");
+    }
+  }, [user, expertQuestionText]);
+
+  const normalizeForMatch = (text) => (text || "")
+    .toString()
+    .toLowerCase()
+    .replace(/[’']/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const isDontKnowResponse = (botResponse) => {
+    const t = normalizeForMatch(botResponse);
+    if (!t) return false;
+
+    const patterns = [
+      "don't have a specific answer",
+      "im not sure",
+      "i'm not sure",
+      "don't have detailed information",
+      "consulting with local agricultural experts",
+      "reach out to agricultural extension",
+      "extension services",
+      "please rephrase your question",
+      "specialized advice",
+    ];
+
+    return patterns.some((p) => t.includes(p));
+  };
+
+  const formatDateTime = (d) => {
+    const date = d instanceof Date ? d : new Date(d);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleString([], { year: "numeric", month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  };
+
+  const pickBestAnswer = (q) => {
+    const answers = Array.isArray(q?.answers) ? q.answers : [];
+    if (answers.length === 0) return null;
+    return answers.find((a) => a?.isAccepted) || answers[0];
+  };
+
+  const fetchExpertQuestions = useCallback(async ({ silent } = { silent: false }) => {
+    const username = user?.username;
+    if (!username) return;
+    if (!silent) {
+      setExpertLoading(true);
+      setExpertError("");
+    }
+
+    try {
+      const res = await axios.get("/questions", {
+        params: { username, limit: 50 }
+      });
+      setExpertQuestions(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to fetch expert questions", err);
+      if (!silent) setExpertError("Failed to load expert questions.");
+    } finally {
+      if (!silent) setExpertLoading(false);
+    }
+  }, [user?.username]);
+
+  useEffect(() => {
+    if (activeTab !== "experts" || !user?.username) return;
+    fetchExpertQuestions({ silent: false });
+    const interval = setInterval(() => {
+      fetchExpertQuestions({ silent: true });
+    }, 12000);
+    return () => clearInterval(interval);
+  }, [activeTab, user?.username, fetchExpertQuestions]);
+
+  const submitExpertQuestion = async (questionText) => {
+    const q = (questionText || "").trim();
+    if (!q) return null;
+
+    if (!user?.username) {
+      sessionStorage.setItem("pendingExpertQuestion", q);
+      setActiveTab("experts");
+      return null;
+    }
+
+    setExpertError("");
+    try {
+      const res = await axios.post("/chatbot/ask-expert", {
+        question: q,
+        username: user.username,
+        category: "General",
+      });
+
+      const createdId = res?.data?.question?._id || null;
+      if (createdId) setHighlightQuestionId(createdId);
+      await fetchExpertQuestions({ silent: true });
+      return createdId;
+    } catch (err) {
+      console.error("Failed to submit expert question", err);
+      setExpertError("Failed to submit your question to experts.");
+      return null;
+    }
+  };
+
+  const transferToExperts = async ({ questionText, questionId }) => {
+    setActiveTab("experts");
+
+    if (!user?.username) {
+      setExpertQuestionText(questionText);
+      sessionStorage.setItem("pendingExpertQuestion", questionText);
+      return;
+    }
+
+    if (questionId) {
+      setHighlightQuestionId(questionId);
+      await fetchExpertQuestions({ silent: false });
+      return;
+    }
+
+    // Fallback: ensure it is saved for experts even if backend didn't auto-save
+    const createdId = await submitExpertQuestion(questionText);
+    if (createdId) setHighlightQuestionId(createdId);
+  };
+
   const sendMessage = async (text) => {
     const msg = text || input.trim();
     if (!msg) return;
+
+    // Ensure we have a conversation id so messages can be persisted
+    let conversationId = activeConv;
+    if (!conversationId) {
+      try {
+        const res = await axios.post("/chatbot/conversations", {
+          ownerKey,
+          username: user?.username || "Guest",
+          title: "New Conversation",
+        });
+        conversationId = res.data?._id || null;
+        if (conversationId) {
+          ignoreNextConversationLoadRef.current = true;
+          setActiveConv(conversationId);
+        }
+        await fetchChatConversations({ silent: true });
+      } catch (err) {
+        console.error("Failed to initialize conversation", err);
+      }
+    }
+
     const userMsg = { id: Date.now(), from: "user", text: msg, time: new Date() };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
 
+    let transferPayload = null;
+
     try {
       const res = await axios.get("/chatbot/chat", {
-        params: { message: msg, username: user?.username || "Guest" }
+        params: {
+          message: msg,
+          username: user?.username || "Guest",
+          conversationId: conversationId || undefined,
+          ownerKey: conversationId ? ownerKey : undefined,
+        }
       });
 
       const aiMsg = {
@@ -72,6 +352,18 @@ export default function AskExpert() {
         time: new Date(),
       };
       setMessages((prev) => [...prev, aiMsg]);
+
+      if (isDontKnowResponse(aiMsg.text)) {
+        transferPayload = {
+          questionText: msg,
+          questionId: res?.data?.questionId || null,
+        };
+      }
+
+      // Refresh chat list ordering (updatedAt)
+      if (conversationId) {
+        fetchChatConversations({ silent: true });
+      }
     } catch (err) {
       console.error("Chatbot Error:", err);
       const errorMsg = {
@@ -83,6 +375,10 @@ export default function AskExpert() {
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsTyping(false);
+    }
+
+    if (transferPayload) {
+      await transferToExperts(transferPayload);
     }
   };
 
@@ -114,22 +410,33 @@ export default function AskExpert() {
             </div>
           </div>
 
-          <button className="ae-new-btn" onClick={() => setMessages([
-            { id: 1, from: "ai", text: "Hello! I'm **AgroAI**, your personal agricultural expert. What would you like to know today?", time: new Date() }
-          ])}>
+          <button
+            className="ae-new-btn"
+            onClick={() => {
+              ignoreNextConversationLoadRef.current = true;
+              createNewConversation();
+            }}
+            type="button"
+          >
             <i className="fas fa-plus"></i> New Conversation
           </button>
 
           <div className="ae-sidebar-section">
             <p className="ae-sidebar-section-label">Recent Chats</p>
-            {conversations.map((c) => (
+            {chatError && <p className="ae-sidebar-error">{chatError}</p>}
+            {chatLoading && <p className="ae-sidebar-loading">Loading…</p>}
+            {chatConversations.map((c) => (
               <button
-                key={c.id}
-                className={"ae-conv-item" + (activeConv === c.id ? " active" : "")}
-                onClick={() => setActiveConv(c.id)}
+                key={c._id}
+                className={"ae-conv-item" + (activeConv === c._id ? " active" : "")}
+                onClick={() => {
+                  setActiveTab("chatbot");
+                  setActiveConv(c._id);
+                }}
+                type="button"
               >
-                <i className={c.icon}></i>
-                <span>{c.title}</span>
+                <i className="fas fa-comment-dots"></i>
+                <span>{c.title || "Conversation"}</span>
               </button>
             ))}
           </div>
@@ -141,7 +448,11 @@ export default function AskExpert() {
                 <button
                   key={t.label}
                   className="ae-topic-chip"
-                  onClick={() => sendMessage("Tell me about " + t.label)}
+                  onClick={() => {
+                    setActiveTab("chatbot");
+                    sendMessage("Tell me about " + t.label);
+                  }}
+                  type="button"
                 >
                   <i className={t.icon}></i>
                   <span>{t.label}</span>
@@ -169,100 +480,243 @@ export default function AskExpert() {
 
         {/* Main Chat Area */}
         <main className="ae-main">
+          {/* Tabs */}
+          <div className="ae-tabs">
+            <button
+              className={"ae-tab-btn" + (activeTab === "chatbot" ? " active" : "")}
+              onClick={() => setActiveTab("chatbot")}
+              type="button"
+            >
+              <i className="fas fa-robot"></i>
+              <span>Chatbot</span>
+            </button>
+            <button
+              className={"ae-tab-btn" + (activeTab === "experts" ? " active" : "")}
+              onClick={() => setActiveTab("experts")}
+              type="button"
+            >
+              <i className="fas fa-user-graduate"></i>
+              <span>Experts</span>
+            </button>
+          </div>
+
           {/* Chat Header */}
           <div className="ae-chat-header glass-panel">
             <div className="ae-chat-header-left">
-              <img src={AI_AVATAR} alt="AI" className="ae-ai-avatar" />
+              {activeTab === "chatbot" ? (
+                <img src={AI_AVATAR} alt="AI" className="ae-ai-avatar" />
+              ) : (
+                <div className="ae-expert-avatar">
+                  <i className="fas fa-user-graduate"></i>
+                </div>
+              )}
               <div>
-                <h4 className="ae-chat-name">{AI_NAME}</h4>
-                <span className="ae-chat-status">
-                  <span className="ae-status-dot"></span> Online &amp; Ready
-                </span>
+                <h4 className="ae-chat-name">{activeTab === "chatbot" ? AI_NAME : "Expert Farmers"}</h4>
+                {activeTab === "chatbot" ? (
+                  <span className="ae-chat-status">
+                    <span className="ae-status-dot"></span> Online &amp; Ready
+                  </span>
+                ) : (
+                  <span className="ae-chat-status">Ask a question and get replies from experts</span>
+                )}
               </div>
             </div>
             <div className="ae-chat-header-right">
-              <button className="ae-header-icon-btn" title="Clear chat" onClick={() => setMessages([
-                { id: 1, from: "ai", text: "Hello! I'm **AgroAI**, your personal agricultural expert. What would you like to know today?", time: new Date() }
-              ])}>
-                <i className="fas fa-trash-alt"></i>
-              </button>
+              {activeTab === "chatbot" && (
+                <button
+                  className="ae-header-icon-btn"
+                  title="Clear chat"
+                  onClick={async () => {
+                    setMessages(getInitialMessages());
+                    if (activeConv) {
+                      try {
+                        await axios.put(`/chatbot/conversations/${activeConv}/clear`, null, {
+                          params: { ownerKey }
+                        });
+                        fetchChatConversations({ silent: true });
+                      } catch (err) {
+                        console.error("Failed to clear conversation", err);
+                      }
+                    }
+                  }}
+                  type="button"
+                >
+                  <i className="fas fa-trash-alt"></i>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Messages */}
-          <div className="ae-messages">
-            {messages.map((msg) => (
-              <div key={msg.id} className={"ae-msg-row" + (msg.from === "user" ? " user" : "")}>
-                {msg.from === "ai" && (
-                  <img src={AI_AVATAR} alt="AI" className="ae-msg-avatar" />
-                )}
-                <div className={"ae-bubble" + (msg.from === "user" ? " user" : " ai")}>
-                  <p
-                    className="ae-bubble-text"
-                    dangerouslySetInnerHTML={{ __html: renderText(msg.text) }}
-                  />
-                  <span className="ae-bubble-time">{formatTime(msg.time)}</span>
-                </div>
-                {msg.from === "user" && (
-                  <div className="ae-user-msg-avatar">
-                    {user?.profilePic ? (
-                      <img src={user.profilePic.startsWith("http") ? user.profilePic : "http://localhost:5000/images/" + user.profilePic} alt="You" />
-                    ) : (
-                      <i className="fas fa-user"></i>
+          {activeTab === "chatbot" ? (
+            <>
+              {/* Messages */}
+              <div className="ae-messages">
+                {messages.map((msg) => (
+                  <div key={msg.id} className={"ae-msg-row" + (msg.from === "user" ? " user" : "")}>
+                    {msg.from === "ai" && (
+                      <img src={AI_AVATAR} alt="AI" className="ae-msg-avatar" />
+                    )}
+                    <div className={"ae-bubble" + (msg.from === "user" ? " user" : " ai")}>
+                      <p
+                        className="ae-bubble-text"
+                        dangerouslySetInnerHTML={{ __html: renderText(msg.text) }}
+                      />
+                      <span className="ae-bubble-time">{formatTime(msg.time)}</span>
+                    </div>
+                    {msg.from === "user" && (
+                      <div className="ae-user-msg-avatar">
+                        {user?.profilePic ? (
+                          <img src={user.profilePic.startsWith("http") ? user.profilePic : "http://localhost:5000/images/" + user.profilePic} alt="You" />
+                        ) : (
+                          <i className="fas fa-user"></i>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            ))}
-
-            {/* Typing indicator */}
-            {isTyping && (
-              <div className="ae-msg-row">
-                <img src={AI_AVATAR} alt="AI" className="ae-msg-avatar" />
-                <div className="ae-bubble ai ae-typing">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Suggestions */}
-          {messages.length === 1 && (
-            <div className="ae-suggestions">
-              <p className="ae-suggestions-label">Suggested questions</p>
-              <div className="ae-suggestions-chips">
-                {SUGGESTED.map((s) => (
-                  <button key={s} className="ae-suggestion-chip" onClick={() => sendMessage(s)}>
-                    {s}
-                  </button>
                 ))}
-              </div>
-            </div>
-          )}
 
-          {/* Input Bar */}
-          <div className="ae-input-bar glass-panel">
-            <textarea
-              ref={inputRef}
-              className="ae-input"
-              placeholder="Ask about crops, pests, soil, irrigation..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKey}
-              rows={1}
-              disabled={isTyping}
-            />
-            <button
-              className={"ae-send-btn" + (input.trim() ? " active" : "")}
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || isTyping}
-              aria-label="Send message"
-            >
-              <i className="fas fa-paper-plane"></i>
-            </button>
-          </div>
-          <p className="ae-disclaimer">AgroAI may produce inaccurate information. Always consult a certified agronomist for critical decisions.</p>
+                {/* Typing indicator */}
+                {isTyping && (
+                  <div className="ae-msg-row">
+                    <img src={AI_AVATAR} alt="AI" className="ae-msg-avatar" />
+                    <div className="ae-bubble ai ae-typing">
+                      <span></span><span></span><span></span>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Suggestions */}
+              {messages.length === 1 && (
+                <div className="ae-suggestions">
+                  <p className="ae-suggestions-label">Suggested questions</p>
+                  <div className="ae-suggestions-chips">
+                    {SUGGESTED.map((s) => (
+                      <button key={s} className="ae-suggestion-chip" onClick={() => sendMessage(s)} type="button">
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Input Bar */}
+              <div className="ae-input-bar glass-panel">
+                <textarea
+                  ref={inputRef}
+                  className="ae-input"
+                  placeholder="Ask about crops, pests, soil, irrigation..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKey}
+                  rows={1}
+                  disabled={isTyping}
+                />
+                <button
+                  className={"ae-send-btn" + (input.trim() ? " active" : "")}
+                  onClick={() => sendMessage()}
+                  disabled={!input.trim() || isTyping}
+                  aria-label="Send message"
+                  type="button"
+                >
+                  <i className="fas fa-paper-plane"></i>
+                </button>
+              </div>
+              <p className="ae-disclaimer">AgroAI may produce inaccurate information. Always consult a certified agronomist for critical decisions.</p>
+            </>
+          ) : (
+            <section className="ae-experts">
+              {!user ? (
+                <div className="ae-expert-login glass-panel">
+                  <h3 className="ae-expert-title">Log in to ask experts</h3>
+                  <p className="ae-expert-subtitle">Expert answers are linked to your account so you can view replies later.</p>
+                  <button className="ae-expert-login-btn" onClick={() => navigate("/login")} type="button">
+                    Go to Login
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="ae-expert-ask glass-panel">
+                    <h3 className="ae-expert-title">Ask an expert</h3>
+                    <p className="ae-expert-subtitle">If the chatbot can’t answer, experts will respond here.</p>
+                    <div className="ae-expert-form">
+                      <textarea
+                        className="ae-expert-input"
+                        value={expertQuestionText}
+                        onChange={(e) => setExpertQuestionText(e.target.value)}
+                        placeholder="Type your question for expert farmers…"
+                        rows={3}
+                      />
+                      <div className="ae-expert-actions">
+                        <button
+                          className="ae-expert-submit"
+                          disabled={!expertQuestionText.trim()}
+                          onClick={async () => {
+                            const q = expertQuestionText;
+                            setExpertQuestionText("");
+                            await submitExpertQuestion(q);
+                          }}
+                          type="button"
+                        >
+                          Submit
+                        </button>
+                      </div>
+                      {expertError && <p className="ae-expert-error">{expertError}</p>}
+                    </div>
+                  </div>
+
+                  <div className="ae-expert-list">
+                    <div className="ae-expert-list-header">
+                      <h3>Your expert questions</h3>
+                      {expertLoading && <span className="ae-expert-loading">Loading…</span>}
+                    </div>
+
+                    {expertQuestions.length === 0 && !expertLoading ? (
+                      <div className="ae-expert-empty glass-panel">
+                        <p>No expert questions yet.</p>
+                      </div>
+                    ) : (
+                      expertQuestions.map((q) => {
+                        const best = pickBestAnswer(q);
+                        const isHighlighted = highlightQuestionId && q?._id === highlightQuestionId;
+
+                        return (
+                          <div
+                            key={q._id}
+                            className={"ae-expert-card glass-panel" + (isHighlighted ? " highlight" : "")}
+                          >
+                            <div className="ae-expert-qhead">
+                              <div>
+                                <p className="ae-expert-question">{q.question}</p>
+                                <p className="ae-expert-meta">
+                                  <span className={"ae-expert-status status-" + (q.status || "Pending").toLowerCase()}>{q.status || "Pending"}</span>
+                                  <span className="ae-expert-date">{formatDateTime(q.createdAt)}</span>
+                                </p>
+                              </div>
+                            </div>
+
+                            {best ? (
+                              <div className="ae-expert-answer">
+                                <p className="ae-expert-answer-label">Expert reply</p>
+                                <p className="ae-expert-answer-text">{best.answer}</p>
+                                <p className="ae-expert-meta">By {best.username}{best.createdAt ? ` • ${formatDateTime(best.createdAt)}` : ""}</p>
+                              </div>
+                            ) : (
+                              <div className="ae-expert-answer pending">
+                                <p className="ae-expert-answer-label">No reply yet</p>
+                                <p className="ae-expert-answer-text">An expert will respond soon.</p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
         </main>
       </div>
     </div>
