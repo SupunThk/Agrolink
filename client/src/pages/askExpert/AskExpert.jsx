@@ -154,6 +154,22 @@ export default function AskExpert() {
     }
   }, [ownerKey, user?.username, fetchChatConversations]);
 
+  const deleteConversation = useCallback(async (convId, e) => {
+    e.stopPropagation(); // don't trigger the select-conversation click
+    if (!convId) return;
+    try {
+      await axios.delete(`/chatbot/conversations/${convId}`, { params: { ownerKey } });
+      // If the deleted conv was active, reset to empty chat
+      if (activeConv === convId) {
+        setActiveConv(null);
+        setMessages(getInitialMessages());
+      }
+      await fetchChatConversations({ silent: true });
+    } catch (err) {
+      console.error("Failed to delete conversation", err);
+    }
+  }, [ownerKey, activeConv, fetchChatConversations]);
+
   useEffect(() => {
     if (activeTab !== "chatbot") return;
     fetchChatConversations({ silent: false });
@@ -410,56 +426,90 @@ export default function AskExpert() {
             </div>
           </div>
 
-          <button
-            className="ae-new-btn"
-            onClick={() => {
-              ignoreNextConversationLoadRef.current = true;
-              createNewConversation();
-            }}
-            type="button"
-          >
-            <i className="fas fa-plus"></i> New Conversation
-          </button>
+          {/* Mode Switcher in Sidebar */}
+          <div className="ae-sidebar-tabs">
+            <button
+              className={"ae-sidebar-tab-btn" + (activeTab === "chatbot" ? " active" : "")}
+              onClick={() => setActiveTab("chatbot")}
+              type="button"
+            >
+              <i className="fas fa-robot"></i>
+              <span>Chatbot</span>
+            </button>
+            <button
+              className={"ae-sidebar-tab-btn" + (activeTab === "experts" ? " active" : "")}
+              onClick={() => setActiveTab("experts")}
+              type="button"
+            >
+              <i className="fas fa-user-graduate"></i>
+              <span>Experts</span>
+            </button>
+          </div>
 
-          <div className="ae-sidebar-section">
-            <p className="ae-sidebar-section-label">Recent Chats</p>
-            {chatError && <p className="ae-sidebar-error">{chatError}</p>}
-            {chatLoading && <p className="ae-sidebar-loading">Loading…</p>}
-            {chatConversations.map((c) => (
+          {activeTab === "chatbot" && (
+            <>
               <button
-                key={c._id}
-                className={"ae-conv-item" + (activeConv === c._id ? " active" : "")}
+                className="ae-new-btn"
                 onClick={() => {
-                  setActiveTab("chatbot");
-                  setActiveConv(c._id);
+                  ignoreNextConversationLoadRef.current = true;
+                  createNewConversation();
                 }}
                 type="button"
               >
-                <i className="fas fa-comment-dots"></i>
-                <span>{c.title || "Conversation"}</span>
+                <i className="fas fa-plus"></i> New Conversation
               </button>
-            ))}
-          </div>
 
-          <div className="ae-sidebar-section">
-            <p className="ae-sidebar-section-label">Browse Topics</p>
-            <div className="ae-topics-grid">
-              {TOPICS.map((t) => (
-                <button
-                  key={t.label}
-                  className="ae-topic-chip"
-                  onClick={() => {
-                    setActiveTab("chatbot");
-                    sendMessage("Tell me about " + t.label);
-                  }}
-                  type="button"
-                >
-                  <i className={t.icon}></i>
-                  <span>{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+              <div className="ae-sidebar-section">
+                <p className="ae-sidebar-section-label">Recent Chats</p>
+                {chatError && <p className="ae-sidebar-error">{chatError}</p>}
+                {chatLoading && <p className="ae-sidebar-loading">Loading…</p>}
+                {chatConversations.map((c) => (
+                  <div
+                    key={c._id}
+                    className={"ae-conv-item" + (activeConv === c._id ? " active" : "")}
+                    onClick={() => {
+                      setActiveTab("chatbot");
+                      setActiveConv(c._id);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === "Enter" && setActiveConv(c._id)}
+                  >
+                    <i className="fas fa-comment-dots"></i>
+                    <span className="ae-conv-title">{c.title || "Conversation"}</span>
+                    <button
+                      className="ae-conv-delete"
+                      onClick={(e) => deleteConversation(c._id, e)}
+                      title="Delete conversation"
+                      type="button"
+                    >
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="ae-sidebar-section">
+                <p className="ae-sidebar-section-label">Browse Topics</p>
+                <div className="ae-topics-grid">
+                  {TOPICS.map((t) => (
+                    <button
+                      key={t.label}
+                      className="ae-topic-chip"
+                      onClick={() => {
+                        setActiveTab("chatbot");
+                        sendMessage("Tell me about " + t.label);
+                      }}
+                      type="button"
+                    >
+                      <i className={t.icon}></i>
+                      <span>{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="ae-sidebar-footer">
             <div className="ae-user-row">
@@ -480,25 +530,7 @@ export default function AskExpert() {
 
         {/* Main Chat Area */}
         <main className="ae-main">
-          {/* Tabs */}
-          <div className="ae-tabs">
-            <button
-              className={"ae-tab-btn" + (activeTab === "chatbot" ? " active" : "")}
-              onClick={() => setActiveTab("chatbot")}
-              type="button"
-            >
-              <i className="fas fa-robot"></i>
-              <span>Chatbot</span>
-            </button>
-            <button
-              className={"ae-tab-btn" + (activeTab === "experts" ? " active" : "")}
-              onClick={() => setActiveTab("experts")}
-              type="button"
-            >
-              <i className="fas fa-user-graduate"></i>
-              <span>Experts</span>
-            </button>
-          </div>
+
 
           {/* Chat Header */}
           <div className="ae-chat-header glass-panel">

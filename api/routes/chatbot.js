@@ -109,6 +109,30 @@ router.put("/conversations/:id/clear", requireDb, async (req, res) => {
   }
 });
 
+// DELETE /api/chatbot/conversations/:id?ownerKey=...
+router.delete("/conversations/:id", requireDb, async (req, res) => {
+  try {
+    const ownerKey = req.query.ownerKey;
+    if (!ownerKey) {
+      return res.status(400).json({ error: "ownerKey is required" });
+    }
+
+    const conv = await ChatConversation.findOneAndDelete({
+      _id: req.params.id,
+      ownerKey,
+    });
+
+    if (!conv) {
+      return res.status(404).json({ error: "Conversation not found" });
+    }
+
+    return res.status(200).json({ message: "Conversation deleted" });
+  } catch (err) {
+    console.error("Error deleting conversation:", err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/chatbot/chat - Get response from chatbot (Python version)
 router.get("/chat", async (req, res) => {
   try {
@@ -117,9 +141,9 @@ router.get("/chat", async (req, res) => {
     const category = req.query.category || "General";
     const conversationId = req.query.conversationId || null;
     const ownerKey = req.query.ownerKey || null;
-    
+
     console.log("Received message:", message);
-    
+
     if (!message.trim()) {
       return res.status(400).json({ error: "Message cannot be empty" });
     }
@@ -130,7 +154,7 @@ router.get("/chat", async (req, res) => {
       // Find accepted answer or just use the first answer
       let bestAnswer = doc.answers.find(a => a.isAccepted);
       if (!bestAnswer && doc.answers.length > 0) bestAnswer = doc.answers[0];
-      
+
       if (bestAnswer) {
         return {
           question: doc.question,
@@ -144,10 +168,10 @@ router.get("/chat", async (req, res) => {
     // Spawn Python process to run the chatbot
     const pythonPath = process.platform === "win32" ? "python" : "python3";
     const scriptPath = path.join(__dirname, "../services/chatbot.py");
-    
+
     console.log("Running Python script:", scriptPath);
     console.log("Python command:", pythonPath);
-    
+
     const pythonProcess = spawn(pythonPath, [scriptPath], {
       cwd: path.join(__dirname, "../services")
     });
@@ -169,10 +193,10 @@ router.get("/chat", async (req, res) => {
       console.log("Python process closed with code:", code);
       console.log("Final output:", output);
       console.log("Final error:", errorOutput);
-      
+
       if (code !== 0) {
         console.error("Python chatbot error:", errorOutput);
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: "Error processing your message",
           details: errorOutput
         });
@@ -203,7 +227,7 @@ router.get("/chat", async (req, res) => {
             console.error("Failed to persist conversation:", convErr);
           }
         }
-        
+
         // If confidence is low, auto-save the question for expert review
         if (result.confidence && result.confidence < 50) {
           try {
@@ -222,7 +246,7 @@ router.get("/chat", async (req, res) => {
             result.questionSaveError = "Could not save question for expert review";
           }
         }
-        
+
         res.status(200).json(result);
       } catch (parseError) {
         console.error("Error parsing chatbot response:", parseError);
