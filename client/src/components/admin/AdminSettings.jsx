@@ -77,6 +77,64 @@ const AdminSettings = () => {
 
   useEffect(() => { fetchDbStatus(); }, []);
 
+  /* ── Chatbot settings ─────────────────────────────────────────────────── */
+  const [chatbotProvider, setChatbotProvider] = useState('openrouter');
+  const [chatbotModel, setChatbotModel] = useState('google/gemma-3-27b-it:free');
+  const [chatbotApiKey, setChatbotApiKey] = useState('');
+  const [chatbotHasApiKey, setChatbotHasApiKey] = useState(false);
+  const [chatbotLoading, setChatbotLoading] = useState(false);
+  const [chatbotSaving, setChatbotSaving] = useState(false);
+  const [showChatbotKey, setShowChatbotKey] = useState(false);
+
+  const fetchChatbotSettings = async () => {
+    if (!user?._id) return;
+    setChatbotLoading(true);
+    try {
+      const res = await axios.get('/admin/chatbot-settings', { params: { userId: user._id } });
+      setChatbotProvider(res.data?.provider || 'openrouter');
+      setChatbotModel(res.data?.model || 'google/gemma-3-27b-it:free');
+      setChatbotHasApiKey(!!res.data?.hasApiKey);
+    } catch (err) {
+      const msg = err.response?.data?.error;
+      toast.error(msg || 'Failed to load chatbot settings');
+    } finally {
+      setChatbotLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?._id) fetchChatbotSettings();
+  }, [user?._id]);
+
+  const handleSaveChatbotSettings = async (e) => {
+    e.preventDefault();
+    if (!user?._id) return;
+    if (!chatbotModel.trim()) {
+      toast.error('Please enter a model');
+      return;
+    }
+
+    setChatbotSaving(true);
+    try {
+      const payload = {
+        userId: user._id,
+        provider: chatbotProvider,
+        model: chatbotModel.trim(),
+      };
+      if (chatbotApiKey.trim()) payload.apiKey = chatbotApiKey.trim();
+
+      const res = await axios.put('/admin/chatbot-settings', payload);
+      setChatbotHasApiKey(!!res.data?.hasApiKey);
+      setChatbotApiKey('');
+      toast.success('Chatbot settings saved');
+    } catch (err) {
+      const msg = err.response?.data?.error;
+      toast.error(msg || 'Failed to save chatbot settings');
+    } finally {
+      setChatbotSaving(false);
+    }
+  };
+
   /* ── Create Admin Account ───────────────────────────────────────────────── */
   const [adminUsername, setAdminUsername] = useState('');
   const [adminName, setAdminName] = useState('');
@@ -400,6 +458,148 @@ const AdminSettings = () => {
                 ))}
               </div>
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── 2. Chatbot Settings ───────────────────────────────────────── */}
+      <div style={{ ...sectionCard, animationDelay: '0.06s' }}>
+        <div style={sectionHeader}>
+          <div style={{
+            width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+            background: 'rgba(99,102,241,0.10)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Lock size={18} style={{ color: '#6366f1' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--slate-900)' }}>
+              Chatbot
+            </h3>
+            <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
+              Add API key and set the chatbot model
+            </p>
+          </div>
+          <button
+            onClick={fetchChatbotSettings}
+            disabled={chatbotLoading || !user?._id}
+            style={{
+              padding: '7px 14px', borderRadius: 10, border: '1px solid var(--glass-border)',
+              background: 'var(--bg-surface)', cursor: (chatbotLoading || !user?._id) ? 'not-allowed' : 'pointer',
+              fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600,
+              color: 'var(--slate-600)', display: 'flex', alignItems: 'center', gap: 6,
+              transition: 'all 0.2s', opacity: (chatbotLoading || !user?._id) ? 0.6 : 1,
+            }}
+            onMouseEnter={e => { if (!chatbotLoading && user?._id) e.currentTarget.style.background = 'var(--slate-200)'; }}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-surface)'}
+          >
+            <RefreshCw size={13} style={{
+              transition: 'transform 0.4s',
+              transform: chatbotLoading ? 'rotate(360deg)' : 'none',
+            }} />
+            Refresh
+          </button>
+        </div>
+
+        <div style={sectionBody}>
+          {chatbotLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12 }}>
+              <Loader size={18} style={{ animation: 'spin 1s linear infinite', color: 'var(--emerald-600)' }} />
+              <span style={{ fontFamily: 'var(--font-body)', color: 'var(--slate-500)', fontSize: 13 }}>Loading chatbot settings...</span>
+            </div>
+          ) : (
+            <form onSubmit={handleSaveChatbotSettings} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                padding: 14, borderRadius: 14,
+                border: '1px solid var(--glass-border)',
+                background: 'var(--bg-surface)',
+              }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: 'var(--slate-800)' }}>
+                    OpenRouter status
+                  </div>
+                  <div style={{ marginTop: 4, fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
+                    API key is {chatbotHasApiKey ? 'configured' : 'not configured'}
+                  </div>
+                </div>
+                <div style={{
+                  padding: '6px 12px', borderRadius: 999,
+                  border: '1px solid',
+                  borderColor: chatbotHasApiKey ? 'var(--emerald-600)' : 'var(--glass-border)',
+                  background: chatbotHasApiKey ? 'rgba(16,185,129,0.12)' : 'var(--bg-surface)',
+                  color: chatbotHasApiKey ? 'var(--emerald-700)' : 'var(--slate-600)',
+                  fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 700,
+                }}>
+                  {chatbotHasApiKey ? 'Ready' : 'Needs Key'}
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={label}>Chatbot Provider</label>
+                  <select
+                    value={chatbotProvider}
+                    onChange={(e) => setChatbotProvider(e.target.value)}
+                    style={inputStyle}
+                  >
+                    <option value="openrouter">OpenRouter</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={label}>Model</label>
+                  <input
+                    value={chatbotModel}
+                    onChange={(e) => setChatbotModel(e.target.value)}
+                    style={inputStyle}
+                    placeholder="e.g. google/gemma-3-27b-it:free"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={label}>OpenRouter API Key</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    value={chatbotApiKey}
+                    onChange={(e) => setChatbotApiKey(e.target.value)}
+                    type={showChatbotKey ? 'text' : 'password'}
+                    style={{ ...inputStyle, paddingRight: 44 }}
+                    placeholder={chatbotHasApiKey ? 'Enter new key to replace…' : 'Enter API key…'}
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowChatbotKey(!showChatbotKey)}
+                    style={{
+                      position: 'absolute', top: 0, right: 0, height: '100%',
+                      width: 44, border: 'none', background: 'transparent',
+                      cursor: 'pointer', color: 'var(--slate-500)'
+                    }}
+                    title={showChatbotKey ? 'Hide key' : 'Show key'}
+                  >
+                    {showChatbotKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="submit"
+                  disabled={chatbotSaving || !user?._id}
+                  style={{ ...btnPrimary, opacity: (chatbotSaving || !user?._id) ? 0.7 : 1 }}
+                  onMouseEnter={e => { if (!chatbotSaving && user?._id) e.currentTarget.style.filter = 'brightness(1.1)'; }}
+                  onMouseLeave={e => e.currentTarget.style.filter = 'none'}
+                >
+                  {chatbotSaving ? (
+                    <Loader size={14} style={{ animation: 'spin 0.6s linear infinite' }} />
+                  ) : (
+                    <Save size={14} />
+                  )}
+                  {chatbotSaving ? 'Saving...' : 'Save Settings'}
+                </button>
+              </div>
+            </form>
           )}
         </div>
       </div>

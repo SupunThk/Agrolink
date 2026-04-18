@@ -300,25 +300,6 @@ export default function AskExpert() {
     }
   };
 
-  const transferToExperts = async ({ questionText, questionId }) => {
-    setActiveTab("experts");
-
-    if (!user?.username) {
-      setExpertQuestionText(questionText);
-      sessionStorage.setItem("pendingExpertQuestion", questionText);
-      return;
-    }
-
-    if (questionId) {
-      setHighlightQuestionId(questionId);
-      await fetchExpertQuestions({ silent: false });
-      return;
-    }
-
-    // Fallback: ensure it is saved for experts even if backend didn't auto-save
-    const createdId = await submitExpertQuestion(questionText);
-    if (createdId) setHighlightQuestionId(createdId);
-  };
 
   const sendMessage = async (text) => {
     const msg = text || input.trim();
@@ -349,8 +330,6 @@ export default function AskExpert() {
     setInput("");
     setIsTyping(true);
 
-    let transferPayload = null;
-
     try {
       const res = await axios.get("/chatbot/chat", {
         params: {
@@ -369,32 +348,22 @@ export default function AskExpert() {
       };
       setMessages((prev) => [...prev, aiMsg]);
 
-      if (isDontKnowResponse(aiMsg.text)) {
-        transferPayload = {
-          questionText: msg,
-          questionId: res?.data?.questionId || null,
-        };
-      }
-
       // Refresh chat list ordering (updatedAt)
       if (conversationId) {
         fetchChatConversations({ silent: true });
       }
     } catch (err) {
       console.error("Chatbot Error:", err);
+      const serverMsg = err?.response?.data?.error;
       const errorMsg = {
         id: Date.now() + 1,
         from: "ai",
-        text: "Sorry, I am having trouble connecting to my service right now. Please try again later.",
+        text: serverMsg || "Sorry, I am having trouble connecting to my service right now. Please try again later.",
         time: new Date(),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsTyping(false);
-    }
-
-    if (transferPayload) {
-      await transferToExperts(transferPayload);
     }
   };
 
@@ -408,8 +377,116 @@ export default function AskExpert() {
   const formatTime = (d) =>
     d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  const renderText = (text) =>
-    text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  // ── Code copy helper ──────────────────────────────────────────────────────
+  const [copiedIndex, setCopiedIndex] = useState(null);
+
+  const copyCode = (code, idx) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedIndex(idx);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    }).catch(() => {
+      const el = document.createElement("textarea");
+      el.value = code;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopiedIndex(idx);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    });
+  };
+
+  // ── Markdown renderer ─────────────────────────────────────────────────────
+  const renderMarkdown = (text, msgId) => {
+    if (!text) return null;
+    const codeBlockRegex = /```(\w*)\n?([\s\S]*?)```/g;
+    const elements = [];
+    let lastIndex = 0;
+    let blockIdx = 0;
+    let match;
+
+    const renderInline = (str) => {
+      const parts = str.split(/(\*\*[^*]+\*\*|`[^`]+`)/);
+      return parts.map((part, i) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={i}>{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith("`") && part.endsWith("`")) {
+          return <code key={i} className="ae-inline-code">{part.slice(1, -1)}</code>;
+        }
+        return part;
+      });
+    };
+
+    const renderTextBlock = (block, keyPrefix) => {
+      const lines = block.split("\n");
+      return lines.map((line, i) => {
+        const trimmed = line.trim();
+        if (!trimmed) return null;
+        const isNumbered = /^\d+\.\s/.test(trimmed);
+        const isBullet = /^[-*]\s/.test(trimmed);
+        const content = isNumbered
+          ? trimmed.replace(/^\d+\.\s/, "")
+          : isBullet
+            ? trimmed.replace(/^[-*]\s/, "")
+            : trimmed;
+        return (
+          <span key={`${keyPrefix}-${i}`} className={isNumbered || isBullet ? "ae-md-list-item" : "ae-md-p"}>
+            {isNumbered && <span className="ae-md-list-num">{trimmed.match(/^\d+/)[0]}.</span>}
+            {isBullet && <span className="ae-md-list-bullet">•</span>}
+            {renderInline(content)}
+          </span>
+        );
+      }).filter(Boolean);
+    };
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      const lang = (match[1] || "code").toLowerCase();
+      const code = match[2];
+      const copyKey = `${msgId}-${blockIdx}`;
+
+      if (match.index > lastIndex) {
+        const before = text.slice(lastIndex, match.index);
+        elements.push(
+          <span key={`text-${blockIdx}`} className="ae-md-text">
+            {renderTextBlock(before, `b-${blockIdx}`)}
+          </span>
+        );
+      }
+
+      elements.push(
+        <div key={`code-${blockIdx}`} className="ae-code-block">
+          <div className="ae-code-header">
+            <span className="ae-code-lang">{lang}</span>
+            <button
+              className={"ae-code-copy" + (copiedIndex === copyKey ? " copied" : "")}
+              onClick={() => copyCode(code, copyKey)}
+              title="Copy code"
+              type="button"
+            >
+              <i className={copiedIndex === copyKey ? "fas fa-check" : "fas fa-copy"}></i>
+              {copiedIndex === copyKey ? " Copied!" : " Copy"}
+            </button>
+          </div>
+          <pre className="ae-code-pre"><code className={`ae-code-content lang-${lang}`}>{code}</code></pre>
+        </div>
+      );
+
+      lastIndex = match.index + match[0].length;
+      blockIdx++;
+    }
+
+    if (lastIndex < text.length) {
+      const after = text.slice(lastIndex);
+      elements.push(
+        <span key="text-end" className="ae-md-text">
+          {renderTextBlock(after, "end")}
+        </span>
+      );
+    }
+
+    return elements.length > 0 ? elements : renderTextBlock(text, "only");
+  };
 
   return (
     <div className="ae-page-wrapper fadeIn">
@@ -589,10 +666,13 @@ export default function AskExpert() {
                       <img src={AI_AVATAR} alt="AI" className="ae-msg-avatar" />
                     )}
                     <div className={"ae-bubble" + (msg.from === "user" ? " user" : " ai")}>
-                      <p
-                        className="ae-bubble-text"
-                        dangerouslySetInnerHTML={{ __html: renderText(msg.text) }}
-                      />
+                      {msg.from === "user" ? (
+                        <p className="ae-bubble-text">{msg.text}</p>
+                      ) : (
+                        <div className="ae-bubble-text ae-bubble-markdown">
+                          {renderMarkdown(msg.text, msg.id)}
+                        </div>
+                      )}
                       <span className="ae-bubble-time">{formatTime(msg.time)}</span>
                     </div>
                     {msg.from === "user" && (
