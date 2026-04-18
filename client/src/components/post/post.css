@@ -1,192 +1,258 @@
-﻿.post {
+﻿/* =============================================
+   POST CARD  –  Perfect Match Reference
+   ============================================= */
+
+/* ── Card Shell ── */
+.postCard {
   display: flex;
   flex-direction: column;
-  width: calc(33.33% - 30px);
-  margin: 0 15px 40px 15px;
-  background: var(--bg-card); /* White in Light, Deep Black in Dark */
-  border-radius: 24px;
+  width: calc(33.33% - 24px);
+  margin: 0 12px 36px 12px;
+  background: #0f172a;
+  /* Deep premium slate completely matching reference */
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid var(--glass-border);
-  transition: all 0.4s var(--ease-zen);
-  height: 520px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: auto;
+  min-height: 440px;
 }
 
-.post:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.15);
+.postCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5);
   border-color: rgba(5, 150, 105, 0.2);
 }
 
-/* Image */
-.postImgWrapper {
-  position: relative;
-  overflow: hidden;
-  height: 220px;
-  flex-shrink: 0;
+/* Light mode override */
+[data-theme='light'] .postCard,
+:root:not([data-theme]) .postCard {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.05);
 }
 
-.postImg {
+[data-theme='light'] .postCard:hover,
+:root:not([data-theme]) .postCard:hover {
+  border-color: rgba(5, 150, 105, 0.2);
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Image Block ── */
+.postCardImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  /* Matched to reference proportion */
+  overflow: hidden;
+}
+
+.postCardImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s var(--ease-zen);
   display: block;
+  transition: transform 0.5s ease;
 }
 
-.post:hover .postImg {
-  transform: scale(1.06);
+.postCard:hover .postCardImage {
+  transform: scale(1.05);
 }
 
-.postImgPlaceholder {
+.postCardImagePlaceholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(6, 78, 59, 0.07));
+  background: #1e293b;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 40px;
-  color: var(--emerald-600);
-  opacity: 0.4;
+  color: #059669;
 }
 
-.postImgOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(15, 23, 42, 0.35) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.postCatBadge {
+/* ── Category Badge ── */
+.postCardCategory {
   position: absolute;
   top: 14px;
   left: 14px;
-  background: var(--glass-zen);
-  backdrop-filter: blur(8px);
-  color: var(--emerald-600);
+  background: rgba(15, 23, 42, 0.7);
+  /* Dark badge with green text, like reference */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #10b981;
   font-family: var(--font-display);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 100px;
-  border: 1px solid rgba(5, 150, 105, 0.15);
 }
 
-/* Content */
-.postInfo {
-  padding: 28px;
+/* ── Content Area ── */
+.postCardContent {
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   flex-grow: 1;
+  /* Key! Lets content stretch downwards */
 }
 
-.postMeta {
+/* ── Author Meta ── */
+.postCardMeta {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 12px;
+  /* Perfect tight gap */
 }
 
-.postAuthorPill {
+.postCardAuthor {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
 }
 
-.postAuthorAvatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--emerald-600);
+.postCardAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  /* Squarish corners like reference */
+  background: #059669;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 14px;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
-.postAuthorName {
+.postCardAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.postCardAvatarFallback {
+  color: #fff;
+  font-size: 13px;
+  display: flex;
+}
+
+.postCardAuthorName {
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--slate-900); /* White in dark mode */
+  color: #f8fafc;
 }
 
-.postDate {
+[data-theme='light'] .postCardAuthorName,
+:root:not([data-theme]) .postCardAuthorName {
+  color: #1e293b;
+}
+
+.postCardDate {
   font-family: var(--font-body);
-  font-size: 11px;
-  color: var(--slate-600);
+  font-size: 12px;
+  color: #64748b;
 }
 
-.postTitle {
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--forest-900);
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  transition: color 0.25s var(--ease-zen);
+/* ── Title ── */
+.postCardTitleLink {
+  text-decoration: none;
+  margin-bottom: 12px;
+  /* Tight gap */
+  display: block;
+}
+
+.postCardTitle {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
+  transition: color 0.3s ease;
 }
 
-.post:hover .postTitle {
-  color: var(--emerald-600);
+[data-theme='light'] .postCardTitle,
+:root:not([data-theme]) .postCardTitle {
+  color: #0f172a;
 }
 
-.postDesc {
+.postCardTitleLink:hover .postCardTitle {
+  color: #10b981;
+}
+
+/* ── Description ── */
+.postCardDesc {
+  margin: 0 0 24px 0;
+  /* Moderate consistent gap below */
   font-family: var(--font-body);
-  font-size: 13.5px;
-  color: var(--slate-600);
-  line-height: 1.75;
-  /* Fallback for browsers where line-clamp is unreliable */
-  max-height: calc(1.75em * 4);
+  font-size: 14px;
+  color: #94a3b8;
+  line-height: 1.6;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
-  flex-grow: 0;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
-.postReadMore {
+[data-theme='light'] .postCardDesc,
+:root:not([data-theme]) .postCardDesc {
+  color: #475569;
+}
+
+/* ── Read Article ── */
+.postCardReadMore {
+  margin-top: auto;
+  /* Absolute magic! Pushes this element securely to the bottom of the card */
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  align-self: flex-start;
+  gap: 8px;
   font-family: var(--font-display);
   font-size: 12px;
-  font-weight: 700;
-  color: var(--emerald-600);
+  font-weight: 800;
+  color: #f1f5f9;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: auto;
-  transition: gap 0.25s var(--ease-zen);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  background: none;
+  transition: gap 0.3s ease, color 0.3s ease;
 }
 
-.postReadMore:hover {
-  gap: 10px;
+[data-theme='light'] .postCardReadMore,
+:root:not([data-theme]) .postCardReadMore {
+  color: #0f172a;
 }
 
+.postCardReadMore:hover {
+  gap: 12px;
+  color: #10b981;
+}
+
+.postCardReadMore .fas {
+  font-size: 11px;
+}
+
+/* ── Responsive ── */
 @media screen and (max-width: 992px) {
-  .post {
-    width: calc(50% - 30px);
+  .postCard {
+    width: calc(50% - 24px);
   }
 }
 
 @media screen and (max-width: 768px) {
-  .post {
+  .postCard {
     width: 100%;
-    margin: 0 0 28px 0;
-    height: auto;
+    margin: 0 0 24px 0;
   }
 }
-
