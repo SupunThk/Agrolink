@@ -1,8 +1,11 @@
-﻿.posts{
+﻿.posts {
     flex: 9;
     display: flex;
     flex-wrap: wrap;
+    align-content: flex-start;
+    /* Keeps rows packed at top when container is taller than content */
+    align-items: stretch;
+    /* Cards in same row match exact heights */
     padding: 0 15px;
     margin-top: 20px;
 }
-

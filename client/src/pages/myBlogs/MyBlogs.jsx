@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Context } from "../../context/Context";
+import Post from "../../components/post/Post";
 import "./myBlogs.css";
 
 const PF = "http://localhost:5000/images/";
@@ -54,53 +55,7 @@ export default function MyBlogs() {
                 ) : (
                     <div className="myBlogsPosts">
                         {posts.map((post) => (
-                            <div className="myBlogPost" key={post._id}>
-                                {/* Image */}
-                                <div className="myBlogPostImgWrapper">
-                                    {post.photo ? (
-                                        <img className="myBlogPostImg" src={getPhotoSrc(post.photo)} alt={post.title} />
-                                    ) : (
-                                        <div className="myBlogPostImgPlaceholder">
-                                            <i className="fas fa-leaf"></i>
-                                        </div>
-                                    )}
-                                    {/* Status Badge */}
-                                    {post.status && (
-                                        <span className={`myBlogPostStatusBadge status-${post.status.toLowerCase()}`}>
-                                            {post.status}
-                                        </span>
-                                    )}
-                                    {post.categories?.length > 0 && (
-                                        <span className="myBlogPostCatBadge">{post.categories[0]}</span>
-                                    )}
-                                </div>
-
-                                {/* Content */}
-                                <div className="myBlogPostInfo">
-                                    <div className="myBlogPostMeta">
-                                        <span className="myBlogPostDate">
-                                            {new Date(post.createdAt).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            })}
-                                        </span>
-                                    </div>
-
-                                    <Link to={`/post/${post._id}`} className="link">
-                                        <h3 className="myBlogPostTitle">{post.title}</h3>
-                                    </Link>
-
-                                    <p className="myBlogPostDesc">{stripHtml(post.desc)}</p>
-
-                                    <div className="myBlogPostActions">
-                                        <Link to={`/post/${post._id}`} className="link btn-view">
-                                            View
-                                        </Link>
-                                        {/* The SinglePost page handles its own edit/update mode */}
-                                    </div>
-                                </div>
-                            </div>
+                            <Post key={post._id} post={post} showStatus={true} />
                         ))}
                     </div>
                 )}

@@ -90,6 +90,40 @@
   border-radius: 100px;
 }
 
+/* ── Status Badge ── */
+.postCardStatusBadge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
+  border-radius: 100px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.postStatus-approved {
+  color: #10b981;
+  /* Emerald */
+}
+
+.postStatus-pending {
+  color: #f59e0b;
+  /* Amber */
+}
+
+.postStatus-rejected {
+  color: #ef4444;
+  /* Red */
+}
+
 /* ── Content Area ── */
 .postCardContent {
   padding: 24px 20px;

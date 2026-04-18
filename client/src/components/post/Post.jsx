@@ -13,7 +13,7 @@ const stripHtml = (html) => {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 };
 
-export default function Post({ post }) {
+export default function Post({ post, showStatus = false }) {
   return (
     <div className="postCard">
       {/* ── Image Block ── */}
@@ -27,6 +27,11 @@ export default function Post({ post }) {
         )}
         {post.categories?.length > 0 && (
           <span className="postCardCategory">{post.categories[0]}</span>
+        )}
+        {showStatus && post.status && (
+          <span className={`postCardStatusBadge postStatus-${post.status.toLowerCase()}`}>
+            {post.status}
+          </span>
         )}
       </div>
 

@@ -119,10 +119,9 @@ export default function SinglePost() {
       await axios.put(`/posts/${post._id}`, updatedPost);
       setUpdateMode(false);
       setFile(null);
-      // Reload page to show new image properly if updatedPost.photo changed
-      if (updatedPost.photo) {
-        window.location.reload();
-      }
+
+      alert("Post updated successfully! It has been submitted for admin approval before being visible on the main feed again.");
+      window.location.replace("/myblogs");
     } catch (err) {
       const message = err?.response?.data?.message || err?.response?.data || "Failed to update post. Please try again.";
       setError(message);
