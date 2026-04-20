@@ -148,7 +148,7 @@ function articlePopulateQuery(query) {
             path: "diseaseId",
             populate: { path: "cropId", model: "Crop" },
         })
-        .populate({ path: "submittedBy", select: "username profilePic isAdmin" });
+        .populate({ path: "submittedBy", select: "name username email profilePic isAdmin" });
 }
 
 function getSearchEmptyMessage(search, crop) {
@@ -535,6 +535,24 @@ router.get("/pending", requireDb, async (req, res) => {
     }
 });
 
+router.get("/admin/list", requireDb, async (req, res) => {
+    try {
+        const adminUser = await requireAdminAccess(req, res);
+        if (!adminUser) {
+            return;
+        }
+
+        const articles = await articlePopulateQuery(
+            Article.find().sort({ createdAt: -1 })
+        ).lean();
+
+        return res.status(200).json(articles);
+    } catch (err) {
+        console.error("GET /api/knowledge/admin/list failed:", err);
+        return res.status(500).json({ message: "Failed to fetch knowledge articles for admin." });
+    }
+});
+
 router.put("/admin/:id", requireDb, uploadKnowledgeImage, async (req, res) => {
     const { id } = req.params;
     const {
@@ -647,6 +665,37 @@ router.put("/:id/approve", requireDb, async (req, res) => {
 
 router.put("/:id/reject", requireDb, async (req, res) => {
     return updateArticleStatus(req, res, "rejected");
+});
+
+router.delete("/admin/:id", requireDb, async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid knowledge article id." });
+    }
+
+    try {
+        const adminUser = await requireAdminAccess(req, res);
+        if (!adminUser) {
+            return;
+        }
+
+        const article = await Article.findById(id);
+        if (!article) {
+            return res.status(404).json({ message: "Knowledge article not found." });
+        }
+
+        if (article.status !== "approved") {
+            return res.status(409).json({ message: "Only approved disease information can be deleted." });
+        }
+
+        await Article.deleteOne({ _id: id });
+
+        return res.status(200).json({ message: "Approved disease information deleted successfully." });
+    } catch (err) {
+        console.error(`DELETE /api/knowledge/admin/${id} failed:`, err);
+        return res.status(500).json({ message: "Failed to delete disease information." });
+    }
 });
 
 router.get("/:id/related", requireDb, async (req, res) => {
