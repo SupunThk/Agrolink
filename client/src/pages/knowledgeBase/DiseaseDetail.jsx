@@ -10,7 +10,7 @@ function InfoState({ title, message }) {
             <h1 className="diseaseDetailStateTitle">{title}</h1>
             <p className="diseaseDetailStateText">{message}</p>
             <Link to="/knowledge" className="diseaseDetailBackButton">
-                Back to Knowledge Base
+                Back to Crop Disease Information Portal
             </Link>
         </div>
     );
@@ -46,7 +46,7 @@ export default function DiseaseDetail() {
                 if (err.response?.status === 404) {
                     setNotFound(true);
                 } else {
-                    setError("Unable to load this knowledge article right now.");
+                    setError("Unable to load this crop disease article right now.");
                 }
             } finally {
                 setLoading(false);
@@ -78,7 +78,7 @@ export default function DiseaseDetail() {
     if (notFound) {
         return (
             <div className="about fadeIn">
-                <InfoState title="Article not found" message="This knowledge article could not be found." />
+                <InfoState title="Article not found" message="This crop disease article could not be found." />
             </div>
         );
     }
@@ -100,7 +100,7 @@ export default function DiseaseDetail() {
         <div className="about fadeIn">
             <div className="diseaseDetailPage">
                 <Link to="/knowledge" className="diseaseDetailBackButton">
-                    Back to Knowledge Base
+                    Back to Crop Disease Information Portal
                 </Link>
 
                 <section className="diseaseDetailHero">
@@ -180,7 +180,7 @@ export default function DiseaseDetail() {
                                         ) : (
                                             <div className="diseaseDetailRelatedFallback">
                                                 <span className="diseaseDetailImageBadge">
-                                                    {relatedArticle.diseaseId?.cropId?.name || "Knowledge"}
+                                                    {relatedArticle.diseaseId?.cropId?.name || "Crop Disease"}
                                                 </span>
                                                 <h3 className="diseaseDetailRelatedFallbackTitle">{relatedArticle.title}</h3>
                                             </div>

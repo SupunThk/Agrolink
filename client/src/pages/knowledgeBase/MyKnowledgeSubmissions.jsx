@@ -89,7 +89,7 @@ export default function MyKnowledgeSubmissions() {
                 </div>
                 <div className="kbHeroActions">
                     <Link className="kbSecondaryButton" to="/knowledge">
-                        Back to Knowledge Base
+                        Back to Crop Disease Information Portal
                     </Link>
                     <Link className="kbAddButton" to="/add-disease">
                         + Add New Disease
@@ -174,8 +174,8 @@ export default function MyKnowledgeSubmissions() {
                                         {item.status !== "approved" ? (
                                             <div className="kbPendingNote">
                                                 {item.status === "rejected"
-                                                    ? "This submission was rejected and is not visible in the public knowledge base."
-                                                    : "Awaiting admin approval before appearing in the public knowledge base."}
+                                                    ? "This submission was rejected and is not visible in the public crop disease information portal."
+                                                    : "Awaiting admin approval before appearing in the public crop disease information portal."}
                                             </div>
                                         ) : null}
                                     </div>

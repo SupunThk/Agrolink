@@ -37,7 +37,7 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
               </li>
               <li className="navSidebarListItem">
                 <Link className="link" to="/knowledge" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-book-open"></i> Knowledge Base
+                  <i className="fas fa-book-open"></i> Crop Diseases
                 </Link>
               </li>
             </ul>

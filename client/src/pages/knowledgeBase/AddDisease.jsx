@@ -131,7 +131,7 @@ export default function AddDisease() {
                 <div>
                     <h1 className="kbHeading">Submit Disease Information</h1>
                     <p className="kbSubheading">
-                        Share crop disease knowledge for admin review using the same structured format as the public knowledge base.
+                        Share crop disease information for admin review using the same structured format as the public information portal.
                     </p>
                 </div>
                 <div className="kbHeroActions">
@@ -139,7 +139,7 @@ export default function AddDisease() {
                         My Submissions
                     </Link>
                     <Link className="kbSecondaryButton" to="/knowledge">
-                        Back to Knowledge Base
+                        Back to Crop Disease Information Portal
                     </Link>
                 </div>
             </div>

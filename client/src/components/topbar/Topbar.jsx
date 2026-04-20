@@ -50,7 +50,7 @@ export default function Topbar() {
             </li>
             <li className="topListItem">
               <Link className="link" to="/knowledge">
-                KNOWLEDGE
+                CROP DISEASES
               </Link>
             </li>
             <li className="topListItem">

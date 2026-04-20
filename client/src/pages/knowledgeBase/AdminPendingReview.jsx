@@ -61,7 +61,7 @@ export default function AdminPendingReview() {
         return (
             <div className="about fadeIn">
                 <p className="kbEmpty">
-                    Please log in to review pending knowledge submissions.{" "}
+                    Please log in to review pending crop disease submissions.{" "}
                     <Link to="/login" className="kbInlineLink">Go to Login</Link>
                 </p>
             </div>
@@ -80,14 +80,14 @@ export default function AdminPendingReview() {
         <div className="about fadeIn">
             <div className="kbHero">
                 <div>
-                    <h1 className="kbHeading">Pending Knowledge Review</h1>
+                    <h1 className="kbHeading">Pending Crop Disease Review</h1>
                     <p className="kbSubheading">
                         Review pending disease submissions, approve ready articles, or reject incomplete ones.
                     </p>
                 </div>
                 <div className="kbHeroActions">
                     <Link className="kbSecondaryButton" to="/knowledge">
-                        Back to Knowledge Base
+                        Back to Crop Disease Information Portal
                     </Link>
                 </div>
             </div>

@@ -145,7 +145,7 @@ export default function EditDiseaseSubmission() {
                 <div>
                     <h1 className="kbHeading">Edit Pending Submission</h1>
                     <p className="kbSubheading">
-                        Update your pending disease article before it reaches admin review.
+                        Update your pending crop disease article before it reaches admin review.
                     </p>
                 </div>
                 <div className="kbHeroActions">

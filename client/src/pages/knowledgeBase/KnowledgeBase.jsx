@@ -26,7 +26,7 @@ export default function KnowledgeBase() {
     const [cropOptions, setCropOptions] = useState(["All"]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [emptyMessage, setEmptyMessage] = useState("No approved knowledge articles are available yet.");
+    const [emptyMessage, setEmptyMessage] = useState("No approved crop disease articles are available yet.");
     const [imageFailures, setImageFailures] = useState({});
     const [selectedCrop, setSelectedCrop] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
@@ -46,10 +46,10 @@ export default function KnowledgeBase() {
 
                 setCropOptions(["All", ...cropRes]);
                 setArticles(articleRes.data.articles || []);
-                setEmptyMessage(articleRes.data.emptyMessage || "No approved knowledge articles are available yet.");
+                setEmptyMessage(articleRes.data.emptyMessage || "No approved crop disease articles are available yet.");
             } catch (err) {
                 console.error("Error fetching knowledge base:", err);
-                setError("Unable to load the knowledge base right now. Please make sure the backend server is running.");
+                setError("Unable to load the crop disease information portal right now. Please make sure the backend server is running.");
             } finally {
                 setLoading(false);
             }
@@ -106,7 +106,7 @@ export default function KnowledgeBase() {
         <div className="about fadeIn">
             <div className="kbHero">
                 <div className="kbHeroCopy">
-                    <h1 className="kbHeading">Crop Disease Knowledge Base</h1>
+                    <h1 className="kbHeading">Crop Disease Information Portal</h1>
                 </div>
                 <div className="kbHeroActions">
                     {user && (
@@ -236,7 +236,7 @@ export default function KnowledgeBase() {
                     ))}
 
                     {filteredArticles.length > PAGE_SIZE ? (
-                        <nav className="kbPagination" aria-label="Knowledge base pagination">
+                        <nav className="kbPagination" aria-label="Crop disease information portal pagination">
                             <button
                                 type="button"
                                 className="kbPaginationButton"
