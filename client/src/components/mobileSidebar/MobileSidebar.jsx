@@ -35,6 +35,11 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                   <i className="fas fa-plus-circle"></i> Create Post
                 </Link>
               </li>
+              <li className="navSidebarListItem">
+                <Link className="link" to="/knowledge" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-book-open"></i> Crop Diseases
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -54,6 +59,11 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
               <li className="navSidebarListItem">
                 <Link className="link" to="/events" onClick={() => setIsOpen(false)}>
                   <i className="fas fa-calendar-alt"></i> Events
+                </Link>
+              </li>
+              <li className="navSidebarListItem">
+                <Link className="link" to="/disease-detection" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-microscope"></i> Disease Detection
                 </Link>
               </li>
             </ul>

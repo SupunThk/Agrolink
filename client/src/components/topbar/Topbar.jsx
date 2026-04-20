@@ -60,6 +60,11 @@ export default function Topbar({ adminMode }) {
               </Link>
             </li>
             <li className="topListItem">
+              <Link className="link" to="/knowledge">
+                CROP DISEASES
+              </Link>
+            </li>
+            <li className="topListItem">
               <Link className="link" to="/write">
                 WRITE
               </Link>

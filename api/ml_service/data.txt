@@ -1,0 +1,286 @@
+1. Cherry_(including_sour)___Powdery_mildew
+
+Description
+A fungal disease causing white powdery patches on leaves, stems, and buds, leading to distorted growth.
+
+Recommended Treatment
+
+Remove infected plant parts
+Improve air circulation and sunlight exposure
+Apply fungicides like sulfur or potassium bicarbonate
+Avoid overhead watering
+2. Apple___Cedar_apple_rust
+
+Description
+A fungal disease causing bright orange/yellow spots on leaves and fruit, often linked to nearby cedar trees.
+
+Recommended Treatment
+
+Remove nearby cedar hosts if possible
+Prune infected leaves
+Apply fungicides during early growth stages
+Use resistant apple varieties
+3. Potato___Early_blight
+
+Description
+Causes dark concentric spots on older leaves, leading to yellowing and reduced yield.
+
+Recommended Treatment
+
+Remove infected leaves
+Practice crop rotation
+Apply fungicides like chlorothalonil
+Maintain proper plant spacing
+4. Potato___Late_blight
+
+Description
+Serious fungal disease causing water-soaked lesions, rapid plant decay, and tuber rot.
+
+Recommended Treatment
+
+Remove and destroy infected plants immediately
+Avoid overhead irrigation
+Apply systemic fungicides
+Use certified disease-free seeds
+5. Tomato___Tomato_Yellow_Leaf_Curl_Virus
+
+Description
+A viral disease causing yellowing, curling leaves, and stunted plant growth.
+
+Recommended Treatment
+
+Remove infected plants
+Control whiteflies (main vector)
+Use resistant varieties
+Install insect nets
+6. Tomato___Spider_mites Two-spotted_spider_mite
+
+Description
+Tiny pests causing yellow speckles, leaf drying, and webbing under leaves.
+
+Recommended Treatment
+
+Spray water to remove mites
+Use neem oil or insecticidal soap
+Introduce natural predators
+Maintain humidity
+7. Orange___Haunglongbing_(Citrus_greening)
+
+Description
+A deadly bacterial disease causing yellow shoots, misshapen fruit, and tree decline.
+
+Recommended Treatment
+
+Remove infected trees
+Control psyllid insects
+Use disease-free planting material
+Regular monitoring
+8. Grape___Leaf_blight_(Isariopsis_Leaf_Spot)
+
+Description
+Fungal disease causing brown spots with dark margins on grape leaves.
+
+Recommended Treatment
+
+Remove infected leaves
+Improve airflow
+Apply fungicides
+Avoid excess moisture
+9. Tomato___Bacterial_spot
+
+Description
+Causes small dark spots on leaves and fruit, reducing quality and yield.
+
+Recommended Treatment
+
+Remove infected parts
+Avoid overhead watering
+Use copper-based sprays
+Use resistant seeds
+10. Pepper,_bell___Bacterial_spot
+
+Description
+Similar to tomato bacterial spot, causing leaf lesions and fruit damage.
+
+Recommended Treatment
+
+Remove infected plants
+Apply copper fungicides
+Ensure proper spacing
+Avoid working with wet plants
+11. Tomato___Septoria_leaf_spot
+
+Description
+Fungal disease with small circular spots and dark borders on leaves.
+
+Recommended Treatment
+
+Remove infected leaves
+Apply fungicides
+Improve airflow
+Mulch soil to prevent splash
+12. Tomato___Late_blight
+
+Description
+Fast-spreading disease causing dark lesions and plant collapse.
+
+Recommended Treatment
+
+Remove infected plants immediately
+Use fungicides
+Avoid wet conditions
+Space plants properly
+13. Tomato___Target_Spot
+
+Description
+Causes brown spots with concentric rings, mainly on older leaves.
+
+Recommended Treatment
+
+Remove infected leaves
+Apply fungicides
+Improve ventilation
+Avoid excessive nitrogen
+14. Apple___Black_rot
+
+Description
+Causes leaf spots, fruit rot, and branch cankers in apple trees.
+
+Recommended Treatment
+
+Remove infected fruit and branches
+Prune regularly
+Apply fungicides
+Maintain orchard hygiene
+15. Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot
+
+Description
+Causes rectangular gray lesions on leaves, reducing photosynthesis.
+
+Recommended Treatment
+
+Use resistant hybrids
+Rotate crops
+Apply fungicides
+Remove crop debris
+16. Corn_(maize)___Northern_Leaf_Blight
+
+Description
+Large cigar-shaped lesions on leaves affecting crop yield.
+
+Recommended Treatment
+
+Use resistant varieties
+Crop rotation
+Fungicide application
+Proper field sanitation
+17. Squash___Powdery_mildew
+
+Description
+White powdery growth on leaves leading to reduced photosynthesis.
+
+Recommended Treatment
+
+Remove infected leaves
+Apply fungicides
+Improve air circulation
+Avoid overcrowding
+18. Corn_(maize)__Common_rust
+
+Description
+Rust-colored pustules on leaves, reducing plant vigor.
+
+Recommended Treatment
+
+Use resistant varieties
+Apply fungicides
+Monitor crops regularly
+Remove infected debris
+19. Tomato___Early_blight
+
+Description
+Dark spots with concentric rings on older leaves.
+
+Recommended Treatment
+
+Remove infected leaves
+Apply fungicides
+Rotate crops
+Maintain plant spacing
+20. Grape___Esca_(Black_Measles)
+
+Description
+Causes leaf discoloration and dark spots on grapes, affecting vine health.
+
+Recommended Treatment
+
+Remove infected wood
+Avoid pruning wounds
+Maintain vine health
+No complete cure—manage symptoms
+21. Strawberry___Leaf_scorch
+
+Description
+Causes reddish-purple spots leading to leaf drying.
+
+Recommended Treatment
+
+Remove infected leaves
+Improve airflow
+Apply fungicides
+Avoid overhead irrigation
+22. Tomato___Leaf_Mold
+
+Description
+Yellow spots on upper leaves and mold growth underneath.
+
+Recommended Treatment
+
+Reduce humidity
+Improve ventilation
+Apply fungicides
+Avoid leaf wetness
+23. Apple___Apple_scab
+
+Description
+Dark, scabby lesions on leaves and fruit.
+
+Recommended Treatment
+
+Remove fallen leaves
+Apply fungicides early
+Use resistant varieties
+Prune for airflow
+24. Peach___Bacterial_spot
+
+Description
+Small dark spots on leaves and fruit causing premature drop.
+
+Recommended Treatment
+
+Remove infected leaves
+Improve airflow
+Avoid overhead watering
+Use copper sprays
+25. Tomato___Tomato_mosaic_virus
+
+Description
+Causes mottled leaves, distortion, and reduced yield.
+
+Recommended Treatment
+
+Remove infected plants
+Disinfect tools
+Avoid tobacco contamination
+Use resistant varieties
+26. Grape___Black_rot
+
+Description
+Fungal disease causing black lesions on leaves and shriveled fruit.
+
+Recommended Treatment
+
+Remove infected fruit and leaves
+Apply fungicides
+Prune vines
+Improve air circulation

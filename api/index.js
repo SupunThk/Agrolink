@@ -13,6 +13,8 @@ const chatbotRoute = require("./routes/chatbot");
 const questionRoute = require("./routes/questions");
 const eventRoute = require("./routes/events");
 const productRoute = require("./routes/products");
+const diseaseRoute = require("./routes/disease");
+const knowledgeRoute = require("./routes/knowledge");
 const Category = require("./models/Category");
 const {
   isCloudinaryConfigured,
@@ -32,6 +34,7 @@ process.on("uncaughtException", (err) => {
 
 const multer = require("multer");
 const path = require("path");
+const imagesDirectory = path.join(__dirname, "images");
 
 app.use(express.json());
 app.use(cors());
@@ -61,7 +64,7 @@ async function seedDefaultCategories() {
         Category.findOneAndUpdate(
           { name },
           { $setOnInsert: { name } },
-          { upsert: true, returnDocument: 'after' },
+          { upsert: true, returnDocument: "after" },
         ),
       ),
     );
@@ -141,6 +144,8 @@ app.use("/api/chatbot", chatbotRoute);
 app.use("/api/questions", questionRoute);
 app.use("/api/events", eventRoute);
 app.use("/api/products", productRoute);
+app.use("/api/disease", diseaseRoute);
+app.use("/api/knowledge", knowledgeRoute);
 
 // ── DB health check for admin settings ──────────────────────────────────────
 app.get("/api/admin/db-status", (req, res) => {

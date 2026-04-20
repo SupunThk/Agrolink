@@ -1,0 +1,6 @@
+fastapi==0.103.1
+uvicorn==0.23.2
+python-multipart==0.0.6
+Pillow>=10.2.0
+# We use ai-edge-litert instead of tensorflow to avoid Windows long path limits
+ai-edge-litert

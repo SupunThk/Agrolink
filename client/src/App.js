@@ -14,7 +14,22 @@ import AskExpert from "./pages/askExpert/AskExpert";
 import AnswerQuestions from "./pages/answerQuestions/AnswerQuestions";
 import MyBlogs from "./pages/myBlogs/MyBlogs";
 import Events from "./pages/events/Events";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import DiseaseDetection from "./pages/diseaseDetection/DiseaseDetection";
+import KnowledgeBase from "./pages/knowledgeBase/KnowledgeBase";
+import DiseaseDetail from "./pages/knowledgeBase/DiseaseDetail";
+import AddDisease from "./pages/knowledgeBase/AddDisease";
+import MyKnowledgeSubmissions from "./pages/knowledgeBase/MyKnowledgeSubmissions";
+import MySubmissionDetail from "./pages/knowledgeBase/MySubmissionDetail";
+import EditDiseaseSubmission from "./pages/knowledgeBase/EditDiseaseSubmission";
+import AdminPendingReview from "./pages/knowledgeBase/AdminPendingReview";
+import AdminDiseaseCreate from "./pages/knowledgeBase/AdminDiseaseCreate";
+import AdminDiseaseEdit from "./pages/knowledgeBase/AdminDiseaseEdit";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
 import DeleteModal from "./components/deleteModal/DeleteModal";
@@ -42,7 +57,10 @@ function AppContent() {
         // Account was deactivated — force sign out with message
         dispatch({ type: "LOGOUT" });
         sessionStorage.removeItem("user");
-        sessionStorage.setItem("deactivatedMessage", "Your account has been deactivated by an administrator. Please contact support.");
+        sessionStorage.setItem(
+          "deactivatedMessage",
+          "Your account has been deactivated by an administrator. Please contact support.",
+        );
         window.location.replace("/login");
       }
     } catch (err) {
@@ -73,46 +91,71 @@ function AppContent() {
   return (
     <>
       {!isAdminRoute && <Topbar />}
-      {showVModal && <VerificationModal setShowModal={(val) => dispatch({ type: val ? "SHOW_VMODAL" : "HIDE_VMODAL" })} />}
+      {showVModal && (
+        <VerificationModal
+          setShowModal={(val) =>
+            dispatch({ type: val ? "SHOW_VMODAL" : "HIDE_VMODAL" })
+          }
+        />
+      )}
       {showDModal && <DeleteModal />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route
-          path="/register"
-          element={user ? <Home /> : <Register />}
-        />
-        <Route
-          path="/login"
-          element={user ? <Home /> : <Login />}
-        />
+        <Route path="/register" element={user ? <Home /> : <Register />} />
+        <Route path="/login" element={user ? <Home /> : <Login />} />
         <Route path="/post/:id" element={<Single />} />
-        <Route
-          path="/write"
-          element={user ? <Write /> : <Login />}
-        />
-        <Route
-          path="/settings"
-          element={user ? <Settings /> : <Login />}
-        />
+        <Route path="/write" element={user ? <Write /> : <Login />} />
+        <Route path="/settings" element={user ? <Settings /> : <Login />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/ask-expert" element={<AskExpert />} />
         <Route
           path="/answer-questions"
-          element={user && (user.role === 'expert' || user.isAdmin) ? <AnswerQuestions /> : <Login />}
+          element={
+            user && (user.role === "expert" || user.isAdmin) ? (
+              <AnswerQuestions />
+            ) : (
+              <Login />
+            )
+          }
         />
-        <Route
-          path="/my-blogs"
-          element={user ? <MyBlogs /> : <Login />}
-        />
+        <Route path="/my-blogs" element={user ? <MyBlogs /> : <Login />} />
         <Route
           path="/admin"
           element={user && user.isAdmin ? <AdminPanel /> : <Login />}
         />
+        <Route path="/events" element={user ? <Events /> : <Login />} />
         <Route
-          path="/events"
-          element={user ? <Events /> : <Login />}
+          path="/disease-detection"
+          element={user ? <DiseaseDetection /> : <Login />}
+        />
+        <Route path="/knowledge" element={<KnowledgeBase />} />
+        <Route path="/disease-detail/:id" element={<DiseaseDetail />} />
+        <Route path="/add-disease" element={user ? <AddDisease /> : <Login />} />
+        <Route
+          path="/my-knowledge-submissions"
+          element={user ? <MyKnowledgeSubmissions /> : <Login />}
+        />
+        <Route
+          path="/my-knowledge-submissions/:id"
+          element={user ? <MySubmissionDetail /> : <Login />}
+        />
+        <Route
+          path="/my-knowledge-submissions/:id/edit"
+          element={user ? <EditDiseaseSubmission /> : <Login />}
+        />
+        <Route
+          path="/knowledge-review"
+          element={user && user.isAdmin ? <AdminPendingReview /> : <Login />}
+        />
+        <Route
+          path="/knowledge/admin/new"
+          element={user && user.isAdmin ? <AdminDiseaseCreate /> : <Login />}
+        />
+        <Route
+          path="/knowledge/admin/:id/edit"
+          element={user && user.isAdmin ? <AdminDiseaseEdit /> : <Login />}
         />
       </Routes>
     </>

@@ -1,234 +1,222 @@
-import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useContext, useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useParams } from "react-router-dom";
+import "./DiseaseDetail.css";
+import { getKnowledgeImage } from "./knowledgeImageResolver";
+import { Context } from "../../context/Context";
 
-const diseasesData = {
-    'rice-blast': {
-        title: 'Rice Blast (Magnaporthe oryzae)',
-        crop: 'Paddy',
-        type: 'Fungal Disease',
-        image: '/images/Rice.png',
-        symptoms: [
-            'Small, bluish-green spots on leaves that enlarge into diamond-shaped lesions.',
-            'Lesions have greyish-white centers and reddish-brown margins.',
-            'Infection on the neck of the panicle causes the "neck blast" phase, leading to grain failure.',
-            'Severe leaf infection leads to leaf death and stunting of the plant.'
-        ],
-        prevention: [
-            'Use resistant varieties adapted to your local agro-climatic conditions.',
-            'Avoid excessive use of nitrogenous fertilizers, as high nitrogen promotes infection.',
-            'Maintain a clean field by removing infected straw and alternative weed hosts.',
-            'Optimize planting density to improve airflow and reduce humidity in the canopy.'
-        ],
-        treatment: 'At the first sign of leaf blast or before the panicle emergence stage, apply recommended systemic fungicides like Tricyclazole or Propiconazole. Ensure thorough coverage of the foliage. In organic farming settings, seed treatment with Pseudomonas fluorescens and foliar spray of neem-based products can help manage early infestations.'
-    },
-    'early-blight': {
-        title: 'Early Blight (Alternaria solani)',
-        crop: 'Tomato',
-        type: 'Fungal Disease',
-        image: '/images/tomato.jpg',
-        symptoms: [
-            'Small brown spots on older leaves that develop concentric rings (target-like appearance).',
-            'Foliage yellowing around lesions, eventually leading to leaf drop.',
-            'Sunken, leathery dark spots on the stem end of fruits.',
-            'Stem lesions near the soil line (collar rot) in young seedlings.'
-        ],
-        prevention: [
-            'Use high-quality, disease-free seeds and certified transplants.',
-            'Practice a 3-year crop rotation without Solanaceous crops (potato, pepper, eggplant).',
-            'Ensure proper spacing between plants for adequate air circulation.',
-            'Avoid overhead irrigation to keep leaves dry; use drip irrigation if possible.'
-        ],
-        treatment: 'Remove infected lower leaves immediately to reduce spore spread. Apply fungicides containing chlorothalonil, copper-based sprays, or mancozeb every 7-10 days if environmental conditions favor the disease. Mulching around the base of plants can prevent soil-borne spores from splashing onto lower leaves.'
-    },
-    'papaya-ringspot': {
-        title: 'Papaya Ringspot Virus (PRSV)',
-        crop: 'Papaya',
-        type: 'Viral Disease (Aphid-borne)',
-        image: '/images/papaya.jpg',
-        symptoms: [
-            'Yellowing and vein clearing in young leaves, followed by severe mosaic or mottling.',
-            'Leaves often become distorted, narrowed, and "shoe-stringed".',
-            'Dark green "water-soaked" streaks on stems and petioles.',
-            'Distinctive circular C-shaped rings or spots on the fruit skin.'
-        ],
-        prevention: [
-            'Eradicate and destroy infected trees immediately to prevent further spread.',
-            'Intercrop with non-host plants like corn or sorghum to confuse aphid vectors.',
-            'Use PRSV-resistant varieties (like SunUp or Rainbow) if available in your region.',
-            'Control aphid populations using insecticidal soaps or neem oil during early growth stages.'
-        ],
-        treatment: 'There is no chemical cure for the virus itself. Management focus must be on preventing transmission through aphid control and removing any source of infection from the field. Providing optimal nutrition and water can help infected trees maintain some productivity, but they will remain a permanent source of inoculum.'
-    }
-};
-
-const DiseaseDetail = () => {
-    const { id } = useParams();
-    const disease = diseasesData[id] || diseasesData['rice-blast']; // Fallback to Rice Blast if id not found
-
-    const containerStyle = {
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '20px',
-        fontFamily: '"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        color: '#333',
-    };
-
-    const navStyle = {
-        marginBottom: '20px',
-    };
-
-    const backButtonStyle = {
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '10px 20px',
-        backgroundColor: '#f1f1f1',
-        color: '#333',
-        textDecoration: 'none',
-        borderRadius: '8px',
-        fontWeight: '600',
-        transition: 'background-color 0.2s',
-    };
-
-    const bannerStyle = {
-        width: '100%',
-        height: '400px',
-        objectFit: 'cover',
-        borderRadius: '12px',
-        marginBottom: '30px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-    };
-
-    const headerStyle = {
-        marginBottom: '40px',
-    };
-
-    const titleStyle = {
-        fontSize: '48px',
-        fontWeight: '800',
-        color: '#1a472a',
-        margin: '0 0 15px 0',
-    };
-
-    const badgeContainerStyle = {
-        display: 'flex',
-        gap: '10px',
-    };
-
-    const badgeStyle = {
-        padding: '6px 16px',
-        borderRadius: '20px',
-        fontSize: '14px',
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-        backgroundColor: '#e8f5e9',
-        color: '#2e7d32',
-        border: '1px solid #c8e6c9',
-    };
-
-    const contentGridStyle = {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-        gap: '40px',
-        marginBottom: '40px',
-    };
-
-    const sectionStyle = {
-        padding: '25px',
-        backgroundColor: '#f8faf9',
-        borderRadius: '12px',
-        border: '1px solid #edf2ef',
-    };
-
-    const sectionTitleStyle = {
-        fontSize: '24px',
-        fontWeight: '700',
-        color: '#2d5a27',
-        marginBottom: '20px',
-        borderBottom: '2px solid #e1e8e3',
-        paddingBottom: '10px',
-    };
-
-    const listStyle = {
-        margin: '0',
-        paddingLeft: '20px',
-        lineHeight: '1.6',
-    };
-
-    const listItemStyle = {
-        marginBottom: '10px',
-    };
-
-    const treatmentSectionStyle = {
-        ...sectionStyle,
-        gridColumn: '1 / -1',
-        backgroundColor: '#e3f2fd',
-        borderColor: '#bbdefb',
-    };
-
-    const treatmentTitleStyle = {
-        ...sectionTitleStyle,
-        color: '#1565c0',
-        borderColor: '#90caf9',
-    };
-
-    const treatmentTextStyle = {
-        fontSize: '18px',
-        lineHeight: '1.8',
-        color: '#0d47a1',
-        margin: '0',
-    };
-
+function InfoState({ title, message }) {
     return (
-        <div className="about fadeIn" style={containerStyle}>
-            <nav style={navStyle}>
-                <Link to="/knowledge" style={backButtonStyle}>
-                    ← Back to Dashboard
-                </Link>
-            </nav>
+        <div className="diseaseDetailState">
+            <h1 className="diseaseDetailStateTitle">{title}</h1>
+            <p className="diseaseDetailStateText">{message}</p>
+            <Link to="/knowledge" className="diseaseDetailBackButton">
+                Back to Crop Disease Information Portal
+            </Link>
+        </div>
+    );
+}
 
-            <img
-                src={disease.image}
-                alt={`${disease.title} Banner`}
-                style={bannerStyle}
-            />
+export default function DiseaseDetail() {
+    const { id } = useParams();
+    const { user } = useContext(Context);
+    const [article, setArticle] = useState(null);
+    const [relatedArticles, setRelatedArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [notFound, setNotFound] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
+    const [relatedImageFailures, setRelatedImageFailures] = useState({});
 
-            <div style={headerStyle}>
-                <h1 style={titleStyle}>{disease.title}</h1>
-                <div style={badgeContainerStyle}>
-                    <span style={badgeStyle}>Crop: {disease.crop}</span>
-                    <span style={badgeStyle}>Type: {disease.type}</span>
+    useEffect(() => {
+        const fetchArticle = async () => {
+            setLoading(true);
+            setError("");
+            setNotFound(false);
+            setImageFailed(false);
+            setRelatedImageFailures({});
+
+            try {
+                const [articleRes, relatedRes] = await Promise.all([
+                    axios.get(`/knowledge/${id}`),
+                    axios.get(`/knowledge/${id}/related`),
+                ]);
+
+                setArticle(articleRes.data);
+                setRelatedArticles(relatedRes.data || []);
+            } catch (err) {
+                if (err.response?.status === 404) {
+                    setNotFound(true);
+                } else {
+                    setError("Unable to load this crop disease article right now.");
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchArticle();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="about fadeIn">
+                <div className="kbPage">
+                <div className="diseaseDetailPage">
+                    <div className="diseaseDetailBackButton diseaseDetailSkeletonBar"></div>
+                    <section className="diseaseDetailHero">
+                        <div className="diseaseDetailHeroContent diseaseDetailSkeletonCard">
+                            <div className="diseaseDetailSkeletonPill"></div>
+                            <div className="diseaseDetailSkeletonTitle"></div>
+                            <div className="diseaseDetailSkeletonSubtitle"></div>
+                            <div className="diseaseDetailSkeletonSubtitle short"></div>
+                        </div>
+                        <div className="diseaseDetailImageWrap diseaseDetailSkeletonCard"></div>
+                    </section>
+                </div>
                 </div>
             </div>
+        );
+    }
 
-            <div style={contentGridStyle}>
-                <div style={sectionStyle}>
-                    <h2 style={sectionTitleStyle}>Symptoms</h2>
-                    <ul style={listStyle}>
-                        {disease.symptoms.map((s, idx) => (
-                            <li key={idx} style={listItemStyle}>{s}</li>
-                        ))}
-                    </ul>
+    if (notFound) {
+        return (
+            <div className="about fadeIn">
+                <div className="kbPage">
+                <InfoState title="Article not found" message="This crop disease article could not be found." />
                 </div>
+            </div>
+        );
+    }
 
-                <div style={sectionStyle}>
-                    <h2 style={sectionTitleStyle}>Prevention</h2>
-                    <ul style={listStyle}>
-                        {disease.prevention.map((p, idx) => (
-                            <li key={idx} style={listItemStyle}>{p}</li>
-                        ))}
-                    </ul>
+    if (error) {
+        return (
+            <div className="about fadeIn">
+                <div className="kbPage">
+                <InfoState title="Unable to load article" message={error} />
                 </div>
+            </div>
+        );
+    }
 
-                <div style={treatmentSectionStyle}>
-                    <h2 style={treatmentTitleStyle}>Treatment Plan</h2>
-                    <p style={treatmentTextStyle}>
-                        {disease.treatment}
-                    </p>
-                </div>
+    const cropName = article?.diseaseId?.cropId?.name || "Unknown Crop";
+    const diseaseName = article?.diseaseId?.diseaseName || "Disease";
+    const heroImage = getKnowledgeImage(article);
+    const showImageFallback = !heroImage || imageFailed;
+
+    return (
+        <div className="about fadeIn">
+            <div className="kbPage">
+            <div className="diseaseDetailPage">
+                <Link to="/knowledge" className="diseaseDetailBackButton">
+                    Back to Crop Disease Information Portal
+                </Link>
+
+                <section className="diseaseDetailHero">
+                    <div className="diseaseDetailHeroContent">
+                        <span className="diseaseDetailPill">{cropName}</span>
+                        <h1 className="diseaseDetailTitle">{article.title}</h1>
+                        <p className="diseaseDetailSubtitle">{diseaseName}</p>
+                        <p className="diseaseDetailMeta">Related Crop: {cropName}</p>
+                        <p className="diseaseDetailDescription">{article.description}</p>
+                        {user?.isAdmin ? (
+                            <div className="diseaseDetailActionRow">
+                                <Link to={`/knowledge/admin/${article._id}/edit`} className="diseaseDetailActionButton primary">
+                                    Edit Disease Profile
+                                </Link>
+                            </div>
+                        ) : null}
+                    </div>
+                    <div className="diseaseDetailImageWrap">
+                        {showImageFallback ? (
+                            <div className="diseaseDetailImageFallback">
+                                <span className="diseaseDetailImageBadge">{cropName}</span>
+                                <h2 className="diseaseDetailImageFallbackTitle">{article.title}</h2>
+                            </div>
+                        ) : (
+                            <img
+                                className="diseaseDetailImage"
+                                src={heroImage}
+                                alt={article.title}
+                                onError={() => setImageFailed(true)}
+                            />
+                        )}
+                    </div>
+                </section>
+
+                <section className="diseaseDetailGrid">
+                    <article className="diseaseDetailCard">
+                        <h2 className="diseaseDetailCardTitle">Symptoms</h2>
+                        <ul className="diseaseDetailList">
+                            {article.symptoms?.map((symptom, index) => (
+                                <li key={`${symptom}-${index}`}>{symptom}</li>
+                            ))}
+                        </ul>
+                    </article>
+
+                    <article className="diseaseDetailCard">
+                        <h2 className="diseaseDetailCardTitle">Prevention</h2>
+                        <ul className="diseaseDetailList">
+                            {article.preventionMethods?.map((method, index) => (
+                                <li key={`${method}-${index}`}>{method}</li>
+                            ))}
+                        </ul>
+                    </article>
+                </section>
+
+                <section className="diseaseDetailTreatment">
+                    <h2 className="diseaseDetailCardTitle">Treatment</h2>
+                    <p className="diseaseDetailTreatmentText">{article.treatmentPlan}</p>
+                </section>
+
+                <section className="diseaseDetailRelatedSection">
+                    <div className="diseaseDetailSectionHeading">
+                        <span className="diseaseDetailRelatedEyebrow">Same Crop</span>
+                        <h2 className="diseaseDetailCardTitle">Related Diseases</h2>
+                    </div>
+
+                    {relatedArticles.length === 0 ? (
+                        <p className="diseaseDetailStateText">No related diseases were found for this crop.</p>
+                    ) : (
+                        <div className="diseaseDetailRelatedGrid">
+                            {relatedArticles.map((relatedArticle) => (
+                                <article className="diseaseDetailRelatedCard" key={relatedArticle._id}>
+                                    <div className="diseaseDetailRelatedTop">
+                                        {getKnowledgeImage(relatedArticle) && !relatedImageFailures[relatedArticle._id] ? (
+                                            <img
+                                                className="diseaseDetailRelatedImage"
+                                                src={getKnowledgeImage(relatedArticle)}
+                                                alt={relatedArticle.title}
+                                                onError={() =>
+                                                    setRelatedImageFailures((current) => ({
+                                                        ...current,
+                                                        [relatedArticle._id]: true,
+                                                    }))
+                                                }
+                                            />
+                                        ) : (
+                                            <div className="diseaseDetailRelatedFallback">
+                                                <span className="diseaseDetailImageBadge">
+                                                    {relatedArticle.diseaseId?.cropId?.name || "Crop Disease"}
+                                                </span>
+                                                <h3 className="diseaseDetailRelatedFallbackTitle">{relatedArticle.title}</h3>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="diseaseDetailRelatedBody">
+                                        <h3 className="diseaseDetailRelatedTitle">{relatedArticle.title}</h3>
+                                        <p className="diseaseDetailRelatedText">{relatedArticle.description}</p>
+                                        <Link to={`/disease-detail/${relatedArticle._id}`} className="diseaseDetailRelatedLink">
+                                            View Details
+                                        </Link>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            </div>
             </div>
         </div>
     );
-};
-
-export default DiseaseDetail;
+}
