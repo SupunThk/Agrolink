@@ -53,7 +53,7 @@ async function seedDefaultCategories() {
         Category.findOneAndUpdate(
           { name },
           { $setOnInsert: { name } },
-          { upsert: true, new: true }
+          { upsert: true, returnDocument: "after" }
         )
       )
     );

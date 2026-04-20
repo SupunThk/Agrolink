@@ -111,6 +111,13 @@
     max-width: 56ch;
 }
 
+.diseaseDetailMeta {
+    margin: 16px 0 0;
+    color: #118448;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
 .diseaseDetailActionRow {
     display: flex;
     gap: 12px;
@@ -521,6 +528,7 @@
 }
 
 [data-theme='dark'] .diseaseDetailSubtitle,
+[data-theme='dark'] .diseaseDetailMeta,
 [data-theme='dark'] .diseaseDetailDescription,
 [data-theme='dark'] .diseaseDetailList li,
 [data-theme='dark'] .diseaseDetailTreatmentText,

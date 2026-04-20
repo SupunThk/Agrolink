@@ -4,7 +4,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Banana Sigatoka",
         cropName: "Banana",
         diseaseName: "Sigatoka",
-        imageUrl: "/images/1771606259123large-green-rice-field-with-green-rice-plants-rows.jpg",
+        imageUrl: "/images/banana-sigatoka.jpg",
         description: "A common banana leaf disease that reduces green leaf area and weakens bunch filling when it spreads early.",
         symptoms: [
             "Small yellow streaks appear on older leaves before turning brown",
@@ -23,7 +23,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Banana Panama Wilt",
         cropName: "Banana",
         diseaseName: "Panama Wilt",
-        imageUrl: "/images/1771606256159large-green-rice-field-with-green-rice-plants-rows.jpg",
+        imageUrl: "/images/banana-panama-wilt.jpg",
         description: "A soil-borne wilt disease that blocks water movement inside the plant and can kill entire banana mats.",
         symptoms: [
             "Older leaves yellow and collapse around the pseudostem",
@@ -42,7 +42,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Brinjal Bacterial Wilt",
         cropName: "Brinjal",
         diseaseName: "Bacterial Wilt",
-        imageUrl: "/images/1771922115971woman-with-vegetables-basket.jpg",
+        imageUrl: "/images/brinjal-bacterial-wilt.png",
         description: "A fast-spreading bacterial disease that causes sudden wilting and serious plant loss in warm, wet soils.",
         symptoms: [
             "Plants wilt suddenly while leaves may stay green at first",
@@ -61,7 +61,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Brinjal Phomopsis Blight",
         cropName: "Brinjal",
         diseaseName: "Phomopsis Blight",
-        imageUrl: "/images/1771924899240biotechnology-woman-engineer-examining-plant-leaf-disease.jpg",
+        imageUrl: "/images/Brinjal-Phomopsis-Blight.jpg",
         description: "A fungal disease that affects leaves, stems, and fruits, leading to rot and poor market quality in brinjal.",
         symptoms: [
             "Leaves develop gray-brown spots with ring patterns",
@@ -80,7 +80,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Chilli Leaf Curl Virus",
         cropName: "Chilli",
         diseaseName: "Leaf Curl Virus",
-        imageUrl: "/images/1771923045805female-gardener-spraying-insecticide-plant.jpg",
+        imageUrl: "/images/chilli-leaf-curl-virus.webp",
         description: "A viral disease spread by whiteflies that stunts chilli plants and sharply reduces flowering and fruit set.",
         symptoms: [
             "Young leaves curl upward and become smaller",
@@ -118,7 +118,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Rice Blast Disease",
         cropName: "Rice",
         diseaseName: "Blast Disease",
-        imageUrl: "/images/1771914236609large-green-rice-field-with-green-rice-plants-rows.jpg",
+        imageUrl: "/images/rice-blast-disease.jpg",
         description: "A major fungal disease of rice that attacks leaves and panicles and can cause heavy yield loss in humid weather.",
         symptoms: [
             "Diamond-shaped lesions form on leaves with gray centers",
@@ -137,7 +137,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Rice Bacterial Leaf Blight",
         cropName: "Rice",
         diseaseName: "Bacterial Leaf Blight",
-        imageUrl: "/images/1771606256159large-green-rice-field-with-green-rice-plants-rows.jpg",
+        imageUrl: "/images/Rice-Bacterial-Leaf-Blight.webp",
         description: "A bacterial disease that starts at leaf tips and margins, then dries the leaf blade and weakens crop performance.",
         symptoms: [
             "Leaf tips yellow and dry downward from the edges",
@@ -156,7 +156,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Tomato Early Blight",
         cropName: "Tomato",
         diseaseName: "Early Blight",
-        imageUrl: "/images/1771924899240biotechnology-woman-engineer-examining-plant-leaf-disease.jpg",
+        imageUrl: "/images/tomato-early-blight.jpg",
         description: "A common tomato disease that starts on older leaves and can move upward quickly during warm, wet conditions.",
         symptoms: [
             "Brown target-like lesions appear on lower leaves",
@@ -175,7 +175,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Tomato Bacterial Spot",
         cropName: "Tomato",
         diseaseName: "Bacterial Spot",
-        imageUrl: "/images/1771923045805female-gardener-spraying-insecticide-plant.jpg",
+        imageUrl: "/images/tomato-bacterial-spot.jpg",
         description: "A bacterial disease that marks leaves and fruits, reducing both foliage health and fruit quality in tomato fields.",
         symptoms: [
             "Small dark leaf spots appear and may tear open later",
@@ -194,7 +194,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Coconut Bud Rot",
         cropName: "Coconut",
         diseaseName: "Bud Rot",
-        imageUrl: "/images/1771926326516close-up-picture-hand-holding-planting-sapling-plant.jpg",
+        imageUrl: "/images/Coconut-Bud-Rot.jpg",
         description: "A serious crown disease that attacks the central growing point of coconut palms and can kill young palms quickly.",
         symptoms: [
             "Young spear leaves rot and pull out easily",
@@ -213,7 +213,7 @@ const CURATED_KNOWLEDGE_BASE = [
         title: "Coconut Leaf Blight",
         cropName: "Coconut",
         diseaseName: "Leaf Blight",
-        imageUrl: "/images/1771924002161agriculture-healthy-food.jpg",
+        imageUrl: "/images/Coconut-Leaf-Blight.jpg",
         description: "A leaf disease that creates blighted patches on coconut fronds and gradually reduces the green canopy.",
         symptoms: [
             "Leaflets develop elongated brown necrotic lesions",

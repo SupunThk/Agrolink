@@ -6,11 +6,7 @@ const Crop = require("../models/Crop");
 const User = require("../models/User");
 const requireDb = require("../middleware/requireDb");
 const uploadKnowledgeImage = require("../middleware/uploadKnowledgeImage");
-const {
-    getCuratedKnowledgeArticles,
-    getCuratedKnowledgeArticleById,
-    getCuratedCropNames,
-} = require("../data/curatedKnowledgeBase");
+
 const MIN_DESCRIPTION_LENGTH = 20;
 const ALLOWED_IMAGE_PATTERN = /\.(jpg|jpeg|png|webp)(\?.*)?$/i;
 
@@ -41,13 +37,14 @@ function getDescriptionLength(value) {
     return cleanText(value).length;
 }
 
-function validateKnowledgePayload(body) {
+function validateKnowledgePayload(body, options = {}) {
     const cropName = cleanText(body?.cropName || body?.crop);
     const diseaseName = cleanText(body?.diseaseName || body?.title);
     const title = cleanText(body?.title);
-    const description = cleanText(body?.description);
-    const treatmentPlan = cleanText(body?.treatmentPlan || body?.treatment);
     const symptoms = normalizeList(body?.symptoms);
+    const fallbackDescription = symptoms.join(" ");
+    const description = cleanText(body?.description || fallbackDescription);
+    const treatmentPlan = cleanText(body?.treatmentPlan || body?.treatment);
     const preventionMethods = normalizeList(body?.preventionMethods ?? body?.prevention);
     const imageUrl = cleanText(body?.imageUrl);
     const errors = {};
@@ -92,6 +89,10 @@ function validateKnowledgePayload(body) {
 
     if (imageUrl && !ALLOWED_IMAGE_PATTERN.test(imageUrl)) {
         errors.imageUrl = "Image must be a JPG, JPEG, PNG, or WEBP file path/URL.";
+    }
+
+    if (options.requireUserId && !cleanText(body?.userId)) {
+        errors.userId = "A valid logged-in user is required.";
     }
 
     return {
@@ -145,32 +146,24 @@ function articlePopulateQuery(query) {
     return query
         .populate({
             path: "diseaseId",
-            populate: { path: "cropId", model: "Crop" }
+            populate: { path: "cropId", model: "Crop" },
         })
         .populate({ path: "submittedBy", select: "username profilePic isAdmin" });
 }
-
-const publicArticleFilter = {
-    $or: [
-        { status: "approved" },
-        { status: { $exists: false } },
-        { status: null },
-    ],
-};
 
 function getSearchEmptyMessage(search, crop) {
     if (search || crop !== "All") {
         return "No published articles matched your current search or crop filter.";
     }
 
-    return "No approved knowledge articles are available yet.";
+    return "No approved crop disease articles are available yet.";
 }
 
 async function upsertCropAndDisease({ cropName, diseaseName, aiModelLabel, image }) {
     const crop = await Crop.findOneAndUpdate(
         { name: cropName },
         { name: cropName },
-        { new: true, upsert: true }
+        { upsert: true, returnDocument: "after" }
     );
 
     const disease = await Disease.findOneAndUpdate(
@@ -181,45 +174,74 @@ async function upsertCropAndDisease({ cropName, diseaseName, aiModelLabel, image
             ...(image ? { image } : {}),
             cropId: crop._id,
         },
-        { new: true, upsert: true }
+        { upsert: true, returnDocument: "after" }
     );
 
     return { crop, disease };
 }
 
-router.get("/", (req, res) => {
-    const qSearch = (req.query.search || "").trim().toLowerCase();
-    const qCrop = (req.query.crop || "All").trim().toLowerCase();
+function filterArticles(articles, search, crop) {
+    const normalizedSearch = cleanText(search).toLowerCase();
+    const normalizedCrop = cleanText(crop || "All").toLowerCase();
 
-    const filteredArticles = getCuratedKnowledgeArticles().filter((article) => {
+    return articles.filter((article) => {
         const cropName = article.diseaseId?.cropId?.name?.toLowerCase() || "";
         const diseaseName = article.diseaseId?.diseaseName?.toLowerCase() || "";
         const title = article.title?.toLowerCase() || "";
         const description = article.description?.toLowerCase() || "";
 
-        const matchesCrop = qCrop === "all" || cropName === qCrop;
+        const matchesCrop = normalizedCrop === "all" || cropName === normalizedCrop;
         const matchesSearch =
-            qSearch === "" ||
-            title.includes(qSearch) ||
-            diseaseName.includes(qSearch) ||
-            cropName.includes(qSearch) ||
-            description.includes(qSearch);
+            normalizedSearch === "" ||
+            title.includes(normalizedSearch) ||
+            diseaseName.includes(normalizedSearch) ||
+            cropName.includes(normalizedSearch) ||
+            description.includes(normalizedSearch);
 
         return matchesCrop && matchesSearch;
     });
+}
 
-    return res.status(200).json({
-        articles: filteredArticles,
-        emptyMessage: getSearchEmptyMessage(qSearch, qCrop === "all" ? "All" : qCrop),
-        totalCount: filteredArticles.length,
-        currentPage: 1,
-        totalPages: filteredArticles.length > 0 ? 1 : 0,
-        limit: filteredArticles.length,
-    });
+function buildUploadedImagePath(req, fallbackImageUrl = "") {
+    if (req.file) {
+        return `/images/${req.file.filename}`;
+    }
+
+    return fallbackImageUrl;
+}
+
+router.get("/", requireDb, async (req, res) => {
+    try {
+        const qSearch = req.query.search || "";
+        const qCrop = req.query.crop || "All";
+        const approvedArticles = await articlePopulateQuery(
+            Article.find({ status: "approved" }).sort({ createdAt: -1 })
+        ).lean();
+
+        const filteredArticles = filterArticles(approvedArticles, qSearch, qCrop);
+
+        return res.status(200).json({
+            articles: filteredArticles,
+            emptyMessage: getSearchEmptyMessage(qSearch, qCrop),
+            totalCount: filteredArticles.length,
+            currentPage: 1,
+            totalPages: filteredArticles.length > 0 ? 1 : 0,
+            limit: filteredArticles.length,
+        });
+    } catch (err) {
+        console.error("GET /api/knowledge failed:", err);
+        return res.status(500).json({ message: "Failed to fetch crop disease articles." });
+    }
 });
 
-router.get("/crops", (req, res) => {
-    return res.status(200).json({ crops: getCuratedCropNames() });
+router.get("/crops", requireDb, async (req, res) => {
+    try {
+        const crops = await Crop.find().sort({ name: 1 }).lean();
+        return res.status(200).json({ crops: crops.map((crop) => crop.name) });
+    } catch (err) {
+        console.error("GET /api/knowledge/crops failed:", err);
+        return res.status(500).json({ message: "Failed to fetch crop options." });
+    }
 });
 
 router.post("/", requireDb, uploadKnowledgeImage, async (req, res) => {
@@ -234,8 +256,8 @@ router.post("/", requireDb, uploadKnowledgeImage, async (req, res) => {
         preventionMethods,
         imageUrl,
         errors,
-    } = validateKnowledgePayload(req.body);
-    const uploadedImagePath = req.file ? `/images/${req.file.filename}` : imageUrl;
+    } = validateKnowledgePayload(req.body, { requireUserId: true });
+    const uploadedImagePath = buildUploadedImagePath(req, imageUrl);
     const aiModelLabel =
         cleanText(req.body?.aiModelLabel) ||
         diseaseName?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -285,6 +307,67 @@ router.post("/", requireDb, uploadKnowledgeImage, async (req, res) => {
     } catch (err) {
         console.error("POST /api/knowledge failed:", err);
         return res.status(500).json({ message: "Failed to submit knowledge article." });
+    }
+});
+
+router.post("/admin", requireDb, uploadKnowledgeImage, async (req, res) => {
+    const {
+        cropName,
+        diseaseName,
+        title,
+        description,
+        treatmentPlan,
+        symptoms,
+        preventionMethods,
+        imageUrl,
+        errors,
+    } = validateKnowledgePayload(req.body, { requireUserId: true });
+    const uploadedImagePath = buildUploadedImagePath(req, imageUrl);
+    const aiModelLabel =
+        cleanText(req.body?.aiModelLabel) ||
+        diseaseName?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+            message: "Please correct the highlighted disease fields.",
+            errors,
+        });
+    }
+
+    try {
+        const adminUser = await requireAdminAccess(req, res);
+        if (!adminUser) {
+            return;
+        }
+
+        const { disease } = await upsertCropAndDisease({
+            cropName,
+            diseaseName,
+            aiModelLabel,
+            image: uploadedImagePath,
+        });
+
+        const article = await new Article({
+            title,
+            description,
+            symptoms,
+            preventionMethods,
+            treatmentPlan,
+            imageUrl: uploadedImagePath,
+            diseaseId: disease._id,
+            status: "approved",
+            submittedBy: adminUser._id,
+        }).save();
+
+        const savedArticle = await articlePopulateQuery(Article.findById(article._id)).lean();
+
+        return res.status(201).json({
+            message: "Crop disease profile created successfully.",
+            article: savedArticle,
+        });
+    } catch (err) {
+        console.error("POST /api/knowledge/admin failed:", err);
+        return res.status(500).json({ message: "Failed to create crop disease profile." });
     }
 });
 
@@ -346,7 +429,7 @@ router.put("/mine/:id", requireDb, async (req, res) => {
         preventionMethods,
         imageUrl,
         errors,
-    } = validateKnowledgePayload(req.body);
+    } = validateKnowledgePayload(req.body, { requireUserId: true });
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: "Invalid knowledge article id." });
@@ -452,6 +535,77 @@ router.get("/pending", requireDb, async (req, res) => {
     }
 });
 
+router.put("/admin/:id", requireDb, uploadKnowledgeImage, async (req, res) => {
+    const { id } = req.params;
+    const {
+        cropName,
+        diseaseName,
+        title,
+        description,
+        treatmentPlan,
+        symptoms,
+        preventionMethods,
+        imageUrl,
+        errors,
+    } = validateKnowledgePayload(req.body, { requireUserId: true });
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid knowledge article id." });
+    }
+
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+            message: "Please correct the highlighted disease fields.",
+            errors,
+        });
+    }
+
+    try {
+        const adminUser = await requireAdminAccess(req, res);
+        if (!adminUser) {
+            return;
+        }
+
+        const existingArticle = await Article.findById(id);
+        if (!existingArticle) {
+            return res.status(404).json({ message: "Knowledge article not found." });
+        }
+
+        const uploadedImagePath = buildUploadedImagePath(req, imageUrl || existingArticle.imageUrl);
+        const aiModelLabel =
+            cleanText(req.body?.aiModelLabel) ||
+            diseaseName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        const { disease } = await upsertCropAndDisease({
+            cropName,
+            diseaseName,
+            aiModelLabel,
+            image: uploadedImagePath,
+        });
+
+        existingArticle.title = title;
+        existingArticle.description = description;
+        existingArticle.symptoms = symptoms;
+        existingArticle.preventionMethods = preventionMethods;
+        existingArticle.treatmentPlan = treatmentPlan;
+        existingArticle.imageUrl = uploadedImagePath;
+        existingArticle.diseaseId = disease._id;
+        existingArticle.status = "approved";
+        existingArticle.submittedBy = existingArticle.submittedBy || adminUser._id;
+
+        await existingArticle.save();
+
+        const updatedArticle = await articlePopulateQuery(Article.findById(existingArticle._id)).lean();
+
+        return res.status(200).json({
+            message: "Crop disease profile updated successfully.",
+            article: updatedArticle,
+        });
+    } catch (err) {
+        console.error(`PUT /api/knowledge/admin/${id} failed:`, err);
+        return res.status(500).json({ message: "Failed to update crop disease profile." });
+    }
+});
+
 async function updateArticleStatus(req, res, nextStatus) {
     const { id } = req.params;
 
@@ -495,36 +649,62 @@ router.put("/:id/reject", requireDb, async (req, res) => {
     return updateArticleStatus(req, res, "rejected");
 });
 
-router.get("/:id/related", (req, res) => {
+router.get("/:id/related", requireDb, async (req, res) => {
     const { id } = req.params;
 
-    const currentArticle = getCuratedKnowledgeArticleById(id);
-
-    if (!currentArticle) {
-        return res.status(404).json({ message: "Knowledge article not found." });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid knowledge article id." });
     }
 
-    const relatedArticles = getCuratedKnowledgeArticles()
-        .filter((article) => article._id !== id)
-        .filter(
-            (article) =>
-                article.diseaseId?.cropId?.name === currentArticle.diseaseId?.cropId?.name
-        )
-        .slice(0, 3);
+    try {
+        const currentArticle = await articlePopulateQuery(
+            Article.findOne({ _id: id, status: "approved" })
+        ).lean();
 
-    return res.status(200).json(relatedArticles);
+        if (!currentArticle) {
+            return res.status(404).json({ message: "Knowledge article not found." });
+        }
+
+        const cropId = currentArticle.diseaseId?.cropId?._id;
+        const relatedArticles = await articlePopulateQuery(
+            Article.find({
+                _id: { $ne: id },
+                status: "approved",
+            }).sort({ createdAt: -1 })
+        ).lean();
+
+        const filteredArticles = relatedArticles
+            .filter((article) => String(article.diseaseId?.cropId?._id) === String(cropId))
+            .slice(0, 3);
+
+        return res.status(200).json(filteredArticles);
+    } catch (err) {
+        console.error(`GET /api/knowledge/${id}/related failed:`, err);
+        return res.status(500).json({ message: "Failed to fetch related crop disease articles." });
+    }
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", requireDb, async (req, res) => {
     const { id } = req.params;
 
-    const article = getCuratedKnowledgeArticleById(id);
-
-    if (!article) {
-        return res.status(404).json({ message: "Knowledge article not found." });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid knowledge article id." });
     }
 
-    return res.status(200).json(article);
+    try {
+        const article = await articlePopulateQuery(
+            Article.findOne({ _id: id, status: "approved" })
+        ).lean();
+
+        if (!article) {
+            return res.status(404).json({ message: "Knowledge article not found." });
+        }
+
+        return res.status(200).json(article);
+    } catch (err) {
+        console.error(`GET /api/knowledge/${id} failed:`, err);
+        return res.status(500).json({ message: "Failed to fetch crop disease article." });
+    }
 });
 
 module.exports = router;

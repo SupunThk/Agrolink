@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import "./DiseaseDetail.css";
 import { getKnowledgeImage } from "./knowledgeImageResolver";
+import { Context } from "../../context/Context";
 
 function InfoState({ title, message }) {
     return (
@@ -18,6 +19,7 @@ function InfoState({ title, message }) {
 
 export default function DiseaseDetail() {
     const { id } = useParams();
+    const { user } = useContext(Context);
     const [article, setArticle] = useState(null);
     const [relatedArticles, setRelatedArticles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -108,7 +110,15 @@ export default function DiseaseDetail() {
                         <span className="diseaseDetailPill">{cropName}</span>
                         <h1 className="diseaseDetailTitle">{article.title}</h1>
                         <p className="diseaseDetailSubtitle">{diseaseName}</p>
+                        <p className="diseaseDetailMeta">Related Crop: {cropName}</p>
                         <p className="diseaseDetailDescription">{article.description}</p>
+                        {user?.isAdmin ? (
+                            <div className="diseaseDetailActionRow">
+                                <Link to={`/knowledge/admin/${article._id}/edit`} className="diseaseDetailActionButton primary">
+                                    Edit Disease Profile
+                                </Link>
+                            </div>
+                        ) : null}
                     </div>
                     <div className="diseaseDetailImageWrap">
                         {showImageFallback ? (

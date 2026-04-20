@@ -71,6 +71,20 @@ export default function KnowledgeSubmissionForm({
                 </div>
 
                 <div className="kbField">
+                    <label className="kbLabel" htmlFor="description">Short Description</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        placeholder="Summarize the disease impact, crop risk, and why farmers should pay attention..."
+                        className={getFieldClassName("description", "kbTextarea")}
+                        value={formData.description}
+                        onChange={onChange}
+                    />
+                    <p className="kbFieldHint">Add at least 20 characters for the public profile summary.</p>
+                    {fieldErrors.description ? <p className="kbFieldError">{fieldErrors.description}</p> : null}
+                </div>
+
+                <div className="kbField">
                     <label className="kbLabel" htmlFor="symptoms">Symptoms</label>
                     <textarea
                         id="symptoms"

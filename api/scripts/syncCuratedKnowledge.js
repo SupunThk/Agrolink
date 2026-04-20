@@ -8,7 +8,7 @@ async function syncCuratedKnowledge() {
         const crop = await Crop.findOneAndUpdate(
             { name: entry.cropName },
             { name: entry.cropName },
-            { new: true, upsert: true }
+            { upsert: true, returnDocument: "after" }
         );
 
         const disease = await Disease.findOneAndUpdate(
@@ -16,9 +16,10 @@ async function syncCuratedKnowledge() {
             {
                 diseaseName: entry.diseaseName,
                 aiModelLabel: entry.id,
+                image: entry.imageUrl,
                 cropId: crop._id,
             },
-            { new: true, upsert: true }
+            { upsert: true, returnDocument: "after" }
         );
 
         await Article.findOneAndUpdate(
@@ -33,7 +34,7 @@ async function syncCuratedKnowledge() {
                 diseaseId: disease._id,
                 status: "approved",
             },
-            { new: true, upsert: true }
+            { upsert: true, returnDocument: "after" }
         );
     }
 }

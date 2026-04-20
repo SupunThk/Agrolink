@@ -17,6 +17,14 @@
     line-height: 1.1;
 }
 
+.kbSubheading {
+    margin: 0;
+    color: #5f786a;
+    line-height: 1.7;
+    font-size: 1rem;
+    max-width: 64ch;
+}
+
 .kbAddButton {
     background: #0fad43;
     color: #fff;
@@ -263,6 +271,12 @@
     gap: 28px;
 }
 
+.kbGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
 .kbCropSection {
     display: flex;
     flex-direction: column;
@@ -319,6 +333,14 @@
     box-shadow: 0 18px 34px rgba(25, 87, 56, 0.18);
 }
 
+.kbCardTop {
+    height: 240px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top left, rgba(70, 185, 110, 0.24), transparent 42%),
+        linear-gradient(135deg, #e8f9ee 0%, #f7fff9 100%);
+}
+
 .kbCardMedia {
     height: 240px;
     overflow: hidden;
@@ -360,6 +382,13 @@
     color: #004d40;
     font-size: 1.3rem;
     line-height: 1.2;
+}
+
+.kbImgFallbackText {
+    margin: 12px 0 0;
+    color: #416557;
+    line-height: 1.6;
+    font-size: 0.95rem;
 }
 
 .kbCardInfo {
@@ -517,6 +546,14 @@
     margin-top: 4px;
 }
 
+.kbResultsCount {
+    margin: 4px 0 0;
+    text-align: center;
+    color: #628171;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
 .kbPaginationNumbers {
     display: flex;
     align-items: center;
@@ -662,6 +699,10 @@
         grid-template-columns: 1fr;
     }
 
+    .kbGrid {
+        grid-template-columns: 1fr;
+    }
+
     .kbCardMedia {
         height: 220px;
     }
@@ -710,6 +751,7 @@
 
 [data-theme='dark'] .kbHeading,
 [data-theme='dark'] .kbCardTitle,
+[data-theme='dark'] .kbSubheading,
 [data-theme='dark'] .kbImgFallbackTitle {
     color: #f2fff8;
 }
@@ -717,7 +759,9 @@
 [data-theme='dark'] .kbCardSummary,
 [data-theme='dark'] .kbLoading,
 [data-theme='dark'] .kbEmpty,
-[data-theme='dark'] .kbMetaText {
+[data-theme='dark'] .kbMetaText,
+[data-theme='dark'] .kbResultsCount,
+[data-theme='dark'] .kbImgFallbackText {
     color: #cad9cf;
 }
 

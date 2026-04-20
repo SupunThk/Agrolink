@@ -31,6 +31,7 @@ export default function KnowledgeBase() {
     const [selectedCrop, setSelectedCrop] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
 
     useEffect(() => {
         const fetchKnowledgeBase = async () => {
@@ -41,12 +42,18 @@ export default function KnowledgeBase() {
             try {
                 const [cropRes, articleRes] = await Promise.all([
                     fetchKnowledgeCropOptions(),
-                    axios.get("/knowledge"),
+                    axios.get("/knowledge", {
+                        params: {
+                            search: searchQuery.trim(),
+                            crop: selectedCrop,
+                        },
+                    }),
                 ]);
 
                 setCropOptions(["All", ...cropRes]);
                 setArticles(articleRes.data.articles || []);
                 setEmptyMessage(articleRes.data.emptyMessage || "No approved crop disease articles are available yet.");
+                setTotalCount(articleRes.data.totalCount || 0);
             } catch (err) {
                 console.error("Error fetching knowledge base:", err);
                 setError("Unable to load the crop disease information portal right now. Please make sure the backend server is running.");
@@ -56,46 +63,22 @@ export default function KnowledgeBase() {
         };
 
         fetchKnowledgeBase();
-    }, []);
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [selectedCrop, searchQuery]);
+    }, [searchQuery, selectedCrop]);
 
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
-    }, [currentPage]);
+    }, [currentPage, searchQuery, selectedCrop]);
 
-    const filteredArticles = useMemo(() => {
-        const normalizedSearch = searchQuery.trim().toLowerCase();
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedCrop]);
 
-        return articles.filter((article) => {
-            const cropName = article.diseaseId?.cropId?.name || "";
-            const diseaseName = article.diseaseId?.diseaseName || "";
-            const title = article.title || "";
-
-            const matchesCrop = selectedCrop === "All" || cropName === selectedCrop;
-            const matchesSearch =
-                normalizedSearch === "" ||
-                cropName.toLowerCase().includes(normalizedSearch) ||
-                diseaseName.toLowerCase().includes(normalizedSearch) ||
-                title.toLowerCase().includes(normalizedSearch);
-
-            return matchesCrop && matchesSearch;
-        });
-    }, [articles, searchQuery, selectedCrop]);
-
-    const totalPages = Math.max(Math.ceil(filteredArticles.length / PAGE_SIZE), 1);
+    const totalPages = Math.max(Math.ceil(articles.length / PAGE_SIZE), 1);
+    const pageNumbers = useMemo(() => Array.from({ length: totalPages }, (_, index) => index + 1), [totalPages]);
     const paginatedArticles = useMemo(() => {
         const startIndex = (currentPage - 1) * PAGE_SIZE;
-        return filteredArticles.slice(startIndex, startIndex + PAGE_SIZE);
-    }, [filteredArticles, currentPage]);
-
-    const pageNumbers = useMemo(
-        () => Array.from({ length: totalPages }, (_, index) => index + 1),
-        [totalPages]
-    );
-
+        return articles.slice(startIndex, startIndex + PAGE_SIZE);
+    }, [articles, currentPage]);
     const groupedArticles = useMemo(() => groupArticlesByCrop(paginatedArticles), [paginatedArticles]);
     const cropSections = useMemo(
         () => Object.entries(groupedArticles).sort(([cropA], [cropB]) => cropA.localeCompare(cropB)),
@@ -114,6 +97,16 @@ export default function KnowledgeBase() {
                             My Submissions
                         </Link>
                     )}
+                    {user?.isAdmin ? (
+                        <>
+                            <Link className="kbSecondaryButton" to="/knowledge-review">
+                                Review Submissions
+                            </Link>
+                            <Link className="kbSecondaryButton" to="/knowledge/admin/new">
+                                Add Approved Disease
+                            </Link>
+                        </>
+                    ) : null}
                     <Link className="kbAddButton" to="/add-disease">
                         + Add New Disease
                     </Link>
@@ -180,7 +173,7 @@ export default function KnowledgeBase() {
                 </div>
             ) : error ? (
                 <p className="kbEmpty">{error}</p>
-            ) : filteredArticles.length === 0 ? (
+            ) : articles.length === 0 ? (
                 <p className="kbEmpty">
                     {searchQuery.trim() || selectedCrop !== "All"
                         ? "No diseases found for your search"
@@ -235,7 +228,7 @@ export default function KnowledgeBase() {
                         </section>
                     ))}
 
-                    {filteredArticles.length > PAGE_SIZE ? (
+                    {articles.length > PAGE_SIZE ? (
                         <nav className="kbPagination" aria-label="Crop disease information portal pagination">
                             <button
                                 type="button"
@@ -270,6 +263,8 @@ export default function KnowledgeBase() {
                             </button>
                         </nav>
                     ) : null}
+
+                    {totalCount > 0 ? <p className="kbResultsCount">{totalCount} disease profiles found</p> : null}
                 </div>
             )}
         </div>

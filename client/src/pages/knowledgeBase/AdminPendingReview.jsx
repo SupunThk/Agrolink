@@ -86,6 +86,9 @@ export default function AdminPendingReview() {
                     </p>
                 </div>
                 <div className="kbHeroActions">
+                    <Link className="kbSecondaryButton" to="/knowledge/admin/new">
+                        Add Approved Disease
+                    </Link>
                     <Link className="kbSecondaryButton" to="/knowledge">
                         Back to Crop Disease Information Portal
                     </Link>
