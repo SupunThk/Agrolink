@@ -1,4 +1,4 @@
-﻿/* icon.css - Right Side Fixed Icon */
+/* icon.css - Right Side Fixed Icon */
 
 .icon {
     position: fixed;
@@ -62,7 +62,7 @@
     }
 }
 
-/* Slide In Animation - Right Side à¶‘à¶šà·™à¶±à·Š */
+/* Slide In Animation - Right Side එකෙන් */
 @keyframes slideInRight {
     from {
         opacity: 0;
@@ -105,10 +105,10 @@
     animation: slideInRight 0.6s ease-out, float 3s ease-in-out infinite, pulse 2s infinite;
 }
 
-/* Tooltip - Right Side à¶‘à¶šà·š */
+/* Tooltip - Right Side එකේ */
 .icon .tooltip {
     position: absolute;
-    right: 65px;  /* tooltip à¶‘à¶šà·š position à¶‘à¶š adjust à¶šà·…à· */
+    right: 65px;  /* tooltip එකේ position එක adjust කළා */
     background: #1e2b3a;
     color: white;
     padding: 6px 14px;
@@ -214,7 +214,7 @@
     }
     
     .icon .tooltip {
-        display: none; /* mobile à¶‘à¶šà·š tooltip à¶‘à¶š hide */
+        display: none; /* mobile එකේ tooltip එක hide */
     }
     
     @keyframes slideInRight {
@@ -307,4 +307,3 @@
     border: 2px solid white;
     box-shadow: 0 3px 8px rgba(255, 71, 87, 0.4);
 }
-

@@ -132,7 +132,7 @@
   transition: all var(--duration-zen) var(--ease-zen);
 }
 
-/* No cover â€” round all corners */
+/* No cover — round all corners */
 .writeCoverArea:not(:has(.writeCoverPreview, .writeCoverUpload)) + .writeEditor {
   border-radius: 24px;
 }
@@ -274,7 +274,7 @@
 }
 
 .writeCategorySelectWrap::after {
-  content: "â–¾";
+  content: "▾";
   position: absolute;
   right: 12px;
   top: 50%;
