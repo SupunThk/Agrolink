@@ -1,4 +1,4 @@
-﻿.productCard {
+.productCard {
   display: flex;
   flex-direction: column;
   background: var(--bg-card);
@@ -238,5 +238,3 @@ html[data-theme='dark'] .sellerName {
   background: #f44336;
   color: white;
 }
-
-

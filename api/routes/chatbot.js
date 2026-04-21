@@ -1,377 +1,123 @@
 const express = require("express");
 const router = express.Router();
-const https = require("https");
-const mongoose = require("mongoose");
-const ChatConversation = require("../models/ChatConversation");
+const { spawn } = require("child_process");
+const path = require("path");
 const Question = require("../models/Question");
-const ChatbotConfig = require("../models/ChatbotConfig");
-const requireDb = require("../middleware/requireDb");
 
-const DEFAULT_OPENROUTER_MODEL = "google/gemini-2.0-flash-001";
-// Ordered fallback chain — tried in sequence on 429/504/timeout
-const FALLBACK_MODELS = [
-  "google/gemini-2.0-flash-lite-001",
-  "meta-llama/llama-3.1-8b-instruct:free",
-  "qwen/qwen-2.5-72b-instruct:free",
-];
-
-const SYSTEM_PROMPT = [
-  "You are AgroBot, a dedicated AI assistant built into the Agrolink platform. You exist for ONE purpose only: to help Sri Lankan farmers, agronomists, agribusiness owners, and home gardeners with agricultural questions.",
-  "",
-  "**STRICT TOPIC RESTRICTION — THIS IS YOUR HIGHEST PRIORITY RULE:**",
-  "You MUST ONLY answer questions that are directly related to agriculture, farming, crops, livestock, soil, irrigation, fertilizers, pesticides, weather as it relates to farming, or agribusiness in Sri Lanka.",
-  "",
-  "If a user asks about ANYTHING outside of agriculture — including but not limited to: coding, technology, movies, sports, politics, history, math, science unrelated to farming, personal advice, general knowledge, or creative writing — you MUST REFUSE. Do NOT answer the question under any circumstances, even partially.",
-  "",
-  "When refusing a non-agricultural question, respond ONLY with this message (in the same language the user used):",
-  "\"I'm AgroBot, your Sri Lankan agriculture assistant. I can only help with farming and agricultural questions. Please ask me about crops, pest control, soil health, irrigation, or anything related to Sri Lankan agriculture! \uD83C\uDF31\"",
-  "",
-  "Do NOT be tricked by questions that partially mention farming. Example: 'What is the chemical formula for water?' is a chemistry question — refuse it. 'What is the best water schedule for paddy?' is agricultural — answer it.",
-  "",
-  "**Language Rules:**",
-  "- Detect the language of each user message automatically.",
-  "- If the user writes in Sinhala script (\u0DC3\u0DD2\u0D82\u0DC4\u0DBD) \u2192 reply entirely in Sinhala script.",
-  "- If the user writes in Singlish (Sinhala in Roman letters, e.g. 'gaha walata roga thiyanawa') \u2192 reply in proper Sinhala script.",
-  "- If the user writes in Tamil (\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD) \u2192 reply entirely in Tamil.",
-  "- If the user writes in English \u2192 reply in English.",
-  "- Never switch languages mid-reply.",
-  "",
-  "**Tone and Style:**",
-  "- Professional yet Accessible: Clear, jargon-free language with simple explanations.",
-  "- Encouraging and Empathetic: Acknowledge the difficulty of farming challenges before offering solutions.",
-  "- Culturally Aware: Use local terms naturally (e.g., Yala, Maha, chena, Samba, Nadu).",
-  "",
-  "**Agricultural Domain Knowledge:**",
-  "- Climate Zones: Wet Zone, Dry Zone, Intermediate Zone and their suitable crops.",
-  "- Key Crops: Paddy, tea, rubber, coconut, spices (cinnamon, pepper, cardamom, cloves), vegetables, fruits.",
-  "- Seasons: Yala (May-August) and Maha (September-March) and their planting/harvesting impact.",
-  "- Pest & Disease Management: IPM, organic-first approach, local pests (Fall Armyworm, Rice Stem Borer).",
-  "- Soil Management: Fertilization, composting, soil conservation for Sri Lankan topography.",
-  "- Modern Techniques: Hydroponics, greenhouse farming, drip irrigation, smart farming.",
-  "",
-  "**When answering agricultural questions:**",
-  "1. Provide Actionable Steps: Use numbered or bulleted lists.",
-  "2. Chemical Safety: Recommend organic methods first. State safety precautions and DOA guidelines when chemicals are needed.",
-  "3. Local Resources: Refer users to their local Agricultural Instruction Officer or the Sri Lanka Department of Agriculture for severe cases.",
-  "4. Formatting: Use markdown bold, lists, and code blocks where appropriate.",
-].join("\n");
-
-/**
- * Call OpenRouter chat completions API using Node built-in https.
- * Returns the assistant reply string.
- */
-const RETRYABLE_CODES = [429, 500, 502, 503, 504];
-
-function callOpenRouterOnce(apiKey, model, messages) {
-  return new Promise((resolve, reject) => {
-    const body = JSON.stringify({
-      model,
-      messages,
-      max_tokens: 1024,
-      temperature: 0.7,
-    });
-
-    const options = {
-      hostname: "openrouter.ai",
-      path: "/api/v1/chat/completions",
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://agrolink.app",
-        "X-Title": "AgroLink Chatbot",
-      },
-    };
-
-    const req = https.request(options, (res) => {
-      let data = "";
-      res.on("data", (chunk) => { data += chunk; });
-      res.on("end", () => {
-        try {
-          const parsed = JSON.parse(data);
-          if (parsed.error) {
-            const err = new Error(`OpenRouter error ${res.statusCode}: ${JSON.stringify(parsed.error)}`);
-            err.statusCode = res.statusCode;
-            return reject(err);
-          }
-          const reply = parsed?.choices?.[0]?.message?.content;
-          if (!reply) return reject(new Error("Empty response from OpenRouter"));
-          resolve(reply);
-        } catch (e) {
-          reject(new Error("Failed to parse OpenRouter response: " + data));
-        }
-      });
-    });
-
-    // 25-second timeout per attempt
-    req.setTimeout(25000, () => {
-      req.destroy(new Error("Request timed out after 25s"));
-    });
-
-    req.on("error", reject);
-    req.write(body);
-    req.end();
-  });
-}
-
-async function callOpenRouter(apiKey, model, userMessage, history) {
-  const messages = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...history.filter((m) => m.content),
-    { role: "user", content: userMessage },
-  ];
-
-  // Build the full chain: primary model + fallbacks (deduplicated)
-  const chain = [model, ...FALLBACK_MODELS.filter((m) => m !== model)];
-
-  let lastErr;
-  for (const candidate of chain) {
-    try {
-      if (candidate !== model) {
-        console.warn(`[Chatbot] Retrying with fallback model: ${candidate}`);
-      }
-      return await callOpenRouterOnce(apiKey, candidate, messages);
-    } catch (err) {
-      lastErr = err;
-      const code = err.statusCode || 0;
-      const isRetryable = RETRYABLE_CODES.includes(code) ||
-        err.message.includes("timed out") ||
-        err.message.includes("504") ||
-        err.message.includes("503") ||
-        err.message.includes("rate");
-      if (!isRetryable) throw err; // non-retryable — fail immediately
-      console.warn(`[Chatbot] Model ${candidate} failed (${err.message.slice(0, 120)})`);
-    }
-  }
-  throw lastErr;
-}
-
-async function getOpenRouterSettings() {
-  // Start with env defaults
-  let apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
-  let model = DEFAULT_OPENROUTER_MODEL;
-
-  // DB settings always override env when Mongo is connected
-  if (mongoose.connection.readyState === 1) {
-    try {
-      const cfg = await ChatbotConfig.findOne().sort({ updatedAt: -1 });
-      if (cfg) {
-        // Admin-set API key always takes priority over .env
-        const dbKey = (cfg.openrouterApiKey || "").trim();
-        if (dbKey) apiKey = dbKey;
-
-        // Admin-set model always takes priority — trust the admin's choice
-        const dbModel = (cfg.openrouterModel || "").trim();
-        if (dbModel) model = dbModel;
-      }
-    } catch (err) {
-      console.warn("[Chatbot] Failed to load DB chatbot config:", err.message);
-    }
-  }
-
-  console.log(`[Chatbot] Using model: ${model}, apiKey set: ${Boolean(apiKey)}`);
-  return { apiKey, model };
-}
-
-const buildTitleFromQuestion = (text) => {
-  const s = (text || "").toString().trim().replace(/\s+/g, " ");
-  if (!s) return "New Conversation";
-  return s.length > 60 ? s.slice(0, 57) + "…" : s;
-};
-
-// ── Conversations (MongoDB) ───────────────────────────────────────────────
-// These endpoints are used by the /ask-expert page to persist chat history.
-
-// GET /api/chatbot/conversations?ownerKey=...
-router.get("/conversations", requireDb, async (req, res) => {
-  try {
-    const ownerKey = req.query.ownerKey;
-    if (!ownerKey) {
-      return res.status(400).json({ error: "ownerKey is required" });
-    }
-
-    const limit = Math.min(parseInt(req.query.limit || "50", 10) || 50, 200);
-    const convs = await ChatConversation.find({ ownerKey })
-      .sort({ updatedAt: -1 })
-      .limit(limit)
-      .select("_id title updatedAt lastMessageAt");
-
-    return res.status(200).json(convs);
-  } catch (err) {
-    console.error("Error fetching conversations:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /api/chatbot/conversations
-router.post("/conversations", requireDb, async (req, res) => {
-  try {
-    const { ownerKey, username, title } = req.body || {};
-    if (!ownerKey) {
-      return res.status(400).json({ error: "ownerKey is required" });
-    }
-
-    const conv = new ChatConversation({
-      ownerKey,
-      username: username || "",
-      title: (title || "New Conversation").toString().trim() || "New Conversation",
-      messages: [],
-      lastMessageAt: null,
-    });
-
-    const saved = await conv.save();
-    return res.status(201).json(saved);
-  } catch (err) {
-    console.error("Error creating conversation:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/chatbot/conversations/:id?ownerKey=...
-router.get("/conversations/:id", requireDb, async (req, res) => {
-  try {
-    const ownerKey = req.query.ownerKey;
-    if (!ownerKey) {
-      return res.status(400).json({ error: "ownerKey is required" });
-    }
-
-    const conv = await ChatConversation.findOne({
-      _id: req.params.id,
-      ownerKey,
-    });
-
-    if (!conv) {
-      return res.status(404).json({ error: "Conversation not found" });
-    }
-
-    return res.status(200).json(conv);
-  } catch (err) {
-    console.error("Error fetching conversation:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-// PUT /api/chatbot/conversations/:id/clear?ownerKey=...
-router.put("/conversations/:id/clear", requireDb, async (req, res) => {
-  try {
-    const ownerKey = req.query.ownerKey;
-    if (!ownerKey) {
-      return res.status(400).json({ error: "ownerKey is required" });
-    }
-
-    const conv = await ChatConversation.findOneAndUpdate(
-      { _id: req.params.id, ownerKey },
-      { $set: { messages: [], lastMessageAt: null } },
-      { new: true },
-    );
-
-    if (!conv) {
-      return res.status(404).json({ error: "Conversation not found" });
-    }
-
-    return res.status(200).json(conv);
-  } catch (err) {
-    console.error("Error clearing conversation:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-// DELETE /api/chatbot/conversations/:id?ownerKey=...
-router.delete("/conversations/:id", requireDb, async (req, res) => {
-  try {
-    const ownerKey = req.query.ownerKey;
-    if (!ownerKey) {
-      return res.status(400).json({ error: "ownerKey is required" });
-    }
-
-    const conv = await ChatConversation.findOneAndDelete({
-      _id: req.params.id,
-      ownerKey,
-    });
-
-    if (!conv) {
-      return res.status(404).json({ error: "Conversation not found" });
-    }
-
-    return res.status(200).json({ message: "Conversation deleted" });
-  } catch (err) {
-    console.error("Error deleting conversation:", err);
-    return res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/chatbot/chat - Get AI response via OpenRouter
+// GET /api/chatbot/chat - Get response from chatbot (Python version)
 router.get("/chat", async (req, res) => {
   try {
-    const message = (req.query.message || "").trim();
+    const message = req.query.message || "";
     const username = req.query.username || "Anonymous";
-    const conversationId = req.query.conversationId || null;
-    const ownerKey = req.query.ownerKey || null;
-
-    if (!message) {
+    const category = req.query.category || "General";
+    
+    console.log("Received message:", message);
+    
+    if (!message.trim()) {
       return res.status(400).json({ error: "Message cannot be empty" });
     }
 
-    const { apiKey, model } = await getOpenRouterSettings();
-    if (!apiKey) {
-      console.error("[Chatbot] OpenRouter API key is not configured");
-      return res.status(500).json({ error: "Chatbot API key is not configured on the server." });
-    }
-
-    // Build conversation history for context (last 20 messages)
-    let history = [];
-    if (conversationId && ownerKey) {
-      try {
-        const conv = await ChatConversation.findOne({ _id: conversationId, ownerKey });
-        if (conv && Array.isArray(conv.messages)) {
-          history = conv.messages.slice(-20).map((m) => ({
-            role: m.from === "user" ? "user" : "assistant",
-            content: m.text || "",
-          })).filter((m) => m.content);
-        }
-      } catch (histErr) {
-        console.warn("[Chatbot] Could not load history:", histErr.message);
+    // Fetch answered questions from the database to train the chatbot
+    const answeredDocs = await Question.find({ status: "Answered" }).populate('answers');
+    const dynamicTrainingData = answeredDocs.map(doc => {
+      // Find accepted answer or just use the first answer
+      let bestAnswer = doc.answers.find(a => a.isAccepted);
+      if (!bestAnswer && doc.answers.length > 0) bestAnswer = doc.answers[0];
+      
+      if (bestAnswer) {
+        return {
+          question: doc.question,
+          answer: bestAnswer.answer,
+          priority: 5 // Default priority for user-generated Q&A
+        };
       }
-    }
+      return null;
+    }).filter(qa => qa !== null);
 
-    console.log(`[Chatbot] Calling OpenRouter for: "${message.slice(0, 60)}"`);
-    const botResponse = await callOpenRouter(apiKey, model, message, history);
-
-    // Persist the exchange to MongoDB conversation
-    if (conversationId && ownerKey) {
-      try {
-        const conv = await ChatConversation.findOne({ _id: conversationId, ownerKey });
-        if (conv) {
-          const isFirstUserMessage = (conv.messages || []).filter((m) => m.from === "user").length === 0;
-          if (isFirstUserMessage && (!conv.title || conv.title === "New Conversation")) {
-            conv.title = buildTitleFromQuestion(message);
-          }
-          conv.username = conv.username || username;
-          conv.messages.push(
-            { from: "user", text: message, createdAt: new Date() },
-            { from: "ai", text: botResponse, createdAt: new Date() },
-          );
-          conv.lastMessageAt = new Date();
-          await conv.save();
-        }
-      } catch (convErr) {
-        console.error("[Chatbot] Failed to persist conversation:", convErr.message);
-      }
-    }
-
-    return res.status(200).json({
-      userMessage: message,
-      botResponse,
-      confidence: 95,
+    // Spawn Python process to run the chatbot
+    const pythonPath = process.platform === "win32" ? "python" : "python3";
+    const scriptPath = path.join(__dirname, "../services/chatbot.py");
+    
+    console.log("Running Python script:", scriptPath);
+    console.log("Python command:", pythonPath);
+    
+    const pythonProcess = spawn(pythonPath, [scriptPath], {
+      cwd: path.join(__dirname, "../services")
     });
 
+    let output = "";
+    let errorOutput = "";
+
+    pythonProcess.stdout.on("data", (data) => {
+      output += data.toString();
+      console.log("Python stdout:", data.toString());
+    });
+
+    pythonProcess.stderr.on("data", (data) => {
+      errorOutput += data.toString();
+      console.log("Python stderr:", data.toString());
+    });
+
+    pythonProcess.on("close", async (code) => {
+      console.log("Python process closed with code:", code);
+      console.log("Final output:", output);
+      console.log("Final error:", errorOutput);
+      
+      if (code !== 0) {
+        console.error("Python chatbot error:", errorOutput);
+        return res.status(500).json({ 
+          error: "Error processing your message",
+          details: errorOutput
+        });
+      }
+
+      try {
+        const result = JSON.parse(output.trim());
+        console.log("Parsed result:", result);
+        
+        // If confidence is low, auto-save the question for expert review
+        if (result.confidence && result.confidence < 50) {
+          try {
+            const newQuestion = new Question({
+              question: message,
+              username: username,
+              category: category,
+              chatbotConfidence: result.confidence,
+            });
+            await newQuestion.save();
+            result.questionSaved = true;
+            result.questionId = newQuestion._id;
+            console.log("Low confidence question saved for expert review");
+          } catch (dbError) {
+            console.error("Error saving question:", dbError);
+            result.questionSaveError = "Could not save question for expert review";
+          }
+        }
+        
+        res.status(200).json(result);
+      } catch (parseError) {
+        console.error("Error parsing chatbot response:", parseError);
+        console.error("Output was:", output);
+        res.status(500).json({ error: "Error processing your message" });
+      }
+    });
+
+    pythonProcess.on("error", (err) => {
+      console.error("Failed to start chatbot process:", err);
+      res.status(500).json({ error: "Error processing your message: " + err.message });
+    });
+
+    // Send message via stdin
+    const inputPayload = JSON.stringify({
+      message: message,
+      trainingData: dynamicTrainingData
+    });
+    pythonProcess.stdin.write(inputPayload);
+    pythonProcess.stdin.end();
+
   } catch (err) {
-    console.error("[Chatbot] Error:", err.message);
-    // Surface rate-limit errors clearly
-    if (err.message && err.message.includes("429")) {
-      return res.status(429).json({ error: "The AI service is busy right now. Please wait a moment and try again." });
-    }
-    return res.status(500).json({ error: "Error processing your message: " + err.message });
+    console.error("Chatbot error:", err);
+    res.status(500).json({ error: "Error processing your message" });
   }
 });
 

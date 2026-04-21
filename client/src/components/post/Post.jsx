@@ -2,7 +2,6 @@ import "./post.css"
 import { Link } from "react-router-dom"
 
 const PF = "http://localhost:5000/images/";
-
 // Handle both local filenames and any old Cloudinary URLs already in the DB
 const getPhotoSrc = (src) =>
   src && (src.startsWith("http://") || src.startsWith("https://")) ? src : PF + src;
@@ -13,35 +12,29 @@ const stripHtml = (html) => {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 };
 
-export default function Post({ post, showStatus = false }) {
+export default function Post({ post }) {
   return (
-    <div className="postCard">
-      {/* ── Image Block ── */}
-      <div className="postCardImageWrapper">
+    <div className="post">
+      {/* Image */}
+      <div className="postImgWrapper">
         {post.photo ? (
-          <img className="postCardImage" src={getPhotoSrc(post.photo)} alt={post.title} />
+          <img className="postImg" src={getPhotoSrc(post.photo)} alt={post.title} />
         ) : (
-          <div className="postCardImagePlaceholder">
+          <div className="postImgPlaceholder">
             <i className="fas fa-leaf"></i>
           </div>
         )}
+        <div className="postImgOverlay"></div>
         {post.categories?.length > 0 && (
-          <span className="postCardCategory">{post.categories[0]}</span>
-        )}
-        {showStatus && post.status && (
-          <span className={`postCardStatusBadge postStatus-${post.status.toLowerCase()}`}>
-            {post.status}
-          </span>
+          <span className="postCatBadge">{post.categories[0]}</span>
         )}
       </div>
 
-      {/* ── Content Block ── */}
-      <div className="postCardContent">
-
-        {/* Author Meta */}
-        <div className="postCardMeta">
-          <div className="postCardAuthor">
-            <div className="postCardAvatar">
+      {/* Content */}
+      <div className="postInfo">
+        <div className="postMeta">
+          <div className="postAuthorPill">
+            <div className="postAuthorAvatar">
               {post.authorPic ? (
                 <img
                   src={
@@ -50,7 +43,7 @@ export default function Post({ post, showStatus = false }) {
                       : PF + post.authorPic
                   }
                   alt={post.username}
-                  className="postCardAvatarImg"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
                   onError={(e) => {
                     e.target.style.display = "none";
                     e.target.nextSibling && (e.target.nextSibling.style.display = "flex");
@@ -58,13 +51,13 @@ export default function Post({ post, showStatus = false }) {
                 />
               ) : null}
               <i
-                className="fas fa-user postCardAvatarFallback"
-                style={{ display: post.authorPic ? "none" : "flex" }}
+                className="fas fa-user"
+                style={{ display: post.authorPic ? "none" : "block" }}
               ></i>
             </div>
-            <span className="postCardAuthorName">{post.username}</span>
+            <span className="postAuthorName">{post.username}</span>
           </div>
-          <span className="postCardDate">
+          <span className="postDate">
             {new Date(post.createdAt).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -73,19 +66,15 @@ export default function Post({ post, showStatus = false }) {
           </span>
         </div>
 
-        {/* Title */}
-        <Link to={`/post/${post._id}`} className="postCardTitleLink">
-          <h3 className="postCardTitle">{post.title}</h3>
+        <Link to={`/post/${post._id}`} className="link">
+          <h3 className="postTitle">{post.title}</h3>
         </Link>
 
-        {/* Description */}
-        <p className="postCardDesc">{stripHtml(post.desc)}</p>
+        <p className="postDesc">{stripHtml(post.desc)}</p>
 
-        {/* Read Article (Anchors to bottom) */}
-        <Link to={`/post/${post._id}`} className="postCardReadMore">
-          READ ARTICLE <i className="fas fa-arrow-right"></i>
+        <Link to={`/post/${post._id}`} className="link postReadMore">
+          Read Article <i className="fas fa-arrow-right"></i>
         </Link>
-
       </div>
     </div>
   )

@@ -5,7 +5,7 @@ const User = require("../models/User");
 // ✅ CREATE EVENT
 router.post("/", async (req, res) => {
     try {
-        const { title, date, location, description, userId, geo } = req.body;
+        const { title, date, location, description, userId } = req.body;
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized: Missing user ID" });
@@ -19,15 +19,10 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ message: "Title and date are required" });
         }
 
-        const lat = geo && geo.lat !== undefined && geo.lat !== null ? Number(geo.lat) : null;
-        const lng = geo && geo.lng !== undefined && geo.lng !== null ? Number(geo.lng) : null;
-        const hasGeo = Number.isFinite(lat) && Number.isFinite(lng);
-
         const newEvent = new Event({
             title,
             date,
             location,
-            geo: hasGeo ? { lat, lng } : { lat: null, lng: null },
             description,
         });
 
@@ -57,11 +52,6 @@ router.post("/:id/register", async (req, res) => {
 
         if (!name || !phone) {
             return res.status(400).json({ message: "Name and phone are required" });
-        }
-
-        // Validate phone: only 10 digits
-        if (!/^\d{10}$/.test(String(phone).trim())) {
-            return res.status(400).json({ message: "Phone number must be exactly 10 digits" });
         }
 
         const event = await Event.findById(req.params.id);
@@ -99,7 +89,7 @@ router.post("/:id/register", async (req, res) => {
 // ✅ UPDATE EVENT
 router.put("/:id", async (req, res) => {
     try {
-        const { userId, geo, ...updateData } = req.body;
+        const { userId, ...updateData } = req.body;
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized: Missing user ID" });
@@ -107,13 +97,6 @@ router.put("/:id", async (req, res) => {
         const user = await User.findById(userId);
         if (!user || (!user.isAdmin && user.role !== "expert")) {
             return res.status(403).json({ message: "Forbidden: Only admins and experts can update events" });
-        }
-
-        if (geo !== undefined) {
-            const lat = geo && geo.lat !== undefined && geo.lat !== null ? Number(geo.lat) : null;
-            const lng = geo && geo.lng !== undefined && geo.lng !== null ? Number(geo.lng) : null;
-            const hasGeo = Number.isFinite(lat) && Number.isFinite(lng);
-            updateData.geo = hasGeo ? { lat, lng } : { lat: null, lng: null };
         }
 
         const updatedEvent = await Event.findByIdAndUpdate(

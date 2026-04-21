@@ -1,4 +1,4 @@
-﻿.logoContainer {
+.logoContainer {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -105,5 +105,3 @@
 .logoIconWrapper {
   animation: leafFloat 3s ease-in-out infinite;
 }
-
-

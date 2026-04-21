@@ -211,11 +211,6 @@ router.put("/:id", async (req, res) => {
       }
 
       try {
-        // Enforce re-approval on user edits
-        req.body.status = "Pending";
-        req.body.rejectionReason = "";
-        req.body.flagged = false;
-
         const updatedPost = await Post.findByIdAndUpdate(
           req.params.id,
           {

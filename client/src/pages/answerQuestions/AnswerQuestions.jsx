@@ -19,9 +19,6 @@ export default function AnswerQuestions() {
   const [newQA, setNewQA] = useState({ category: "", question: "", answer: "" });
   const { user } = useContext(Context);
 
-  const displayName =
-    user?.username?.trim() || user?.name?.trim() || user?.email?.trim() || "Guest";
-
   const [activeStatus, setActiveStatus] = useState('Pending');
   const [activeCategory, setActiveCategory] = useState('All');
   const [loading, setLoading] = useState(false);
@@ -64,7 +61,7 @@ export default function AnswerQuestions() {
 
     try {
       await axios.put(`/questions/${qId}/answer`, {
-        username: displayName,
+        username: user.username,
         answer: answerContent,
         isAccepted: true
       });
@@ -72,7 +69,7 @@ export default function AnswerQuestions() {
       // Update question status locally to instantly reflect the change
       setQuestions(questions.map(q =>
         q._id === qId
-          ? { ...q, status: "Answered", answers: [...q.answers, { username: displayName, answer: answerContent, isAccepted: true, createdAt: new Date() }] }
+          ? { ...q, status: "Answered", answers: [...q.answers, { username: user.username, answer: answerContent, isAccepted: true, createdAt: new Date() }] }
           : q
       ));
       setAnswers({ ...answers, [qId]: "" });
@@ -105,7 +102,7 @@ export default function AnswerQuestions() {
 
     try {
       await axios.post("/questions/training-pair", {
-        username: displayName,
+        username: user.username,
         question: newQA.question,
         answer: newQA.answer,
         category: newQA.category || "General",

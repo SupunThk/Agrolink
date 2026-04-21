@@ -95,7 +95,7 @@ const UserTable = () => {
   // Map DB users to table-friendly shape
   const mappedUsers = users.map((u) => ({
     _id: u._id,
-    username: u.name || u.username || 'Unknown',
+    username: u.username || 'Unknown',
     email: u.email || '—',
     role: u.isAdmin ? 'Admin' : u.role === 'expert' ? 'Expert' : 'User',
     status: u.active === false ? 'Deactivated' : u.role === 'expert' && !u.approved ? 'Pending' : getUserStatus(u),

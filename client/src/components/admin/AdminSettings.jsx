@@ -53,7 +53,7 @@ const btnPrimary = {
    Component
    ═══════════════════════════════════════════════════════════════════════════ */
 const AdminSettings = () => {
-  const { user, dispatch, sessionTimeoutEnabled, setSessionTimeoutEnabled } = useContext(Context);
+  const { user, dispatch } = useContext(Context);
   const { toast, ToastContainer } = useToast();
 
   /* ── DB status ─────────────────────────────────────────────────────────── */
@@ -76,64 +76,6 @@ const AdminSettings = () => {
   };
 
   useEffect(() => { fetchDbStatus(); }, []);
-
-  /* ── Chatbot settings ─────────────────────────────────────────────────── */
-  const [chatbotProvider, setChatbotProvider] = useState('openrouter');
-  const [chatbotModel, setChatbotModel] = useState('meta-llama/llama-3.3-70b-instruct:free');
-  const [chatbotApiKey, setChatbotApiKey] = useState('');
-  const [chatbotHasApiKey, setChatbotHasApiKey] = useState(false);
-  const [chatbotLoading, setChatbotLoading] = useState(false);
-  const [chatbotSaving, setChatbotSaving] = useState(false);
-  const [showChatbotKey, setShowChatbotKey] = useState(false);
-
-  const fetchChatbotSettings = async () => {
-    if (!user?._id) return;
-    setChatbotLoading(true);
-    try {
-      const res = await axios.get('/admin/chatbot-settings', { params: { userId: user._id } });
-      setChatbotProvider(res.data?.provider || 'openrouter');
-      setChatbotModel(res.data?.model || 'meta-llama/llama-3.3-70b-instruct:free');
-      setChatbotHasApiKey(!!res.data?.hasApiKey);
-    } catch (err) {
-      const msg = err.response?.data?.error;
-      toast.error(msg || 'Failed to load chatbot settings');
-    } finally {
-      setChatbotLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user?._id) fetchChatbotSettings();
-  }, [user?._id]);
-
-  const handleSaveChatbotSettings = async (e) => {
-    e.preventDefault();
-    if (!user?._id) return;
-    if (!chatbotModel.trim()) {
-      toast.error('Please enter a model');
-      return;
-    }
-
-    setChatbotSaving(true);
-    try {
-      const payload = {
-        userId: user._id,
-        provider: chatbotProvider,
-        model: chatbotModel.trim(),
-      };
-      if (chatbotApiKey.trim()) payload.apiKey = chatbotApiKey.trim();
-
-      const res = await axios.put('/admin/chatbot-settings', payload);
-      setChatbotHasApiKey(!!res.data?.hasApiKey);
-      setChatbotApiKey('');
-      toast.success('Chatbot settings saved');
-    } catch (err) {
-      const msg = err.response?.data?.error;
-      toast.error(msg || 'Failed to save chatbot settings');
-    } finally {
-      setChatbotSaving(false);
-    }
-  };
 
   /* ── Create Admin Account ───────────────────────────────────────────────── */
   const [adminUsername, setAdminUsername] = useState('');
@@ -208,7 +150,7 @@ const AdminSettings = () => {
   const [picLoading, setPicLoading] = useState(false);
 
   const currentPic = user?.profilePic
-    ? user.profilePic
+    ? (user.profilePic.startsWith('http') ? user.profilePic : `/images/${user.profilePic}`)
     : null;
 
   const handleFileSelect = (e) => {
@@ -220,30 +162,26 @@ const AdminSettings = () => {
     setPreview(URL.createObjectURL(file));
   };
 
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
   const handlePicUpload = async () => {
     if (!picFile) return;
     setPicLoading(true);
     try {
-      // Convert file to Base64
-      const profilePic = await convertToBase64(picFile);
+      const data = new FormData();
+      data.append('file', picFile);
+      data.append('folder', 'agrolink/profiles');
+      const uploadRes = await axios.post('/upload', data);
+      const profilePic = uploadRes.data?.secure_url || uploadRes.data?.url;
+      if (!profilePic) {
+        throw new Error('Missing uploaded image URL');
+      }
 
-      // Update user profile with Base64 image
+      // Update user profile
       await axios.put('/users/' + user._id, { userId: user._id, profilePic });
       dispatch({ type: 'UPDATE_SUCCESS', payload: { ...user, profilePic } });
       toast.success('Profile picture updated');
       setPicFile(null);
       setPreview(null);
-    } catch (err) {
-      console.error('Failed to upload profile picture:', err);
+    } catch {
       toast.error('Failed to upload profile picture');
     } finally {
       setPicLoading(false);
@@ -270,72 +208,6 @@ const AdminSettings = () => {
   /* ═══════════════════════════════════════════════════════════════════════ */
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-
-      {/* ── 0. Session Timeout ─────────────────────────────────────────── */}
-      <div style={{ ...sectionCard, animationDelay: '0s' }}>
-        <div style={sectionHeader}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-            background: 'rgba(16,185,129,0.10)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Shield size={18} style={{ color: 'var(--emerald-600)' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--slate-900)' }}>
-              Session Timeout
-            </h3>
-            <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
-              Enable inactivity warning and auto logout for all users
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSessionTimeoutEnabled(!sessionTimeoutEnabled)}
-            style={{
-              padding: '7px 14px', borderRadius: 999,
-              border: '1px solid',
-              borderColor: sessionTimeoutEnabled ? 'var(--emerald-600)' : 'var(--glass-border)',
-              background: sessionTimeoutEnabled ? 'rgba(16,185,129,0.12)' : 'var(--bg-surface)',
-              color: sessionTimeoutEnabled ? 'var(--emerald-700)' : 'var(--slate-600)',
-              fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            title="Toggle session timeout"
-          >
-            {sessionTimeoutEnabled ? 'Enabled' : 'Disabled'}
-          </button>
-        </div>
-        <div style={sectionBody}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-            padding: 14, borderRadius: 14,
-            border: '1px solid var(--glass-border)',
-            background: 'var(--bg-surface)',
-          }}>
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: 'var(--slate-800)' }}>
-                Inactivity-based logout
-              </div>
-              <div style={{ marginTop: 4, fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
-                When enabled, inactive sessions show a warning and then log out automatically.
-              </div>
-            </div>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 700, color: 'var(--slate-600)' }}>
-                {sessionTimeoutEnabled ? 'On' : 'Off'}
-              </span>
-              <input
-                type="checkbox"
-                checked={!!sessionTimeoutEnabled}
-                onChange={(e) => setSessionTimeoutEnabled(e.target.checked)}
-                style={{ width: 18, height: 18, accentColor: 'var(--emerald-600)', cursor: 'pointer' }}
-              />
-            </label>
-          </div>
-        </div>
-      </div>
 
       {/* ── 1. Database Status ──────────────────────────────────────────── */}
       <div style={{ ...sectionCard, animationDelay: '0s' }}>
@@ -458,163 +330,6 @@ const AdminSettings = () => {
                 ))}
               </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── 2. Chatbot Settings ───────────────────────────────────────── */}
-      <div style={{ ...sectionCard, animationDelay: '0.06s' }}>
-        <div style={sectionHeader}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-            background: 'rgba(99,102,241,0.10)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Lock size={18} style={{ color: '#6366f1' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, color: 'var(--slate-900)' }}>
-              Chatbot
-            </h3>
-            <p style={{ margin: '2px 0 0', fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
-              Add API key and set the chatbot model
-            </p>
-          </div>
-          <button
-            onClick={fetchChatbotSettings}
-            disabled={chatbotLoading || !user?._id}
-            style={{
-              padding: '7px 14px', borderRadius: 10, border: '1px solid var(--glass-border)',
-              background: 'var(--bg-surface)', cursor: (chatbotLoading || !user?._id) ? 'not-allowed' : 'pointer',
-              fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600,
-              color: 'var(--slate-600)', display: 'flex', alignItems: 'center', gap: 6,
-              transition: 'all 0.2s', opacity: (chatbotLoading || !user?._id) ? 0.6 : 1,
-            }}
-            onMouseEnter={e => { if (!chatbotLoading && user?._id) e.currentTarget.style.background = 'var(--slate-200)'; }}
-            onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-surface)'}
-          >
-            <RefreshCw size={13} style={{
-              transition: 'transform 0.4s',
-              transform: chatbotLoading ? 'rotate(360deg)' : 'none',
-            }} />
-            Refresh
-          </button>
-        </div>
-
-        <div style={sectionBody}>
-          {chatbotLoading ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12 }}>
-              <Loader size={18} style={{ animation: 'spin 1s linear infinite', color: 'var(--emerald-600)' }} />
-              <span style={{ fontFamily: 'var(--font-body)', color: 'var(--slate-500)', fontSize: 13 }}>Loading chatbot settings...</span>
-            </div>
-          ) : (
-            <form onSubmit={handleSaveChatbotSettings} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-                padding: 14, borderRadius: 14,
-                border: '1px solid var(--glass-border)',
-                background: 'var(--bg-surface)',
-              }}>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: 'var(--slate-800)' }}>
-                    OpenRouter status
-                  </div>
-                  <div style={{ marginTop: 4, fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--slate-500)' }}>
-                    API key is {chatbotHasApiKey ? 'configured' : 'not configured'}
-                  </div>
-                </div>
-                <div style={{
-                  padding: '6px 12px', borderRadius: 999,
-                  border: '1px solid',
-                  borderColor: chatbotHasApiKey ? 'var(--emerald-600)' : 'var(--glass-border)',
-                  background: chatbotHasApiKey ? 'rgba(16,185,129,0.12)' : 'var(--bg-surface)',
-                  color: chatbotHasApiKey ? 'var(--emerald-700)' : 'var(--slate-600)',
-                  fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 700,
-                }}>
-                  {chatbotHasApiKey ? 'Ready' : 'Needs Key'}
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={label}>Chatbot Provider</label>
-                  <select
-                    value={chatbotProvider}
-                    onChange={(e) => setChatbotProvider(e.target.value)}
-                    style={inputStyle}
-                  >
-                    <option value="openrouter">OpenRouter</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={label}>Model</label>
-                  <select
-                    value={chatbotModel}
-                    onChange={(e) => setChatbotModel(e.target.value)}
-                    style={inputStyle}
-                  >
-                    <optgroup label="── Free Models ──">
-                      <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Free) ⭐</option>
-                      <option value="openai/gpt-oss-120b:free">OpenAI GPT-OSS 120B (Free)</option>
-                      <option value="openai/gpt-oss-20b:free">OpenAI GPT-OSS 20B (Free)</option>
-                      <option value="google/gemma-4-31b-it:free">Gemma 4 31B (Free)</option>
-                      <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B MoE (Free)</option>
-                      <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron 3 Super 120B (Free)</option>
-                      <option value="nvidia/nemotron-3-nano-30b-a3b:free">Nemotron 3 Nano 30B (Free)</option>
-                      <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B (Free)</option>
-                    </optgroup>
-                    <optgroup label="── Paid Models ──">
-                      <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash ⭐</option>
-                      <option value="google/gemini-2.0-flash-lite-001">Gemini 2.0 Flash Lite</option>
-                      <option value="google/gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
-                    </optgroup>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label style={label}>OpenRouter API Key</label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    value={chatbotApiKey}
-                    onChange={(e) => setChatbotApiKey(e.target.value)}
-                    type={showChatbotKey ? 'text' : 'password'}
-                    style={{ ...inputStyle, paddingRight: 44 }}
-                    placeholder={chatbotHasApiKey ? 'Enter new key to replace…' : 'Enter API key…'}
-                    autoComplete="off"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowChatbotKey(!showChatbotKey)}
-                    style={{
-                      position: 'absolute', top: 0, right: 0, height: '100%',
-                      width: 44, border: 'none', background: 'transparent',
-                      cursor: 'pointer', color: 'var(--slate-500)'
-                    }}
-                    title={showChatbotKey ? 'Hide key' : 'Show key'}
-                  >
-                    {showChatbotKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button
-                  type="submit"
-                  disabled={chatbotSaving || !user?._id}
-                  style={{ ...btnPrimary, opacity: (chatbotSaving || !user?._id) ? 0.7 : 1 }}
-                  onMouseEnter={e => { if (!chatbotSaving && user?._id) e.currentTarget.style.filter = 'brightness(1.1)'; }}
-                  onMouseLeave={e => e.currentTarget.style.filter = 'none'}
-                >
-                  {chatbotSaving ? (
-                    <Loader size={14} style={{ animation: 'spin 0.6s linear infinite' }} />
-                  ) : (
-                    <Save size={14} />
-                  )}
-                  {chatbotSaving ? 'Saving...' : 'Save Settings'}
-                </button>
-              </div>
-            </form>
           )}
         </div>
       </div>

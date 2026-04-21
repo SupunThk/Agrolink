@@ -1,4 +1,4 @@
-﻿/* Comments Section */
+/* ── Comments Section ──────────────────────────────────────────────── */
 .commentsSection {
   margin-top: 48px;
   padding-top: 40px;
@@ -35,7 +35,7 @@
   padding: 0 8px;
 }
 
-/* Comment Form */
+/* ── Comment Form ───────────────────────────────────────────────────── */
 .commentForm {
   background: var(--mint-100);
   border: 1px solid var(--glass-border);
@@ -130,7 +130,7 @@
   cursor: not-allowed;
 }
 
-/* Login Prompt */
+/* ── Login Prompt ───────────────────────────────────────────────────── */
 .commentLoginPrompt {
   display: flex;
   align-items: center;
@@ -159,7 +159,7 @@
   text-decoration: underline;
 }
 
-/* Comments List */
+/* ── Comments List ──────────────────────────────────────────────────── */
 .commentsList {
   display: flex;
   flex-direction: column;
@@ -184,7 +184,7 @@
   opacity: 0.5;
 }
 
-/* Single Comment Item */
+/* ── Single Comment Item ────────────────────────────────────────────── */
 .commentItem {
   display: flex;
   gap: 14px;
@@ -288,7 +288,7 @@
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
-/* Inline Edit Area */
+/* ── Inline Edit Area ───────────────────────────────────────────────── */
 .commentEditArea {
   margin-top: 8px;
   display: flex;
@@ -352,7 +352,7 @@
   gap: 6px;
 }
 
-/* Reply Button */
+/* ── Reply Button ───────────────────────────────────────────────────── */
 .commentReplyTrigger {
   margin-top: 6px;
 }
@@ -378,7 +378,7 @@
   background: var(--mint-100);
 }
 
-/* Inline Reply Form */
+/* ── Inline Reply Form ──────────────────────────────────────────────── */
 .commentReplyForm {
   margin-top: 12px;
   padding: 14px;
@@ -397,7 +397,7 @@
   font-size: 12px !important;
 }
 
-/* Nested Replies */
+/* ── Nested Replies ─────────────────────────────────────────────────── */
 .commentRepliesList {
   margin-top: 12px;
   padding-left: 16px;
@@ -423,5 +423,3 @@
 [data-theme='dark'] .commentItemAvatar {
   background: var(--emerald-600);
 }
-
-

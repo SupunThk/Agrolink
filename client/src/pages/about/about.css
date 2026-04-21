@@ -1,4 +1,4 @@
-﻿.about {
+.about {
   min-height: calc(100vh - 70px);
   background: var(--bg-snow);
   transition: background var(--duration-zen) var(--ease-zen);
@@ -118,6 +118,4 @@
     font-size: 32px;
   }
 }
-
-
 

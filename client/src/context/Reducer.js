@@ -1,12 +1,3 @@
-const normalizeUser = (user) => {
-    if (!user || typeof user !== "object") return user;
-    const username = (user.username || "").trim();
-    if (username) return user;
-    const fallback = (user.name || "").trim() || (user.email || "").trim();
-    if (!fallback) return user;
-    return { ...user, username: fallback };
-};
-
 const Reducer = (state, action) => {
     switch (action.type) {
         case "LOGIN_START":
@@ -20,7 +11,7 @@ const Reducer = (state, action) => {
         case "LOGIN_SUCCESS":
             return {
                 ...state,
-                user: normalizeUser(action.payload),
+                user: action.payload,
                 isFetching: false,
                 error: false
             };
@@ -39,7 +30,7 @@ const Reducer = (state, action) => {
         case "UPDATE_SUCCESS":
             return {
                 ...state,
-                user: normalizeUser(action.payload),
+                user: action.payload,
                 isFetching: false,
                 error: false
             };
@@ -97,27 +88,6 @@ const Reducer = (state, action) => {
             return {
                 ...state,
                 theme: state.theme === "light" ? "dark" : "light"
-            };
-        case "SHOW_INACTIVITY_WARNING":
-            return {
-                ...state,
-                showInactivityWarning: true
-            };
-        case "HIDE_INACTIVITY_WARNING":
-            return {
-                ...state,
-                showInactivityWarning: false
-            };
-        case "EXTEND_SESSION":
-            return {
-                ...state,
-                showInactivityWarning: false
-            };
-        case "SET_SESSION_TIMEOUT_ENABLED":
-            return {
-                ...state,
-                sessionTimeoutEnabled: Boolean(action.payload),
-                showInactivityWarning: Boolean(action.payload) ? state.showInactivityWarning : false,
             };
         default:
             return state;

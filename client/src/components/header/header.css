@@ -1,4 +1,4 @@
-﻿.header {
+.header {
   height: 560px;
   margin: 24px 48px;
   position: relative;
@@ -198,5 +198,3 @@
     gap: 10px;
   }
 }
-
-

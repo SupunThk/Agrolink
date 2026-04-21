@@ -1,2 +1,52 @@
+# Secrets & local env (keep .env.example committed if you use one)
 .env
+.env.*
+!.env.example
+
+# ── Node ──────────────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Python virtual envs ───────────────────────────────────────────────────────
+# (deep paths e.g. TensorFlow break `git add` on Windows)
+.venv/
+venv/
+venv312/
+
+# Python cache / bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ── ML model files (large binaries – store in Git LFS or cloud storage) ───────
+*.keras
+*.h5
+*.tflite
+*.pb
+*.onnx
+*.pkl
+*.pt
+*.pth
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.sqlite3
+*.db
+
+# ── Build & dist artifacts ────────────────────────────────────────────────────
+client/build/
+dist/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+output.log
+build_error.log
+build_output.log
+build_output.txt
+
+# ── Test / dummy images ───────────────────────────────────────────────────────
+dummy.jpg
+dummy10mb.jpg
+test.jpg
+
+# ── Uploaded / stored images (runtime data) ───────────────────────────────────
+api/images/
 
