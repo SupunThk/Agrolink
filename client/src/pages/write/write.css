@@ -132,7 +132,7 @@
   transition: all var(--duration-zen) var(--ease-zen);
 }
 
-/* No cover — round all corners */
+/* No cover â€” round all corners */
 .writeCoverArea:not(:has(.writeCoverPreview, .writeCoverUpload)) + .writeEditor {
   border-radius: 24px;
 }
