@@ -208,11 +208,26 @@ router.put("/:id/helpful/:answerId", async (req, res) => {
 // DELETE - Remove a question
 router.delete("/:id", async (req, res) => {
   try {
-    const deletedQuestion = await Question.findByIdAndDelete(req.params.id);
+    const question = await Question.findById(req.params.id);
 
-    if (!deletedQuestion) {
+    if (!question) {
       return res.status(404).json({ error: "Question not found" });
     }
+
+    const requesterUsername = req.body?.username || req.query?.username;
+    if (!requesterUsername) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    if (question.username !== requesterUsername) {
+      return res.status(403).json({ error: "You can only delete your own questions." });
+    }
+
+    if (question.status !== "Pending") {
+      return res.status(403).json({ error: "Cannot delete questions that are already answered." });
+    }
+
+    await Question.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "Question deleted successfully" });
   } catch (err) {
@@ -223,15 +238,30 @@ router.delete("/:id", async (req, res) => {
 // PUT - Update full question
 router.put("/:id", async (req, res) => {
   try {
+    const question = await Question.findById(req.params.id);
+    
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    const requesterUsername = req.body?.username || req.query?.username;
+    if (!requesterUsername) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    if (question.username !== requesterUsername) {
+      return res.status(403).json({ error: "You can only edit your own questions." });
+    }
+
+    if (question.status !== "Pending") {
+      return res.status(403).json({ error: "Cannot edit questions that have already been answered." });
+    }
+
     const updatedQuestion = await Question.findByIdAndUpdate(
       req.params.id,
       { $set: req.body },
       { new: true }
     );
-
-    if (!updatedQuestion) {
-      return res.status(404).json({ error: "Question not found" });
-    }
 
     res.status(200).json(updatedQuestion);
   } catch (err) {

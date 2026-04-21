@@ -53,6 +53,12 @@ export default function AskExpert() {
   const [expertLoading, setExpertLoading] = useState(false);
   const [expertError, setExpertError] = useState("");
   const [highlightQuestionId, setHighlightQuestionId] = useState(null);
+  const [editingQuestion, setEditingQuestion] = useState(null);
+  const [editQuestionText, setEditQuestionText] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [deleteQuestion, setDeleteQuestion] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [questionActionError, setQuestionActionError] = useState("");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const ignoreNextConversationLoadRef = useRef(false);
@@ -297,6 +303,83 @@ export default function AskExpert() {
       console.error("Failed to submit expert question", err);
       setExpertError("Failed to submit your question to experts.");
       return null;
+    }
+  };
+
+  const openEditQuestion = (question) => {
+    if (!question || question.status !== "Pending" || question.username !== user?.username) {
+      return;
+    }
+
+    setQuestionActionError("");
+    setEditingQuestion(question);
+    setEditQuestionText(question.question || "");
+  };
+
+  const closeEditQuestion = () => {
+    if (editSaving) return;
+    setEditingQuestion(null);
+    setEditQuestionText("");
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingQuestion || !editQuestionText.trim()) return;
+
+    setEditSaving(true);
+    setQuestionActionError("");
+
+    try {
+      await axios.put(`/questions/${editingQuestion._id}`, {
+        question: editQuestionText.trim(),
+        username: user?.username,
+      });
+      setHighlightQuestionId(editingQuestion._id);
+      setEditingQuestion(null);
+      setEditQuestionText("");
+      await fetchExpertQuestions({ silent: true });
+    } catch (err) {
+      console.error("Failed to update question", err);
+      setQuestionActionError(err?.response?.data?.error || "Failed to update question.");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const openDeleteQuestion = (question) => {
+    if (!question || question.status !== "Pending" || question.username !== user?.username) {
+      return;
+    }
+
+    setQuestionActionError("");
+    setDeleteQuestion(question);
+  };
+
+  const closeDeleteQuestion = () => {
+    if (deleteLoading) return;
+    setDeleteQuestion(null);
+  };
+
+  const handleDeleteQuestion = async () => {
+    if (!deleteQuestion) return;
+
+    setDeleteLoading(true);
+    setQuestionActionError("");
+
+    try {
+      await axios.delete(`/questions/${deleteQuestion._id}`, {
+        params: { username: user?.username },
+      });
+      if (highlightQuestionId === deleteQuestion._id) {
+        setHighlightQuestionId(null);
+      }
+      setDeleteQuestion(null);
+      await fetchExpertQuestions({ silent: true });
+    } catch (err) {
+      console.error("Failed to delete question", err);
+      setQuestionActionError(err?.response?.data?.error || "Failed to delete question.");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -784,6 +867,8 @@ export default function AskExpert() {
                       {expertLoading && <span className="ae-expert-loading">Loading…</span>}
                     </div>
 
+                    {questionActionError && <p className="ae-expert-error ae-expert-error-inline">{questionActionError}</p>}
+
                     {expertQuestions.length === 0 && !expertLoading ? (
                       <div className="ae-expert-empty glass-panel">
                         <p>No expert questions yet.</p>
@@ -806,6 +891,25 @@ export default function AskExpert() {
                                   <span className="ae-expert-date">{formatDateTime(q.createdAt)}</span>
                                 </p>
                               </div>
+
+                              {q.status === "Pending" && q.username === user?.username && (
+                                <div className="ae-question-actions">
+                                  <button
+                                    type="button"
+                                    className="ae-question-action-btn"
+                                    onClick={() => openEditQuestion(q)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="ae-question-action-btn danger"
+                                    onClick={() => openDeleteQuestion(q)}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             {best ? (
@@ -825,6 +929,48 @@ export default function AskExpert() {
                       })
                     )}
                   </div>
+
+                  {editingQuestion && (
+                    <div className="ae-modal-backdrop" role="presentation" onClick={closeEditQuestion}>
+                      <div className="ae-modal-panel glass-panel" role="dialog" aria-modal="true" aria-labelledby="edit-question-title" onClick={(e) => e.stopPropagation()}>
+                        <h3 id="edit-question-title" className="ae-modal-title">Edit your question</h3>
+                        <form onSubmit={handleEditSubmit} className="ae-modal-form">
+                          <textarea
+                            className="ae-expert-input"
+                            value={editQuestionText}
+                            onChange={(e) => setEditQuestionText(e.target.value)}
+                            rows={4}
+                            autoFocus
+                          />
+                          <div className="ae-modal-actions-row">
+                            <button type="button" className="ae-question-action-btn" onClick={closeEditQuestion} disabled={editSaving}>
+                              Cancel
+                            </button>
+                            <button type="submit" className="ae-expert-submit" disabled={editSaving || !editQuestionText.trim()}>
+                              {editSaving ? "Saving…" : "Save changes"}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {deleteQuestion && (
+                    <div className="ae-modal-backdrop" role="presentation" onClick={closeDeleteQuestion}>
+                      <div className="ae-modal-panel glass-panel" role="dialog" aria-modal="true" aria-labelledby="delete-question-title" onClick={(e) => e.stopPropagation()}>
+                        <h3 id="delete-question-title" className="ae-modal-title">Delete question?</h3>
+                        <p className="ae-modal-copy">This question will be removed permanently before any expert answers it.</p>
+                        <div className="ae-modal-actions-row">
+                          <button type="button" className="ae-question-action-btn" onClick={closeDeleteQuestion} disabled={deleteLoading}>
+                            Cancel
+                          </button>
+                          <button type="button" className="ae-question-action-btn danger" onClick={handleDeleteQuestion} disabled={deleteLoading}>
+                            {deleteLoading ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </section>
