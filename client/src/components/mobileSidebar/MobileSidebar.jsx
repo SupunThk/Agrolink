@@ -40,17 +40,17 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                   <i className="fas fa-plus-circle"></i> Create Post
                 </Link>
               </li>
-              <li className="navSidebarListItem">
-                <Link className="link" to="/knowledge" onClick={() => setIsOpen(false)}>
-                  <i className="fas fa-book-open"></i> Crop Diseases
-                </Link>
-              </li>
             </ul>
           </div>
 
           <div className="navSidebarSection">
             <h4 className="navSidebarSectionTitle">GROUP PARTS</h4>
             <ul className="navSidebarList">
+              <li className="navSidebarListItem">
+                <Link className="link" to="/knowledge" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-book-open"></i> Crop Diseases
+                </Link>
+              </li>
               <li className="navSidebarListItem">
                 <Link className="link" to="/marketplace" onClick={() => setIsOpen(false)}>
                   <i className="fas fa-shopping-bag"></i> Marketplace

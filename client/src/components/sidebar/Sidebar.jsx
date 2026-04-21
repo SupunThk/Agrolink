@@ -67,19 +67,19 @@ export default function Sidebar() {
           </div>
           <ul className="sidebarList">
             {cats.map((c) => (
-              <Link key={c._id} className="link" to={`/?cat=${encodeURIComponent(c.name)}`}>
-                <li className="sidebarListItem">
+              <li key={c._id}>
+                <Link className="link sidebarListItem" to={`/?cat=${encodeURIComponent(c.name)}`}>
                   <i className="fas fa-seedling"></i>
                   {c.name}
-                </li>
-              </Link>
+                </Link>
+              </li>
             ))}
-            <Link className="link" to={`/?cat=${encodeURIComponent("Other")}`}>
-              <li className="sidebarListItem">
+            <li>
+              <Link className="link sidebarListItem" to={`/?cat=${encodeURIComponent("Other")}`}>
                 <i className="fas fa-seedling"></i>
                 Other
-              </li>
-            </Link>
+              </Link>
+            </li>
           </ul>
         </div>
 

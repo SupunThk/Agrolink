@@ -1,4 +1,4 @@
-﻿.navSidebarContainer {
+.navSidebarContainer {
   position: fixed;
   top: 0;
   left: 0;
@@ -93,6 +93,9 @@
 .navSidebarListItem .link {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
   gap: 12px;
   padding: 10px 12px;
   border-radius: 8px;
