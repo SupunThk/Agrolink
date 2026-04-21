@@ -1,4 +1,4 @@
-.askExpert-container {
+﻿.askExpert-container {
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -8,7 +8,7 @@
 }
 
 .askExpert-card {
-  background: #fff;
+  background: var(--bg-snow);
   border-radius: 24px;
   box-shadow: 0 8px 32px rgba(6,78,59,0.08);
   padding: 36px 32px;
@@ -88,3 +88,5 @@
   font-size: 2rem;
   color: #059669;
 }
+
+

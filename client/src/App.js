@@ -33,15 +33,55 @@ import {
 import { Context } from "./context/Context";
 import VerificationModal from "./components/verificationModal/VerificationModal";
 import DeleteModal from "./components/deleteModal/DeleteModal";
+import InactivityWarningModal from "./components/inactivityWarning/InactivityWarningModal";
 import axios from "axios";
 
 function AppContent() {
-  const { user, showVModal, showDModal, dispatch, theme } = useContext(Context);
+  const {
+    user,
+    showVModal,
+    showDModal,
+    dispatch,
+    theme,
+    resetInactivityTimer,
+    sessionTimeoutEnabled,
+  } = useContext(Context);
   const location = useLocation();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  // Activity tracking for inactivity timeout (with debounce)
+  const activityTimeoutRef = useCallback(() => {
+    let timeout;
+    return () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (user && sessionTimeoutEnabled) {
+          resetInactivityTimer();
+        }
+      }, 300); // Debounce 300ms to avoid excessive timer resets
+    };
+  }, [user, sessionTimeoutEnabled, resetInactivityTimer])();
+
+  useEffect(() => {
+    if (!user) return; // Only track activity when user is logged in
+
+    const handleActivity = activityTimeoutRef;
+
+    // Add event listeners for user activity
+    const events = ["mousemove", "click", "keydown", "touchstart"];
+    events.forEach((event) => {
+      document.addEventListener(event, handleActivity);
+    });
+
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, handleActivity);
+      });
+    };
+  }, [user, activityTimeoutRef]);
 
   // Periodically check if the logged-in user's account still exists and is active
   const checkAccountStatus = useCallback(async () => {
@@ -99,6 +139,7 @@ function AppContent() {
         />
       )}
       {showDModal && <DeleteModal />}
+      <InactivityWarningModal />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={user ? <Home /> : <Register />} />
@@ -132,7 +173,10 @@ function AppContent() {
         />
         <Route path="/knowledge" element={<KnowledgeBase />} />
         <Route path="/disease-detail/:id" element={<DiseaseDetail />} />
-        <Route path="/add-disease" element={user ? <AddDisease /> : <Login />} />
+        <Route
+          path="/add-disease"
+          element={user ? <AddDisease /> : <Login />}
+        />
         <Route
           path="/my-knowledge-submissions"
           element={user ? <MyKnowledgeSubmissions /> : <Login />}

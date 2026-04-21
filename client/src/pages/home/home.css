@@ -1,4 +1,4 @@
-.home {
+﻿.home {
     display: flex;
     max-width: 1400px;
     margin: 0 auto;
@@ -11,7 +11,7 @@
     margin: 32px 0 16px 0;
 }
 .homeTabBtn {
-    background: #fff;
+    background: var(--bg-snow);
     border: 1px solid #d1d5db;
     border-radius: 16px;
     padding: 12px 28px;
@@ -50,3 +50,4 @@
         padding: 12px 0;
     }
 }
+
