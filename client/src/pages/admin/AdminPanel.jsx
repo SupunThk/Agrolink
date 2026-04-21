@@ -42,6 +42,28 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'dashboard');
   const navigate = useNavigate();
   const PF = 'http://localhost:5000/images/';
+  const getAvatarSrc = (src) => {
+    if (!src) return null;
+    if (
+      src.startsWith('http://') ||
+      src.startsWith('https://') ||
+      src.startsWith('data:') ||
+      src.startsWith('blob:')
+    ) {
+      return src;
+    }
+
+    if (src.startsWith('/images/')) {
+      return `http://localhost:5000${src}`;
+    }
+
+    const cleanSrc = src.replace(/^\/+/, '');
+    if (cleanSrc.startsWith('images/')) {
+      return `http://localhost:5000/${cleanSrc}`;
+    }
+
+    return PF + cleanSrc;
+  };
   const [stats, setStats] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -476,7 +498,7 @@ export default function AdminPanel() {
               >
                 {user?.profilePic ? (
                   <img
-                    src={user.profilePic}
+                    src={getAvatarSrc(user.profilePic)}
                     alt=""
                     style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
                   />

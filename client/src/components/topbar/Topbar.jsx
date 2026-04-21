@@ -13,9 +13,29 @@ export default function Topbar({ adminMode }) {
   const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const profileRef = useRef(null);
   const PF = "http://localhost:5000/images/";
-  const getAvatarSrc = (src) =>
-    !src ? null :
-      src.startsWith("http://") || src.startsWith("https://") ? src : PF + src;
+  const showAdminProfileCard = Boolean(adminMode || user?.isAdmin);
+  const getAvatarSrc = (src) => {
+    if (!src) return null;
+    if (
+      src.startsWith("http://") ||
+      src.startsWith("https://") ||
+      src.startsWith("data:") ||
+      src.startsWith("blob:")
+    ) {
+      return src;
+    }
+
+    if (src.startsWith("/images/")) {
+      return `http://localhost:5000${src}`;
+    }
+
+    const cleanSrc = src.replace(/^\/+/, "");
+    if (cleanSrc.startsWith("images/")) {
+      return `http://localhost:5000/${cleanSrc}`;
+    }
+
+    return PF + cleanSrc;
+  };
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -23,7 +43,7 @@ export default function Topbar({ adminMode }) {
 
   // Close profile dropdown on outside click
   useEffect(() => {
-    if (!showAdminDropdown || !adminMode) return;
+    if (!showAdminDropdown || !showAdminProfileCard) return;
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setShowAdminDropdown(false);
@@ -31,10 +51,10 @@ export default function Topbar({ adminMode }) {
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [showAdminDropdown, adminMode]);
+  }, [showAdminDropdown, showAdminProfileCard]);
 
   const handleProfileClick = () => {
-    if (adminMode) {
+    if (showAdminProfileCard) {
       setShowAdminDropdown(!showAdminDropdown);
     } else {
       dispatch({ type: "SHOW_VMODAL" });
@@ -107,7 +127,7 @@ export default function Topbar({ adminMode }) {
         <div className="topRight">
           {user ? (
             <div style={{ position: "relative" }} ref={profileRef}>
-              {adminMode ? (
+              {showAdminProfileCard ? (
                 <>
                   <div 
                     onClick={handleProfileClick} 
@@ -123,7 +143,7 @@ export default function Topbar({ adminMode }) {
                   >
                     {user?.profilePic ? (
                       <img
-                        src={user.profilePic}
+                        src={getAvatarSrc(user.profilePic)}
                         alt={user?.username}
                         style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
                       />

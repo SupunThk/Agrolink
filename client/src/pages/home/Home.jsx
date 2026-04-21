@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <div className="home fadeIn">
+      <div className="home fadeIn" id="posts">
         <Posts posts={posts} />
         <Sidebar />
         <Icon />
