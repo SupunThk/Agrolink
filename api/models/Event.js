@@ -21,6 +21,19 @@ const EventSchema = new mongoose.Schema(
         },
         description: { type: String, trim: true, default: "" },
 
+        // Ownership metadata for role-based event management
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+            index: true,
+        },
+        createdByRole: {
+            type: String,
+            enum: ["admin", "expert", "user"],
+            default: null,
+        },
+
         // ✅ Registrations
         attendees: { type: [AttendeeSchema], default: [] },
     },
