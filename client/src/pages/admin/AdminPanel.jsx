@@ -1,4 +1,6 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import './AdminPanel.css';
 import {
   LayoutDashboard,
   Users,
@@ -16,7 +18,6 @@ import {
   Sun,
   Calendar,
 } from 'lucide-react';
-import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import SidebarItem from '../../components/admin/SidebarItem.jsx';
@@ -28,6 +29,7 @@ import MarketplaceManagement from '../../components/admin/MarketplaceManagement.
 import AdminSettings from '../../components/admin/AdminSettings.jsx';
 import AnswerQuestions from '../answerQuestions/AnswerQuestions.jsx';
 import AdminEvents from '../../components/admin/AdminEvents.jsx';
+import PendingExpertVerification from '../../components/admin/PendingExpertVerification.jsx';
 import { Context } from '../../context/Context.js';
 import Logo from '../../components/logo/Logo.jsx';
 
@@ -36,7 +38,8 @@ const SIDEBAR_WIDTH = 260;
 
 export default function AdminPanel() {
   const { user, adminSidebarOpen, theme, dispatch } = useContext(Context);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'dashboard');
   const navigate = useNavigate();
   const PF = 'http://localhost:5000/images/';
   const [stats, setStats] = useState([]);
@@ -89,6 +92,14 @@ export default function AdminPanel() {
     fetchStats();
   }, []);
 
+  // Sync activeTab with URL query parameter
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
   // Auto-open sidebar on large screens (both on mount and on resize)
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -102,6 +113,7 @@ export default function AdminPanel() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    setSearchParams({ tab });
     dispatch({ type: 'SET_ADMIN_TAB', payload: tab });
     // Close sidebar on mobile after selecting
     if (!window.matchMedia('(min-width: 1024px)').matches) {
@@ -136,6 +148,8 @@ export default function AdminPanel() {
         return <AnswerQuestions />;
       case 'events':
         return <AdminEvents />;
+      case 'expert_verification':
+        return <PendingExpertVerification />;
       case 'settings':
         return <AdminSettings />;
       default:
@@ -248,7 +262,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '20px 12px', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: '20px 12px', overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="adminSidebarNav">
           {/* Section label */}
           <p style={{
             padding: '0 14px',
@@ -268,6 +282,7 @@ export default function AdminPanel() {
           <SidebarItem icon={FileText} label="Blog Moderation" active={activeTab === 'blogs'} onClick={() => handleTabChange('blogs')} />
           <SidebarItem icon={Store} label="Marketplace" active={activeTab === 'marketplace'} onClick={() => handleTabChange('marketplace')} />
           <SidebarItem icon={Leaf} label="Disease Data" active={activeTab === 'diseases'} onClick={() => handleTabChange('diseases')} />
+          <SidebarItem icon={AlertTriangle} label="Expert Verification" active={activeTab === 'expert_verification'} onClick={() => handleTabChange('expert_verification')} />
 
           <div style={{ margin: '16px 0 6px', height: 1, background: 'var(--glass-border)' }} />
 
@@ -461,7 +476,7 @@ export default function AdminPanel() {
               >
                 {user?.profilePic ? (
                   <img
-                    src={user.profilePic.startsWith('http') ? user.profilePic : PF + user.profilePic}
+                    src={user.profilePic}
                     alt=""
                     style={{ width: 30, height: 30, borderRadius: 10, objectFit: 'cover' }}
                   />

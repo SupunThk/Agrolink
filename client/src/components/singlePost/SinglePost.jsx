@@ -67,6 +67,7 @@ export default function SinglePost() {
   };
 
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const getPlainTextFromHtml = (html) => {
     if (!html) return "";
@@ -119,10 +120,11 @@ export default function SinglePost() {
       await axios.put(`/posts/${post._id}`, updatedPost);
       setUpdateMode(false);
       setFile(null);
-      // Reload page to show new image properly if updatedPost.photo changed
-      if (updatedPost.photo) {
-        window.location.reload();
-      }
+      setSuccess("Post updated successfully! It has been submitted for admin approval. Redirecting you to your blogs...");
+
+      setTimeout(() => {
+        window.location.replace("/my-blogs");
+      }, 3000);
     } catch (err) {
       const message = err?.response?.data?.message || err?.response?.data || "Failed to update post. Please try again.";
       setError(message);
@@ -239,6 +241,14 @@ export default function SinglePost() {
             )}
           </h1>
         )}
+
+        {success && (
+          <div className="singlePostAlert success">
+            <i className="fas fa-check-circle"></i>
+            <span>{success}</span>
+          </div>
+        )}
+
         <div className="singlePostInfo">
           <span className="singlePostAuthor">
             Author:
@@ -263,7 +273,7 @@ export default function SinglePost() {
         {updateMode && (
           <div className="singlePostUpdateActions">
             {error && (
-              <div className="alert alert-error">
+              <div className="singlePostAlert error">
                 <i className="fas fa-exclamation-circle"></i>
                 <span>{error}</span>
               </div>

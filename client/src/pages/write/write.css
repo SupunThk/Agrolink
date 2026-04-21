@@ -1,4 +1,4 @@
-.write {
+﻿.write {
   max-width: 900px;
   margin: 40px auto;
   padding: 0 24px 80px;
@@ -132,7 +132,7 @@
   transition: all var(--duration-zen) var(--ease-zen);
 }
 
-/* No cover — round all corners */
+/* No cover â€” round all corners */
 .writeCoverArea:not(:has(.writeCoverPreview, .writeCoverUpload)) + .writeEditor {
   border-radius: 24px;
 }
@@ -216,7 +216,7 @@
 
 .writePublishBtn:hover:not(:disabled) {
   background: var(--emerald-600);
-  color: #000000;
+  color: var(--slate-900);
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
 }
 
@@ -274,7 +274,7 @@
 }
 
 .writeCategorySelectWrap::after {
-  content: "▾";
+  content: "â–¾";
   position: absolute;
   right: 12px;
   top: 50%;
@@ -372,3 +372,5 @@
     flex-wrap: wrap;
   }
 }
+
+

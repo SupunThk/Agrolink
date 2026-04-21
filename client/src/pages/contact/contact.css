@@ -1,4 +1,4 @@
-.contact {
+﻿.contact {
   min-height: calc(100vh - 70px);
   background: var(--bg-snow);
 }
@@ -124,7 +124,7 @@
 
 .contactButton:hover {
   background: var(--emerald-600);
-  color: #000000;
+  color: var(--slate-900);
   box-shadow: 0 0 24px rgba(16, 185, 129, 0.4);
   transform: translateY(-2px);
 }
@@ -162,3 +162,5 @@
   font-family: var(--font-body);
   color: var(--slate-600);
 }
+
+
