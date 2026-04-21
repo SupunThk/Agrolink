@@ -8,6 +8,12 @@ const ChatbotConfig = require("../models/ChatbotConfig");
 const requireDb = require("../middleware/requireDb");
 
 const DEFAULT_OPENROUTER_MODEL = "google/gemini-2.0-flash-001";
+// Ordered fallback chain — tried in sequence on 429/504/timeout
+const FALLBACK_MODELS = [
+  "google/gemini-2.0-flash-lite-001",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+];
 
 const SYSTEM_PROMPT = [
   "You are AgroBot, a dedicated AI assistant built into the Agrolink platform. You exist for ONE purpose only: to help Sri Lankan farmers, agronomists, agribusiness owners, and home gardeners with agricultural questions.",
@@ -54,14 +60,10 @@ const SYSTEM_PROMPT = [
  * Call OpenRouter chat completions API using Node built-in https.
  * Returns the assistant reply string.
  */
-function callOpenRouter(apiKey, model, userMessage, history) {
-  return new Promise((resolve, reject) => {
-    const messages = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...history.filter((m) => m.content),
-      { role: "user", content: userMessage },
-    ];
+const RETRYABLE_CODES = [429, 500, 502, 503, 504];
 
+function callOpenRouterOnce(apiKey, model, messages) {
+  return new Promise((resolve, reject) => {
     const body = JSON.stringify({
       model,
       messages,
@@ -88,7 +90,9 @@ function callOpenRouter(apiKey, model, userMessage, history) {
         try {
           const parsed = JSON.parse(data);
           if (parsed.error) {
-            return reject(new Error(`OpenRouter error ${res.statusCode}: ${JSON.stringify(parsed.error)} `));
+            const err = new Error(`OpenRouter error ${res.statusCode}: ${JSON.stringify(parsed.error)}`);
+            err.statusCode = res.statusCode;
+            return reject(err);
           }
           const reply = parsed?.choices?.[0]?.message?.content;
           if (!reply) return reject(new Error("Empty response from OpenRouter"));
@@ -99,45 +103,73 @@ function callOpenRouter(apiKey, model, userMessage, history) {
       });
     });
 
+    // 25-second timeout per attempt
+    req.setTimeout(25000, () => {
+      req.destroy(new Error("Request timed out after 25s"));
+    });
+
     req.on("error", reject);
     req.write(body);
     req.end();
   });
 }
 
+async function callOpenRouter(apiKey, model, userMessage, history) {
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...history.filter((m) => m.content),
+    { role: "user", content: userMessage },
+  ];
+
+  // Build the full chain: primary model + fallbacks (deduplicated)
+  const chain = [model, ...FALLBACK_MODELS.filter((m) => m !== model)];
+
+  let lastErr;
+  for (const candidate of chain) {
+    try {
+      if (candidate !== model) {
+        console.warn(`[Chatbot] Retrying with fallback model: ${candidate}`);
+      }
+      return await callOpenRouterOnce(apiKey, candidate, messages);
+    } catch (err) {
+      lastErr = err;
+      const code = err.statusCode || 0;
+      const isRetryable = RETRYABLE_CODES.includes(code) ||
+        err.message.includes("timed out") ||
+        err.message.includes("504") ||
+        err.message.includes("503") ||
+        err.message.includes("rate");
+      if (!isRetryable) throw err; // non-retryable — fail immediately
+      console.warn(`[Chatbot] Model ${candidate} failed (${err.message.slice(0, 120)})`);
+    }
+  }
+  throw lastErr;
+}
+
 async function getOpenRouterSettings() {
+  // Start with env defaults
   let apiKey = (process.env.OPENROUTER_API_KEY || "").trim();
   let model = DEFAULT_OPENROUTER_MODEL;
 
-  // Prefer DB-stored settings when Mongo is connected.
+  // DB settings always override env when Mongo is connected
   if (mongoose.connection.readyState === 1) {
     try {
       const cfg = await ChatbotConfig.findOne().sort({ updatedAt: -1 });
       if (cfg) {
-        if ((cfg.openrouterApiKey || "").trim()) {
-          apiKey = cfg.openrouterApiKey.trim();
-        }
-        // Use DB model only if it's not a known rate-limited free model
+        // Admin-set API key always takes priority over .env
+        const dbKey = (cfg.openrouterApiKey || "").trim();
+        if (dbKey) apiKey = dbKey;
+
+        // Admin-set model always takes priority — trust the admin's choice
         const dbModel = (cfg.openrouterModel || "").trim();
-        const BROKEN_FREE_MODELS = [
-          "google/gemma-3-27b-it:free",
-          "mistralai/mistral-7b-instruct:free",
-        ];
-        if (dbModel && !BROKEN_FREE_MODELS.includes(dbModel)) {
-          model = dbModel;
-        }
+        if (dbModel) model = dbModel;
       }
     } catch (err) {
       console.warn("[Chatbot] Failed to load DB chatbot config:", err.message);
     }
   }
 
-  // Final fallback to env model
-  if (!model && (process.env.OPENROUTER_MODEL || "").trim()) {
-    model = process.env.OPENROUTER_MODEL.trim();
-  }
-
-  console.log(`[Chatbot] Using model: ${model}, apiKey set: ${Boolean(apiKey)} `);
+  console.log(`[Chatbot] Using model: ${model}, apiKey set: ${Boolean(apiKey)}`);
   return { apiKey, model };
 }
 
@@ -268,7 +300,7 @@ router.delete("/conversations/:id", requireDb, async (req, res) => {
   }
 });
 
-// GET /api/chatbot/chat - Get AI response via OpenRouter (Gemma 3)
+// GET /api/chatbot/chat - Get AI response via OpenRouter
 router.get("/chat", async (req, res) => {
   try {
     const message = (req.query.message || "").trim();

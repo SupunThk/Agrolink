@@ -79,7 +79,7 @@ const AdminSettings = () => {
 
   /* ── Chatbot settings ─────────────────────────────────────────────────── */
   const [chatbotProvider, setChatbotProvider] = useState('openrouter');
-  const [chatbotModel, setChatbotModel] = useState('google/gemma-3-27b-it:free');
+  const [chatbotModel, setChatbotModel] = useState('meta-llama/llama-3.3-70b-instruct:free');
   const [chatbotApiKey, setChatbotApiKey] = useState('');
   const [chatbotHasApiKey, setChatbotHasApiKey] = useState(false);
   const [chatbotLoading, setChatbotLoading] = useState(false);
@@ -92,7 +92,7 @@ const AdminSettings = () => {
     try {
       const res = await axios.get('/admin/chatbot-settings', { params: { userId: user._id } });
       setChatbotProvider(res.data?.provider || 'openrouter');
-      setChatbotModel(res.data?.model || 'google/gemma-3-27b-it:free');
+      setChatbotModel(res.data?.model || 'meta-llama/llama-3.3-70b-instruct:free');
       setChatbotHasApiKey(!!res.data?.hasApiKey);
     } catch (err) {
       const msg = err.response?.data?.error;
@@ -548,12 +548,27 @@ const AdminSettings = () => {
                 </div>
                 <div>
                   <label style={label}>Model</label>
-                  <input
+                  <select
                     value={chatbotModel}
                     onChange={(e) => setChatbotModel(e.target.value)}
                     style={inputStyle}
-                    placeholder="e.g. google/gemma-3-27b-it:free"
-                  />
+                  >
+                    <optgroup label="── Free Models ──">
+                      <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Free) ⭐</option>
+                      <option value="openai/gpt-oss-120b:free">OpenAI GPT-OSS 120B (Free)</option>
+                      <option value="openai/gpt-oss-20b:free">OpenAI GPT-OSS 20B (Free)</option>
+                      <option value="google/gemma-4-31b-it:free">Gemma 4 31B (Free)</option>
+                      <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B MoE (Free)</option>
+                      <option value="nvidia/nemotron-3-super-120b-a12b:free">Nemotron 3 Super 120B (Free)</option>
+                      <option value="nvidia/nemotron-3-nano-30b-a3b:free">Nemotron 3 Nano 30B (Free)</option>
+                      <option value="qwen/qwen3-coder:free">Qwen3 Coder 480B (Free)</option>
+                    </optgroup>
+                    <optgroup label="── Paid Models ──">
+                      <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash ⭐</option>
+                      <option value="google/gemini-2.0-flash-lite-001">Gemini 2.0 Flash Lite</option>
+                      <option value="google/gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+                    </optgroup>
+                  </select>
                 </div>
               </div>
 

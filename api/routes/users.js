@@ -10,7 +10,8 @@ router.use(requireDb);
 // ── ADMIN: Get all users ────────────────────────────────────────────────────
 router.get("/", async (req, res) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    // Experts can have large Base64 farmImages; exclude them from list endpoints.
+    const users = await User.find().select("-password -farmImages").sort({ createdAt: -1 });
     res.status(200).json(users);
   } catch (err) {
     res.status(500).json("Something went wrong!");
@@ -57,7 +58,7 @@ router.get("/admin/pending-experts", async (req, res) => {
       role: "expert", 
       verificationStatus: { $in: ["pending", "rejected"] }
     })
-      .select("-password")
+      .select("-password -farmImages")
       .sort({ createdAt: -1 });
     res.status(200).json(pendingExperts);
   } catch (err) {

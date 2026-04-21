@@ -112,7 +112,8 @@ router.post("/login", async(req, res) => {
         }
 
         // Find user by email (not username)
-        const user = await User.findOne({ email: normalizedEmail });
+        // IMPORTANT: Experts can have large Base64 farmImages; never load them during auth.
+        const user = await User.findOne({ email: normalizedEmail }).select("-farmImages");
         if (!user) {
             return res.status(400).json({ errors: { email: "Email or password is incorrect" } });
         }
@@ -179,7 +180,8 @@ router.post("/verify", async (req, res) => {
             return res.status(400).json({ errors: { general: "Email and password are required!" } });
         }
         const normalizedEmail = req.body.email.toLowerCase();
-        const user = await User.findOne({ email: normalizedEmail });
+        // Avoid loading large expert farmImages for a simple credential check.
+        const user = await User.findOne({ email: normalizedEmail }).select("-farmImages");
         if (!user) {
             return res.status(400).json({ errors: { email: "Email or password is incorrect" } });
         }

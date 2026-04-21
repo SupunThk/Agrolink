@@ -58,10 +58,10 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Prevent double submission
     if (isSubmitting) return;
-    
+
     setErrors({});
     setIsSubmitting(true);
 
@@ -77,12 +77,12 @@ export default function Login() {
     }
 
     if (!password) {
-      setIsSubmitting(false);
       newErrors.password = "Password is required";
     }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setIsSubmitting(false); // ← FIX: must reset here too
       return;
     }
 
@@ -93,7 +93,7 @@ export default function Login() {
         password,
       });
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
-      
+
       // Explicitly write to sessionStorage before forcing a page reload
       // to avoid a race condition with Context.js's useEffect
       sessionStorage.setItem("user", JSON.stringify(res.data));
@@ -101,6 +101,8 @@ export default function Login() {
       // Redirect based on role
       if (res.data.isAdmin || res.data.role === "admin") {
         window.location.replace("/admin");
+      } else if (res.data.role === "expert") {
+        window.location.replace("/answer-questions");
       } else {
         window.location.replace("/");
       }
@@ -110,8 +112,8 @@ export default function Login() {
       if (errorData?.errors) {
         setErrors(errorData.errors);
       } else {
-        const errorMsg = typeof errorData === "string" 
-          ? errorData 
+        const errorMsg = typeof errorData === "string"
+          ? errorData
           : "Something went wrong!";
         setErrors({ general: errorMsg });
       }
@@ -119,6 +121,7 @@ export default function Login() {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="login fadeIn">
@@ -135,7 +138,7 @@ export default function Login() {
               <span>{deactivatedMsg}</span>
             </div>
           )}
-          
+
           <label>Email</label>
           <input
             className={`loginInput ${errors.email ? "error" : ""}`}
@@ -150,7 +153,7 @@ export default function Login() {
               {errors.email}
             </span>
           )}
-          
+
           <label>Password</label>
           <input
             className={`loginInput ${errors.password ? "error" : ""}`}
@@ -165,11 +168,11 @@ export default function Login() {
               {errors.password}
             </span>
           )}
-          
+
           <button className="loginButton" type="submit" disabled={isSubmitting || isFetching}>
             {isSubmitting || isFetching ? "Authenticating..." : "Sign In"}
           </button>
-          
+
           {errors.general && (
             <div className="alert alert-error">
               <i className="fas fa-exclamation-circle"></i>
