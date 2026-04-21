@@ -97,8 +97,12 @@ async function startServer() {
 
   try {
     if (process.env.MONGO_URL) {
-      await mongoose.connect(process.env.MONGO_URL, {
+      const mongoUrl = process.env.MONGO_URL;
+      const isAtlas = /mongodb\.net/i.test(mongoUrl);
+
+      await mongoose.connect(mongoUrl, {
         serverSelectionTimeoutMS: 5000,
+        ...(isAtlas ? { tls: true } : {}),
       });
       console.log("Connected to MongoDB");
       await seedDefaultCategories();
