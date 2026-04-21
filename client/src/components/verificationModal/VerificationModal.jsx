@@ -15,7 +15,7 @@ export default function VerificationModal({ setShowModal }) {
     setError(false);
     try {
       await axios.post("/auth/verify", {
-        email: user.email,
+        username: user.username,
         password: password,
       });
       dispatch({ type: "VERIFY_SUCCESS" });
@@ -40,10 +40,10 @@ export default function VerificationModal({ setShowModal }) {
           </p>
         </div>
         <form className="vModalForm" onSubmit={handleVerify}>
-          <label>Email</label>
+          <label>Username</label>
           <input
             type="text"
-            value={user.email}
+            value={user.username}
             readOnly
             className="vModalInputDisabled"
           />

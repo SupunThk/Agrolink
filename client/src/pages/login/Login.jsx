@@ -3,16 +3,13 @@ import "./login.css";
 import { useRef, useContext, useState, useEffect } from "react";
 import { Context } from "../../context/Context";
 import axios from "axios";
-import { validateEmail } from "../../utils/validation";
 
 export default function Login() {
-  const emailRef = useRef();
+  const userRef = useRef();
   const passwordRef = useRef();
   const { dispatch, isFetching } = useContext(Context);
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+  const [error, setError] = useState(false);
   const [deactivatedMsg, setDeactivatedMsg] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Show deactivation message if redirected from a forced logout
   useEffect(() => {
@@ -23,77 +20,26 @@ export default function Login() {
     }
   }, []);
 
-  const validateField = (fieldName, value) => {
-    const newErrors = { ...errors };
-
-    switch (fieldName) {
-      case "email":
-        if (!value) {
-          newErrors.email = "Email is required";
-        } else if (!validateEmail(value)) {
-          newErrors.email = "Please enter a valid email address";
-        } else {
-          delete newErrors.email;
-        }
-        break;
-      case "password":
-        if (!value) {
-          newErrors.password = "Password is required";
-        } else {
-          delete newErrors.password;
-        }
-        break;
-      default:
-        break;
-    }
-
-    setErrors(newErrors);
-  };
-
-  const handleBlur = (fieldName) => {
-    setTouched({ ...touched, [fieldName]: true });
-    if (fieldName === "email") validateField("email", emailRef.current.value);
-    if (fieldName === "password") validateField("password", passwordRef.current.value);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Prevent double submission
-    if (isSubmitting) return;
-
-    setErrors({});
-    setIsSubmitting(true);
-
-    const email = emailRef.current.value;
+    setError(false);
+    
+    const username = userRef.current.value;
     const password = passwordRef.current.value;
 
-    const newErrors = {};
-
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!validateEmail(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!password) {
-      newErrors.password = "Password is required";
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setIsSubmitting(false); // ← FIX: must reset here too
+    if (!username || !password) {
+      setError("Please enter both username and password.");
       return;
     }
 
     dispatch({ type: "LOGIN_START" });
     try {
       const res = await axios.post("/auth/login", {
-        email,
+        username,
         password,
       });
       dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
-
+      
       // Explicitly write to sessionStorage before forcing a page reload
       // to avoid a race condition with Context.js's useEffect
       sessionStorage.setItem("user", JSON.stringify(res.data));
@@ -101,27 +47,17 @@ export default function Login() {
       // Redirect based on role
       if (res.data.isAdmin || res.data.role === "admin") {
         window.location.replace("/admin");
-      } else if (res.data.role === "expert") {
-        window.location.replace("/answer-questions");
       } else {
         window.location.replace("/");
       }
     } catch (err) {
       dispatch({ type: "LOGIN_FAILURE" });
-      const errorData = err.response?.data;
-      if (errorData?.errors) {
-        setErrors(errorData.errors);
-      } else {
-        const errorMsg = typeof errorData === "string"
-          ? errorData
-          : "Something went wrong!";
-        setErrors({ general: errorMsg });
-      }
-    } finally {
-      setIsSubmitting(false);
+      const errorMsg = typeof err.response?.data === "string" 
+        ? err.response.data 
+        : "Something went wrong!";
+      setError(errorMsg);
     }
   };
-
 
   return (
     <div className="login fadeIn">
@@ -138,52 +74,36 @@ export default function Login() {
               <span>{deactivatedMsg}</span>
             </div>
           )}
-
-          <label>Email</label>
+          <label>Username</label>
           <input
-            className={`loginInput ${errors.email ? "error" : ""}`}
-            type="email"
-            placeholder="Enter your email..."
-            ref={emailRef}
-            onBlur={() => handleBlur("email")}
+            className="loginInput"
+            type="text"
+            placeholder="Enter your username..."
+            ref={userRef}
           />
-          {errors.email && (
-            <span className="loginFieldError">
-              <i className="fas fa-exclamation-circle"></i>
-              {errors.email}
-            </span>
-          )}
-
           <label>Password</label>
           <input
-            className={`loginInput ${errors.password ? "error" : ""}`}
+            className="loginInput"
             type="password"
             placeholder="Enter your password..."
             ref={passwordRef}
-            onBlur={() => handleBlur("password")}
           />
-          {errors.password && (
-            <span className="loginFieldError">
-              <i className="fas fa-exclamation-circle"></i>
-              {errors.password}
-            </span>
-          )}
-
-          <button className="loginButton" type="submit" disabled={isSubmitting || isFetching}>
-            {isSubmitting || isFetching ? "Authenticating..." : "Sign In"}
+          <button className="loginButton" type="submit" disabled={isFetching}>
+            {isFetching ? "Authenticating..." : "Sign In"}
           </button>
-
-          {errors.general && (
+          {error && (
             <div className="alert alert-error">
               <i className="fas fa-exclamation-circle"></i>
-              <span>{String(errors.general)}</span>
+              <span>{String(error)}</span>
             </div>
           )}
         </form>
       </div>
-      <Link className="loginRegisterButton" to="/register" style={{ textDecoration: 'none' }}>
-        Create Account
-      </Link>
+      <button className="loginRegisterButton">
+        <Link className="link" to="/register">
+          Create Account
+        </Link>
+      </button>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-﻿.sidebar {
+.sidebar {
   flex: 3;
   margin-top: 48px;
   position: sticky;
@@ -213,4 +213,3 @@
     display: none;
   }
 }
-

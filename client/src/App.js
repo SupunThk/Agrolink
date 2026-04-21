@@ -90,7 +90,7 @@ function AppContent() {
 
   return (
     <>
-      {!isAdminRoute && <Topbar adminMode={user && user.isAdmin} />}
+      {!isAdminRoute && <Topbar />}
       {showVModal && (
         <VerificationModal
           setShowModal={(val) =>
