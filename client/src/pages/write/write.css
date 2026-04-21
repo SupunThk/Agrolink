@@ -274,7 +274,7 @@
 }
 
 .writeCategorySelectWrap::after {
-  content: "â–¾";
+  content: "▾";
   position: absolute;
   right: 12px;
   top: 50%;
