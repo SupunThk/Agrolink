@@ -1,0 +1,193 @@
+### Database: `test`
+
+#### 1. `categories`
+{
+  "_id": "69903b41d227f67be50d1825",
+  "name": "General Agriculture",
+  "img": "17706786259021.jpg",
+  "createdAt": "2026-02-14T09:07:13.565Z",
+  "updatedAt": "2026-02-14T09:07:13.565Z",
+  "__v": 0
+}
+
+#### 2. `chatmessages`
+{
+  "_id": "699e6decf3fce3c706ee98e2",
+  "chatId": "699e6debde5047b63fbd0271",
+  "senderId": "699cf5f1c5fc197b0d9101c6",
+  "text": "Hi",
+  "createdAt": "2026-02-25T05:35:08.571Z",
+  "updatedAt": "2026-02-25T05:35:08.571Z",
+  "__v": 0
+}
+
+#### 3. `chats`
+{
+  "_id": "69be348911075beceb3ce57e",
+  "userId": "69bba3cdf8c5a42bfcd95f87",
+  "messages": [
+    {
+      "from": "ai",
+      "text": "I'm AgroBot, your Sri Lankan agriculture assistant. I can only help with farming and agricultural questions... 🌱",
+      "createdAt": "2026-04-18T06:45:15.872Z"
+    },
+    {
+      "from": "user",
+      "text": "what about pest",
+      "createdAt": "2026-04-18T06:45:31.240Z"
+    },
+    {
+      "from": "ai",
+      "text": "What kind of pest are you dealing with? Knowing the crop and the specific pest will help me give you the best advice...",
+      "createdAt": "2026-04-18T06:45:31.240Z"
+    }
+  ],
+  "lastMessageAt": "2026-04-18T06:45:31.241Z",
+  "createdAt": "2026-04-18T06:45:13.032Z",
+  "updatedAt": "2026-04-18T06:45:31.244Z",
+  "__v": 2
+}
+
+#### 4. `knowledges`
+{
+  "_id": "699b2ad670e10585d8ac8eae",
+  "title": "Tomato Early Blight Final Test",
+  "desc": "Test description for knowledge base.",
+  "author": "Anoja",
+  "category": [],
+  "diseaseTag": "Early Blight",
+  "createdAt": "2026-02-22T16:12:06.271Z",
+  "updatedAt": "2026-02-22T16:12:06.271Z",
+  "__v": 0
+}
+
+#### 5. `articles`
+{
+  "_id": "69be5195f46e69757e4d8134",
+  "title": "Tomato Late Blight",
+  "diseaseId": "69be5194f46e69757e4d8133",
+  "imageUrl": "/images/1771924899240biotechnology-woman-engineer-examining-plant-leaf-disease.jpg",
+  "preventionMethods": [
+    "Use certified disease-free seedlings",
+    "Improve airflow with proper spacing and pruning",
+    "Avoid wetting leaves during irrigation"
+  ],
+  "symptoms": [
+    "Dark lesions develop quickly on leaves and stems",
+    "Whitish fungal growth appears under humid conditions",
+    "Fruit develops firm brown patches that spread rapidly"
+  ],
+  "treatmentPlan": "A devastating disease caused by Phytophthora infestans that affects leaves, stems, and fruits of tomato plants...",
+  "createdAt": "2026-03-21T08:06:43.849Z",
+  "updatedAt": "2026-03-21T09:57:03.158Z",
+  "__v": 0
+}
+
+#### 6. `diseases`
+{
+  "_id": "69be5194f46e69757e4d8133",
+  "diseaseName": "Tomato Late Blight",
+  "aiModelLabel": "early-blight",
+  "cropId": "69be5194f46e69757e4d8132",
+  "createdAt": "2026-03-21T08:06:42.601Z",
+  "updatedAt": "2026-03-21T09:57:02.749Z",
+  "__v": 0
+}
+
+#### 7. `crops`
+{
+  "_id": "69be5194f46e69757e4d8132",
+  "name": "Tomato",
+  "createdAt": "2026-03-21T08:06:42.115Z",
+  "updatedAt": "2026-04-20T02:03:10.012Z",
+  "__v": 0
+}
+
+#### 8. `posts`
+{
+  "_id": "699d6222c5b97345c524decf",
+  "title": "🌱 Organic Farming: A Sustainable Path to Healthy Living.",
+  "desc": "Organic farming is an environmentally friendly agricultural system...",
+  "username": "vishwa",
+  "categories": [
+    "Organic Farming"
+  ],
+  "photo": "1771927861720woman-with-vegetables-basket.jpg",
+  "flagged": false,
+  "rejectionReason": "",
+  "status": "Approved",
+  "createdAt": "2026-02-24T08:32:34.502Z",
+  "updatedAt": "2026-02-26T19:40:19.241Z",
+  "__v": 0
+}
+
+#### 9. `users`
+{
+  "_id": "69906e41551b818f767fac67",
+  "name": "supun",
+  "email": "supuntheekshana00@gmail.com",
+  "password": "$2b$12$dNE/pd9DBoG03Gk/Mu3MB.nqQJjcZYluKLMwP1qUss9WcBeEfu/aS",
+  "role": "user",
+  "createdAt": "2026-02-14T12:44:49.894Z",
+  "updatedAt": "2026-02-14T12:44:49.894Z",
+  "__v": 0
+}
+
+#### 10. `questions`
+{
+  "_id": "69bb9d0ff8c5a42bfcd95eff",
+  "question": "tell me about soil moisture",
+  "username": "Anonymous",
+  "category": "General",
+  "chatbotConfidence": 12,
+  "status": "Answered",
+  "usedForTraining": false,
+  "helpfulCount": 0,
+  "answers": [
+    {
+      "username": "Maneth",
+      "answer": "Soil moisture is simply the water held in the spaces (pores) between soil particles...",
+      "isAccepted": true,
+      "_id": "69bba3d9f8c5a42bfcd95f8c",
+      "createdAt": "2026-03-19T07:20:57.150Z"
+    }
+  ],
+  "createdAt": "2026-03-19T06:51:59.800Z",
+  "updatedAt": "2026-03-19T07:20:57.150Z",
+  "__v": 0
+}
+
+#### 11. `comments`
+{
+  "_id": "69a941d8c828cbd04651c898",
+  "postId": "699d6cebc5b97345c524df62",
+  "username": "vishwa",
+  "text": "hi",
+  "createdAt": "2026-03-05T08:42:00.729Z",
+  "updatedAt": "2026-03-05T08:42:00.729Z",
+  "__v": 0
+}
+
+#### 12. `events`
+{
+  "_id": "69c03facef2f77efd0d00ef1",
+  "title": "Organic Farming Seminar",
+  "date": "2026-05-02T00:00:00.000Z",
+  "location": "Colombo District Office",
+  "description": "Learn organic farming methods and sustainable agriculture practices.",
+  "attendees": [
+    {
+      "name": "Pasidu Mihisara",
+      "phone": "0759082176",
+      "email": "pasidu@gmail.com",
+      "registeredAt": "2026-04-19T21:11:01.899Z"
+    }
+  ],
+  "geo": {
+    "lat": 6.84163,
+    "lng": 79.931952
+  },
+  "createdAt": "2026-03-22T19:14:52.588Z",
+  "updatedAt": "2026-04-19T23:11:28.884Z",
+  "__v": 1
+}

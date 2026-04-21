@@ -6,10 +6,7 @@ export default function ProductCard({ product, isOwner, onEdit, onDelete }) {
     const PF = "http://localhost:5000/images/";
 
     // Format price
-    const formattedPrice = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-    }).format(product.price);
+    const formattedPrice = `Rs. ${new Intl.NumberFormat('en-US').format(product.price)}`;
 
     return (
         <div className="productCard">

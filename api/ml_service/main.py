@@ -159,6 +159,18 @@ async def predict(file: UploadFile = File(...)):
         
         predicted_idx = int(np.argmax(output_data))
         confidence = float(output_data[predicted_idx])
+        
+        if confidence < 0.90:
+            return {
+                "disease": "Unknown / Unrecognized",
+                "raw_label": "unknown",
+                "confidence": f"{int(confidence * 100)}%",
+                "confidence_val": confidence,
+                "is_healthy": False,
+                "description": "We are not confident about this image. Please ensure you are uploading a clear image of a plant leaf.",
+                "treatment": ["Try taking a photo in better lighting.", "Make sure the leaf is in focus and takes up most of the frame."],
+            }
+            
         raw_label = LABELS[predicted_idx] if predicted_idx < len(LABELS) else f"Unknown ({predicted_idx})"
         
         # Format for display

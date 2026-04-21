@@ -2,11 +2,30 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import './diseaseDetection.css';
 
+const SUPPORTED_DISEASES = {
+  "Apple": ["Apple scab", "Black rot", "Cedar apple rust"],
+  "Cherry": ["Powdery mildew"],
+  "Corn (maize)": ["Cercospora leaf spot / Gray leaf spot", "Common rust", "Northern Leaf Blight"],
+  "Grape": ["Black rot", "Esca (Black Measles)", "Leaf blight (Isariopsis Leaf Spot)"],
+  "Orange": ["Haunglongbing (Citrus greening)"],
+  "Peach": ["Bacterial spot"],
+  "Pepper (bell)": ["Bacterial spot"],
+  "Potato": ["Early blight", "Late blight"],
+  "Squash": ["Powdery mildew"],
+  "Strawberry": ["Leaf scorch"],
+  "Tomato": [
+    "Bacterial spot", "Early blight", "Late blight", "Leaf Mold",
+    "Septoria leaf spot", "Spider mites", "Target Spot",
+    "Tomato mosaic virus", "Tomato Yellow Leaf Curl Virus"
+  ]
+};
+
 export default function DiseaseDetection() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
+  const [showSupported, setShowSupported] = useState(false);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -73,7 +92,27 @@ export default function DiseaseDetection() {
           <p className="diseaseSubtitle">
             Instantly diagnose plant health issues. Upload a photo of a sick leaf and let our AI engine analyze it, providing you with targeted treatment recommendations.
           </p>
+          <button className="infoBtn" onClick={() => setShowSupported(!showSupported)}>
+            <i className={`fas fa-chevron-${showSupported ? 'up' : 'down'}`}></i> 
+            {showSupported ? ' Hide' : ' View'} Supported Plants & Diseases
+          </button>
         </div>
+
+        {showSupported && (
+          <div className="supportedListContainer glass-panel fadeIn">
+            <h3>Currently identifiable plants and their diseases</h3>
+            <div className="supportedGrid">
+               {Object.entries(SUPPORTED_DISEASES).map(([plant, diseases]) => (
+                 <div key={plant} className="supportedItem">
+                   <h4><i className="fas fa-leaf"></i> {plant}</h4>
+                   <ul>
+                     {diseases.map(d => <li key={d}>{d}</li>)}
+                   </ul>
+                 </div>
+               ))}
+            </div>
+          </div>
+        )}
 
         <div className="diseaseContent glass-panel">
           {!result ? (
@@ -137,9 +176,15 @@ export default function DiseaseDetection() {
                   <div className="scanOverlay"></div>
                 </div>
                 <div className="resultDiagnosis">
-                  <span className="diagnosisBadge warning">
-                    <i className="fas fa-exclamation-triangle"></i> Disease Detected
-                  </span>
+                  {result.raw_label !== 'unknown' ? (
+                    <span className="diagnosisBadge warning">
+                      <i className="fas fa-exclamation-triangle"></i> Disease Detected
+                    </span>
+                  ) : (
+                    <span className="diagnosisBadge" style={{ backgroundColor: "var(--slate-200)", color: "var(--slate-600)" }}>
+                      <i className="fas fa-search-minus"></i> Unrecognized
+                    </span>
+                  )}
                   <h2>{result.disease}</h2>
                   <div className="confidenceMeter">
                     <div className="confidenceFill" style={{ width: result.confidence }}></div>
@@ -148,27 +193,33 @@ export default function DiseaseDetection() {
                 </div>
               </div>
 
-              <div className="resultDetails">
-                <h3><i className="fas fa-info-circle"></i> Description</h3>
-                <p>{result.description}</p>
-                
-                <h3><i className="fas fa-flask"></i> Recommended Treatment</h3>
-                <ul className="treatmentList">
-                  {result.treatment.map((step, index) => (
-                    <li key={index}>
-                      <i className="fas fa-check-circle"></i>
-                      {step}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {result.raw_label !== 'unknown' ? (
+                <div className="resultDetails">
+                  <h3><i className="fas fa-info-circle"></i> Description</h3>
+                  <p>{result.description}</p>
+                  
+                  <h3><i className="fas fa-flask"></i> Recommended Treatment</h3>
+                  <ul className="treatmentList">
+                    {result.treatment.map((step, index) => (
+                      <li key={index}>
+                        <i className="fas fa-check-circle"></i>
+                        {step}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="resultDetails" style={{ textAlign: "center", padding: "30px 15px" }}>
+                  <i className="fas fa-question-circle" style={{ fontSize: "40px", color: "var(--slate-400)", marginBottom: "15px" }}></i>
+                  <p style={{ fontSize: "16px", color: "var(--slate-600)" }}>
+                    We couldn't confidently recognize this leaf or disease. Please ensure you are uploading a clear, well-lit, and focused image of a plant leaf.
+                  </p>
+                </div>
+              )}
 
               <div className="resultActions">
                 <button className="resetBtn" onClick={handleReset}>
                   <i className="fas fa-redo"></i> Scan Another Plant
-                </button>
-                <button className="expertBtn">
-                  <i className="fas fa-user-md"></i> Ask an Expert
                 </button>
               </div>
             </div>

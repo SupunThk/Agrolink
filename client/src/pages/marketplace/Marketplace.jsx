@@ -11,6 +11,22 @@ export default function Marketplace() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+
+  const agricultureCategories = [
+    "Vegetables",
+    "Fruits",
+    "Grains & Cereals",
+    "Pulses & Legumes",
+    "Spices & Herbs",
+    "Cash Crops",
+    "Leafy Greens",
+    "Root & Tubers",
+    "Seeds & Seedlings",
+    "Organic Produce",
+    "Other (Specify)"
+  ];
 
   const { user } = useContext(Context);
 
@@ -51,8 +67,15 @@ export default function Marketplace() {
     }
   };
 
-  const allListings = products.filter(p => p.status === 'available');
-  const myListings = products.filter(p => p.seller_id === user?.username);
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = (p.crop_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || 
+                          (p.description?.toLowerCase() || "").includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === '' || p.category_id === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const allListings = filteredProducts.filter(p => p.status === 'available' || p.status === undefined);
+  const myListings = filteredProducts.filter(p => p.seller_id === user?.username);
 
   return (
     <div className="marketplace fadeIn">
@@ -81,6 +104,34 @@ export default function Marketplace() {
         </div>
 
         <div className="marketplaceContent">
+          {(activeTab === 'listings' || activeTab === 'mylistings') && (
+            <div className="marketplaceControls">
+              <div className="searchBarContainer">
+                <i className="fas fa-search searchIcon"></i>
+                <input 
+                  type="text" 
+                  placeholder="Search products by name or description..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="marketplaceSearchInput"
+                />
+              </div>
+              <div className="filterContainer">
+                <i className="fas fa-filter filterIcon"></i>
+                <select 
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="marketplaceCategoryFilter"
+                >
+                  <option value="">All Categories</option>
+                  {agricultureCategories.map((cat, index) => (
+                    <option key={index} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'listings' && (
             <div className="marketplaceSection">
               <h2>Browse Listings</h2>

@@ -411,3 +411,85 @@
   background: #2e7d32;
   color: white;
 }
+
+/* Supported Diseases Section */
+.infoBtn {
+  background: transparent;
+  border: 1px solid #4caf50;
+  color: #4caf50;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.infoBtn:hover {
+  background: #4caf50;
+  color: white;
+}
+
+[data-theme='dark'] .infoBtn {
+  border-color: #81c784;
+  color: #81c784;
+}
+
+[data-theme='dark'] .infoBtn:hover {
+  background: #81c784;
+  color: #1a1a1a;
+}
+
+.supportedListContainer {
+  margin-bottom: 30px;
+  padding: 25px;
+}
+
+.supportedListContainer h3 {
+  text-align: center;
+  color: var(--text-color, #333);
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.supportedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.supportedItem {
+  background: rgba(76, 175, 80, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 3px solid #4caf50;
+}
+
+[data-theme='dark'] .supportedItem {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.supportedItem h4 {
+  color: #2e7d32;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+[data-theme='dark'] .supportedItem h4 {
+  color: #81c784;
+}
+
+.supportedItem ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin: 0;
+  color: var(--text-color-light, #666);
+  font-size: 14px;
+}
+
+.supportedItem ul li {
+  margin-bottom: 4px;
+}

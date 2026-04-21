@@ -15,8 +15,17 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
     const [customCategory, setCustomCategory] = useState("");
     const [categories, setCategories] = useState([]);
     const [error, setError] = useState(null);
-    const [phoneError, setPhoneError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Validation error states
+    const [fileError, setFileError] = useState("");
+    const [cropNameError, setCropNameError] = useState("");
+    const [categoryError, setCategoryError] = useState("");
+    const [priceError, setPriceError] = useState("");
+    const [quantityError, setQuantityError] = useState("");
+    const [locationError, setLocationError] = useState("");
+    const [phoneError, setPhoneError] = useState("");
+    const [descriptionError, setDescriptionError] = useState("");
 
     const { user } = useContext(Context);
 
@@ -36,7 +45,72 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         setError(null);
+        setFileError("");
+        setCropNameError("");
+        setCategoryError("");
+        setPriceError("");
+        setQuantityError("");
+        setLocationError("");
+        setPhoneError("");
+        setDescriptionError("");
+
+        let isValid = true;
+
+        if (!file && !initialProduct?.image_url) {
+            setFileError("An image is required.");
+            isValid = false;
+        }
+
+        if (cropName.trim().length < 3) {
+            setCropNameError("Crop name must be at least 3 characters.");
+            isValid = false;
+        }
+
+        if (!categoryId) {
+            setCategoryError("Please select a category.");
+            isValid = false;
+        } else if (categoryId === "Other (Specify)" && customCategory.trim() === "") {
+            setCategoryError("Please specify your custom category.");
+            isValid = false;
+        }
+
+        if (Number(price) <= 0) {
+            setPriceError("Price must be a positive number.");
+            isValid = false;
+        }
+
+        if (quantity.trim() === "") {
+            setQuantityError("Quantity is required.");
+            isValid = false;
+        } else {
+            const num = parseFloat(quantity);
+            if (!isNaN(num) && num < 0) {
+                setQuantityError("Quantity cannot be negative.");
+                isValid = false;
+            }
+        }
+
+        if (location.trim() === "") {
+             setLocationError("Location is required.");
+             isValid = false;
+        }
+
+        const phoneRegex = /^\d{10}$/;
+        const cleanPhone = phone.replace(/[-.\s]/g, "");
+        if (!phoneRegex.test(cleanPhone)) {
+            setPhoneError("Please enter a valid 10-digit phone number (e.g., 0716615672)");
+            isValid = false;
+        }
+
+        if (description.trim().length < 10) {
+            setDescriptionError("Description must be at least 10 characters.");
+            isValid = false;
+        }
+
+        if (!isValid) return;
+
         setLoading(true);
 
         if (!user) {
@@ -45,15 +119,6 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
             console.error("User is not logged in");
             return;
         }
-
-        const phoneRegex = /^\d{10}$/;
-        const cleanPhone = phone.replace(/[-.\s]/g, "");
-        if (!phoneRegex.test(cleanPhone)) {
-            setPhoneError("Please enter a valid 10-digit phone number (e.g., 0716615672)");
-            setLoading(false);
-            return;
-        }
-        setPhoneError("");
 
         const finalCategory = categoryId === "Other (Specify)" ? customCategory : categoryId;
 
@@ -119,11 +184,25 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                         type="file"
                         id="fileInput"
                         style={{ display: "none" }}
-                        onChange={(e) => setFile(e.target.files[0])}
+                        accept="image/*"
+                        onChange={(e) => {
+                            const selectedFile = e.target.files[0];
+                            if (selectedFile) {
+                                if (!selectedFile.type.startsWith("image/")) {
+                                    setFileError("Only image files are allowed! Please select a valid image.");
+                                    setFile(null);
+                                    e.target.value = null;
+                                } else {
+                                    setFile(selectedFile);
+                                    setFileError("");
+                                }
+                            }
+                        }}
                     />
+                    {fileError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start", width: "100%" }}>{fileError}</span>}
                 </div>
 
-                <div className="createListingGroup">
+                <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                     <input
                         type="text"
                         placeholder="Crop Name (e.g., Organic Tomatoes)"
@@ -131,63 +210,116 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                         autoFocus={true}
                         required
                         value={cropName}
-                        onChange={(e) => setCropName(e.target.value)}
+                        onChange={(e) => {
+                            setCropName(e.target.value);
+                            setCropNameError("");
+                        }}
+                        onBlur={() => {
+                            if (cropName.trim().length > 0 && cropName.trim().length < 3) {
+                                setCropNameError("Crop name must be at least 3 characters.");
+                            }
+                        }}
                     />
+                    {cropNameError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{cropNameError}</span>}
                 </div>
 
                 <div className="createListingGroup split">
-                    <select
-                        className="createListingInput selectCategory"
-                        value={categoryId}
-                        onChange={(e) => setCategoryId(e.target.value)}
-                        required
-                    >
-                        <option value="" disabled>Select a Category...</option>
-                        {agricultureCategories.map((cat, index) => (
-                            <option key={index} value={cat}>{cat}</option>
-                        ))}
-                    </select>
+                    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <select
+                            className="createListingInput selectCategory"
+                            value={categoryId}
+                            onChange={(e) => {
+                                setCategoryId(e.target.value);
+                                setCategoryError("");
+                            }}
+                            required
+                        >
+                            <option value="" disabled>Select a Category...</option>
+                            {agricultureCategories.map((cat, index) => (
+                                <option key={index} value={cat}>{cat}</option>
+                            ))}
+                        </select>
+                        {categoryId === "Other (Specify)" && (
+                            <input
+                                type="text"
+                                placeholder="Please specify your category"
+                                className="createListingInput"
+                                required
+                                value={customCategory}
+                                onChange={(e) => {
+                                    setCustomCategory(e.target.value);
+                                    setCategoryError("");
+                                }}
+                                onBlur={() => {
+                                    if (categoryId === "Other (Specify)" && customCategory.trim() === "") {
+                                        setCategoryError("Please specify your custom category.");
+                                    }
+                                }}
+                                style={{ marginTop: "10px" }}
+                            />
+                        )}
+                        {categoryError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{categoryError}</span>}
+                    </div>
 
-                    {categoryId === "Other (Specify)" && (
+                    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                         <input
-                            type="text"
-                            placeholder="Please specify your category"
+                            type="number"
+                            placeholder="Price (Rs)"
                             className="createListingInput"
                             required
-                            value={customCategory}
-                            onChange={(e) => setCustomCategory(e.target.value)}
-                            style={{ marginTop: "0px" }}
+                            value={price}
+                            onChange={(e) => {
+                                setPrice(e.target.value);
+                                setPriceError("");
+                            }}
+                            onBlur={() => {
+                                if (price !== "" && Number(price) <= 0) {
+                                    setPriceError("Price must be a positive number.");
+                                }
+                            }}
                         />
-                    )}
-
-                    <input
-                        type="number"
-                        placeholder="Price ($)"
-                        className="createListingInput"
-                        required
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                    />
+                        {priceError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{priceError}</span>}
+                    </div>
                 </div>
 
                 <div className="createListingGroup split">
-                    <input
-                        type="text"
-                        placeholder="Quantity (e.g., 50 kg)"
-                        className="createListingInput"
-                        required
-                        value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
-                    />
+                    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <input
+                            type="text"
+                            placeholder="Quantity (e.g., 50 kg)"
+                            className="createListingInput"
+                            required
+                            value={quantity}
+                            onChange={(e) => {
+                                setQuantity(e.target.value);
+                                setQuantityError("");
+                            }}
+                            onBlur={() => {
+                                if (quantity.trim() !== "") {
+                                    const num = parseFloat(quantity);
+                                    if (!isNaN(num) && num < 0) {
+                                        setQuantityError("Quantity cannot be negative.");
+                                    }
+                                }
+                            }}
+                        />
+                        {quantityError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{quantityError}</span>}
+                    </div>
 
-                    <input
-                        type="text"
-                        placeholder="Location"
-                        className="createListingInput"
-                        required
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                    />
+                    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <input
+                            type="text"
+                            placeholder="Location"
+                            className="createListingInput"
+                            required
+                            value={location}
+                            onChange={(e) => {
+                                setLocation(e.target.value);
+                                setLocationError("");
+                            }}
+                        />
+                        {locationError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{locationError}</span>}
+                    </div>
                 </div>
 
                 <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
@@ -201,19 +333,37 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                             setPhone(e.target.value);
                             setPhoneError("");
                         }}
+                        onBlur={() => {
+                            if (phone.trim().length > 0) {
+                                const phoneRegex = /^\d{10}$/;
+                                const cleanPhone = phone.replace(/[-.\s]/g, "");
+                                if (!phoneRegex.test(cleanPhone)) {
+                                    setPhoneError("Please enter a valid 10-digit phone number (e.g., 0716615672)");
+                                }
+                            }
+                        }}
                     />
                     {phoneError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{phoneError}</span>}
                 </div>
 
-                <div className="createListingGroup">
+                <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                     <textarea
                         placeholder="Describe your product..."
                         type="text"
                         className="createListingInput createListingText"
                         required
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={(e) => {
+                            setDescription(e.target.value);
+                            setDescriptionError("");
+                        }}
+                        onBlur={() => {
+                            if (description.trim().length > 0 && description.trim().length < 10) {
+                                setDescriptionError("Description must be at least 10 characters.");
+                            }
+                        }}
                     ></textarea>
+                    {descriptionError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{descriptionError}</span>}
                 </div>
 
                 <button className="createListingSubmit" type="submit" disabled={loading}>
