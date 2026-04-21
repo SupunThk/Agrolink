@@ -31,6 +31,11 @@ export default function MobileSidebar({ isOpen, setIsOpen }) {
                 </Link>
               </li>
               <li className="navSidebarListItem">
+                <Link className="link" to="/my-blogs" onClick={() => setIsOpen(false)}>
+                  <i className="fas fa-list-alt"></i> My Posts
+                </Link>
+              </li>
+              <li className="navSidebarListItem">
                 <Link className="link" to="/write" onClick={() => setIsOpen(false)}>
                   <i className="fas fa-plus-circle"></i> Create Post
                 </Link>
