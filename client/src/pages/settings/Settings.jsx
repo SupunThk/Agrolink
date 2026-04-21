@@ -1,6 +1,5 @@
 import "./settings.css";
 import Sidebar from "../../components/sidebar/Sidebar";
-import FarmImageUpload from "../../components/farmImageUpload/FarmImageUpload";
 import { useContext, useState, useEffect } from "react";
 import { Context } from "../../context/Context";
 import axios from "axios";
@@ -23,7 +22,6 @@ export default function Settings() {
   const [deletingPostId, setDeletingPostId] = useState(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [farmImages, setFarmImages] = useState(user?.farmImages || []);
 
   useEffect(() => {
     if (user && !isVerified) {
@@ -309,70 +307,6 @@ export default function Settings() {
                 </div>
               </div>
             </div>
-
-            {/* Farm Images Card - For Experts Only */}
-            {user?.role === "expert" && user?.verificationStatus !== "approved" && (
-              <div className="settingsCard">
-                <div className="settingsCardTitle">
-                  <i className="fas fa-tractor"></i>
-                  Farm & Paddy Field Images
-                </div>
-                
-                {user?.verificationStatus === "rejected" && user?.verificationNotes && (
-                  <div className="settingsWarningAlert">
-                    <i className="fas fa-exclamation-triangle"></i>
-                    <div>
-                      <strong>Verification Rejected</strong>
-                      <p>{user.verificationNotes}</p>
-                      <p>Please update your farm images and resubmit for approval.</p>
-                    </div>
-                  </div>
-                )}
-                
-                {user?.verificationStatus === "pending" && (
-                  <div className="settingsInfoAlert">
-                    <i className="fas fa-info-circle"></i>
-                    <div>
-                      <p><strong>Awaiting Admin Verification</strong></p>
-                      <p>Your farm images are pending admin review. You can update them anytime by deleting and re-uploading.</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="settingsFarmImagesInfo">
-                  <p>Current images: <strong>{farmImages.length}</strong></p>
-                  <p className="settingsEditHint">
-                    <i className="fas fa-pencil-alt"></i>
-                    Hover over images to delete them
-                  </p>
-                </div>
-
-                {farmImages && farmImages.length > 0 && (
-                  <div className="settingsFarmImageGallery">
-                    <label className="settingsFarmImageLabel">Current Farm Images:</label>
-                    <div className="settingsFarmImageGrid">
-                      {farmImages.map((img, idx) => (
-                        <div key={idx} className="settingsFarmImagePreview">
-                          <img src={img.image} alt={`Farm ${idx + 1}`} />
-                          <span className="settingsFarmImageIndex">{idx + 1}</span>
-                          <button
-                            type="button"
-                            className="settingsFarmImageDelete"
-                            onClick={() => {
-                              const newImages = farmImages.filter((_, i) => i !== idx);
-                              setFarmImages(newImages);
-                            }}
-                            title="Delete image"
-                          >
-                            <i className="fas fa-trash-alt"></i>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Security Card */}
             <div className="settingsCard">

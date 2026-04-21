@@ -69,11 +69,12 @@ router.get("/admin/pending-experts", async (req, res) => {
 // ── ADMIN: Get pending experts with farm images (detailed view) ──────────────
 router.get("/admin/pending-experts-with-images", async (req, res) => {
   try {
+    // Keep this endpoint lightweight; verification images are served from /api/expert-images/admin/pending.
     const pendingExperts = await User.find({ 
       role: "expert", 
       verificationStatus: "pending"
     })
-      .select("-password")
+      .select("-password -farmImages")
       .sort({ createdAt: -1 });
     res.status(200).json(pendingExperts);
   } catch (err) {
@@ -210,7 +211,8 @@ router.put("/:id", async(req, res) => {
                 },
                 {new:true}
             );
-            res.status(200).json(updatedUser);
+          const { password, farmImages, ...safeUser } = updatedUser._doc;
+          res.status(200).json(safeUser);
         }catch(err){
             if (err.code === 11000) {
                 return res.status(400).json("Username or email already exists!");
@@ -259,10 +261,10 @@ router.get("/check/status/:id", async (req, res) => {
 //GET USER
 router.get("/:id", async (req,res)=>{
     try{
-        const user = await User.findById(req.params.id);
+    // Keep profile payloads lightweight: farm images are only needed in admin verification routes.
+    const user = await User.findById(req.params.id).select("-password -farmImages");
         if (!user) return res.status(404).json("User not found!");
-        const {password, ...others} = user._doc;
-        res.status(200).json(others);
+    res.status(200).json(user);
     }catch(err){
         res.status(500).json("Something went wrong!");
     }

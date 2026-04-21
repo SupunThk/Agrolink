@@ -223,6 +223,18 @@ export default function Register() {
       if (errorData?.errors) {
         setErrors(errorData.errors);
       } else {
+        if (errorData?.message) {
+          setErrors({ general: errorData.message });
+          return;
+        }
+
+        if (err.response?.status === 413) {
+          setErrors({
+            general: "Selected farm images are too large. Please upload smaller images and try again.",
+          });
+          return;
+        }
+
         const errorMsg = typeof errorData === "string" 
           ? errorData 
           : "Something went wrong during registration!";

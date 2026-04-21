@@ -16,6 +16,7 @@ const geocodeRoute = require("./routes/geocode");
 const productRoute = require("./routes/products");
 const diseaseRoute = require("./routes/disease");
 const knowledgeRoute = require("./routes/knowledge");
+const expertImagesRoute = require("./routes/expert-images");
 const Category = require("./models/Category");
 const {
   isCloudinaryConfigured,
@@ -150,6 +151,7 @@ app.use("/api/geocode", geocodeRoute);
 app.use("/api/products", productRoute);
 app.use("/api/disease", diseaseRoute);
 app.use("/api/knowledge", knowledgeRoute);
+app.use("/api/expert-images", expertImagesRoute);
 
 // ── DB health check for admin settings ──────────────────────────────────────
 app.get("/api/admin/db-status", (req, res) => {

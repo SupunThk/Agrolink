@@ -6,8 +6,19 @@ const { validateRegistrationInput, validateLoginInput, validatePhone } = require
 
 router.use(requireDb);
 
+const estimateBase64Bytes = (value) => {
+    if (typeof value !== "string") return 0;
+    const base64 = value.includes(",") ? value.split(",")[1] : value;
+    if (!base64) return 0;
+    const padding = (base64.match(/=+$/) || [""])[0].length;
+    return Math.ceil((base64.length * 3) / 4) - padding;
+};
+
+const MAX_SINGLE_FARM_IMAGE_BYTES = 3 * 1024 * 1024;
+const MAX_TOTAL_FARM_IMAGE_BYTES = 12 * 1024 * 1024;
+
 //REGISTER
-router.post("/register", async(req, res) => {
+router.post("/register", async (req, res) => {
     try {
         const normalizedEmail = req.body.email ? req.body.email.toLowerCase() : "";
 
@@ -53,6 +64,31 @@ router.post("/register", async(req, res) => {
             if (req.body.farmImages.length < 3) {
                 return res.status(400).json({ errors: { farmImages: "Minimum 3 farm images required for expert verification" } });
             }
+
+            let totalFarmImageBytes = 0;
+            for (const img of req.body.farmImages) {
+                if (typeof img !== "string" || !img.startsWith("data:image")) {
+                    return res.status(400).json({
+                        errors: { farmImages: "Each farm image must be a valid Base64 data URL" },
+                    });
+                }
+
+                const imageBytes = estimateBase64Bytes(img);
+                if (imageBytes > MAX_SINGLE_FARM_IMAGE_BYTES) {
+                    return res.status(400).json({
+                        errors: { farmImages: "Each farm image must be 3MB or less after processing" },
+                    });
+                }
+
+                totalFarmImageBytes += imageBytes;
+            }
+
+            if (totalFarmImageBytes > MAX_TOTAL_FARM_IMAGE_BYTES) {
+                return res.status(400).json({
+                    errors: { farmImages: "Total farm image payload is too large. Please upload smaller images." },
+                });
+            }
+
             // Convert farm images to proper format
             farmImages = req.body.farmImages.map(img => ({
                 image: img,
@@ -61,8 +97,13 @@ router.post("/register", async(req, res) => {
         }
 
         // Create new user
+        const baseName = (req.body.username || req.body.name || "").trim();
+        // Append a short random suffix to guarantee username uniqueness
+        const uniqueSuffix = Math.random().toString(36).substring(2, 6);
+        const uniqueUsername = `${baseName}_${uniqueSuffix}`;
+
         const newUser = new User({
-            username: (req.body.username || req.body.name || "").trim(),
+            username: uniqueUsername,
             name: req.body.name,
             email: normalizedEmail,
             phone: normalizedPhone,
@@ -91,13 +132,20 @@ router.post("/register", async(req, res) => {
         if (err.code === 11000) {
             return res.status(400).json({ errors: { general: "Email already exists!" } });
         }
+
+        if (err?.code === 10334 || /BSONObjectTooLarge|object to insert too large/i.test(String(err?.message))) {
+            return res.status(400).json({
+                errors: { farmImages: "Farm images are too large. Please upload smaller images." },
+            });
+        }
+
         console.error("Register error:", err);
         res.status(500).json({ errors: { general: "Something went wrong during registration!" } });
     }
 });
 
 //LOGIN
-router.post("/login", async(req, res) => {
+router.post("/login", async (req, res) => {
     try {
         const normalizedEmail = req.body.email ? req.body.email.toLowerCase() : "";
 
@@ -126,22 +174,22 @@ router.post("/login", async(req, res) => {
 
         // Block rejected experts from logging in
         if (user.role === "expert" && user.verificationStatus === "rejected") {
-            return res.status(403).json({ 
-                errors: { general: "Your expert account was rejected. Reason: " + (user.verificationNotes || "No details provided") } 
+            return res.status(403).json({
+                errors: { general: "Your expert account was rejected. Reason: " + (user.verificationNotes || "No details provided") }
             });
         }
 
         // Block unapproved experts from logging in
         if (user.role === "expert" && user.verificationStatus === "pending") {
-            return res.status(403).json({ 
-                errors: { general: "Your expert account is pending admin verification of your farm images. Please wait for approval before logging in." } 
+            return res.status(403).json({
+                errors: { general: "Your expert account is pending admin verification of your farm images. Please wait for approval before logging in." }
             });
         }
 
         // Block deactivated accounts from logging in
         if (user.active === false) {
-            return res.status(403).json({ 
-                errors: { general: "Your account has been deactivated by an administrator. Please contact support." } 
+            return res.status(403).json({
+                errors: { general: "Your account has been deactivated by an administrator. Please contact support." }
             });
         }
 
@@ -156,7 +204,7 @@ router.post("/login", async(req, res) => {
 });
 
 //LOGOUT
-router.post("/logout/:userId", async(req, res) => {
+router.post("/logout/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
         if (!userId) {
