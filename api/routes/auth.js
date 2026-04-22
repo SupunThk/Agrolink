@@ -6,7 +6,7 @@ const requireDb = require("../middleware/requireDb");
 const {
     validateRegistrationInput,
     validateLoginInput,
-    validatePhone,
+    validateSriLankanPhone,
     validateForgotPasswordInput,
     validateVerifyOtpInput,
     validateResetPasswordInput,
@@ -62,7 +62,7 @@ router.post("/register", async (req, res) => {
         }
 
         // Normalize phone number
-        const phoneValidation = validatePhone(req.body.phone);
+        const phoneValidation = validateSriLankanPhone(req.body.phone);
         const normalizedPhone = phoneValidation.formatted;
 
         // Hash password

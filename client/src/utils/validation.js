@@ -33,6 +33,33 @@ export const validatePhone = (phone) => {
 };
 
 /**
+ * Validate Sri Lankan mobile phone numbers for registration.
+ * Accepts 07XXXXXXXX, 947XXXXXXXX, or +947XXXXXXXX and normalizes to 07XXXXXXXX.
+ * @param {string} phone - Phone number to validate
+ * @returns {object} - { isValid: boolean, error?: string, formatted?: string }
+ */
+export const validateSriLankanPhone = (phone) => {
+  if (!phone) {
+    return { isValid: false, error: "Phone number is required" };
+  }
+
+  const cleaned = String(phone).trim().replace(/\D/g, "");
+
+  if (/^07\d{8}$/.test(cleaned)) {
+    return { isValid: true, formatted: cleaned };
+  }
+
+  if (/^947\d{8}$/.test(cleaned)) {
+    return { isValid: true, formatted: `0${cleaned.slice(2)}` };
+  }
+
+  return {
+    isValid: false,
+    error: "Please enter a valid Sri Lankan mobile number (e.g. 0712345678 or +94712345678)",
+  };
+};
+
+/**
  * Validate OTP format (6 digits)
  * @param {string} otp - OTP to validate
  * @returns {boolean} - True if OTP has exactly 6 digits

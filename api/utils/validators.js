@@ -14,7 +14,7 @@ const validateEmail = (email) => {
 
 /**
  * Validate phone number format (exactly 10 digits)
- * Accepts: 1234567890, 123-456-7890, (123) 456-7890, 0759082176, etc.
+ * Accepts generic 10-digit numbers for non-registration flows.
  * @param {string} phone - Phone number to validate
  * @returns {object} - { isValid: boolean, formatted: string }
  */
@@ -33,6 +33,34 @@ const validatePhone = (phone) => {
     isValid: true, 
     formatted: cleaned, // Store normalized format (digits only)
     original: phone 
+  };
+};
+
+/**
+ * Validate Sri Lankan mobile phone numbers for registration.
+ * Accepts 07XXXXXXXX, 947XXXXXXXX, or +947XXXXXXXX and normalizes to 07XXXXXXXX.
+ * @param {string} phone - Phone number to validate
+ * @returns {object} - { isValid: boolean, formatted: string }
+ */
+const validateSriLankanPhone = (phone) => {
+  if (!phone) {
+    return { isValid: false, formatted: null, error: "Phone number is required" };
+  }
+
+  const cleaned = String(phone).trim().replace(/\D/g, "");
+
+  if (/^07\d{8}$/.test(cleaned)) {
+    return { isValid: true, formatted: cleaned, original: phone };
+  }
+
+  if (/^947\d{8}$/.test(cleaned)) {
+    return { isValid: true, formatted: `0${cleaned.slice(2)}`, original: phone };
+  }
+
+  return {
+    isValid: false,
+    formatted: null,
+    error: "Please enter a valid Sri Lankan mobile number (e.g. 0712345678 or +94712345678)",
   };
 };
 
@@ -116,7 +144,7 @@ const validateRegistrationInput = (data) => {
   if (!data.phone) {
     errors.phone = "Phone number is required";
   } else {
-    const phoneValidation = validatePhone(data.phone);
+    const phoneValidation = validateSriLankanPhone(data.phone);
     if (!phoneValidation.isValid) {
       errors.phone = phoneValidation.error;
     }
@@ -243,6 +271,7 @@ const validateResetPasswordInput = (data) => {
 module.exports = {
   validateEmail,
   validatePhone,
+  validateSriLankanPhone,
   validateOtp,
   validatePassword,
   validateRegistrationInput,
