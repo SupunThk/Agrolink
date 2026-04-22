@@ -99,6 +99,15 @@ export default function PendingExpertVerification() {
     }
   };
 
+  const getStatus = (expert) => {
+    const raw = typeof expert?.verificationStatus === 'string' ? expert.verificationStatus.trim().toLowerCase() : '';
+    if (raw === 'approved') return 'approved';
+    if (raw === 'rejected') return 'rejected';
+    if (raw === 'pending') return 'pending';
+    if (expert?.approved === false) return 'pending';
+    return 'pending';
+  };
+
   // Helper function to count images
   const getImageCount = () => {
     if (selectedExpert && selectedExpert.farmImages) {
@@ -168,6 +177,11 @@ export default function PendingExpertVerification() {
 
       <div className="expertVerificationList">
         {experts.map((expert) => (
+          (() => {
+            const status = getStatus(expert);
+            const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+            const statusIcon = status === 'rejected' ? 'fa-times-circle' : 'fa-hourglass-half';
+            return (
           <div key={expert._id} className="expertVerificationCard">
             <div className="expertVerificationCardHeader">
               <div className="expertVerificationCardInfo">
@@ -176,9 +190,9 @@ export default function PendingExpertVerification() {
                 <p className="expertPhone">{expert.phone}</p>
               </div>
               <div className="expertVerificationCardStatus">
-                <span className="expertStatusBadge pending">
-                  <i className="fas fa-hourglass-half"></i>
-                  Pending
+                <span className={`expertStatusBadge ${status}`}>
+                  <i className={`fas ${statusIcon}`}></i>
+                  {statusLabel}
                 </span>
               </div>
             </div>
@@ -249,6 +263,8 @@ export default function PendingExpertVerification() {
               </button>
             </div>
           </div>
+            );
+          })()
         ))}
       </div>
 

@@ -14,7 +14,7 @@ const validateEmail = (email) => {
 
 /**
  * Validate phone number format (exactly 10 digits)
- * Accepts: 1234567890, 123-456-7890, (123) 456-7890, 0759082176, etc.
+ * Accepts generic 10-digit numbers for non-registration flows.
  * @param {string} phone - Phone number to validate
  * @returns {object} - { isValid: boolean, formatted: string }
  */
@@ -33,6 +33,34 @@ const validatePhone = (phone) => {
     isValid: true, 
     formatted: cleaned, // Store normalized format (digits only)
     original: phone 
+  };
+};
+
+/**
+ * Validate Sri Lankan mobile phone numbers for registration.
+ * Accepts 07XXXXXXXX, 947XXXXXXXX, or +947XXXXXXXX and normalizes to 07XXXXXXXX.
+ * @param {string} phone - Phone number to validate
+ * @returns {object} - { isValid: boolean, formatted: string }
+ */
+const validateSriLankanPhone = (phone) => {
+  if (!phone) {
+    return { isValid: false, formatted: null, error: "Phone number is required" };
+  }
+
+  const cleaned = String(phone).trim().replace(/\D/g, "");
+
+  if (/^07\d{8}$/.test(cleaned)) {
+    return { isValid: true, formatted: cleaned, original: phone };
+  }
+
+  if (/^947\d{8}$/.test(cleaned)) {
+    return { isValid: true, formatted: `0${cleaned.slice(2)}`, original: phone };
+  }
+
+  return {
+    isValid: false,
+    formatted: null,
+    error: "Please enter a valid Sri Lankan mobile number (e.g. 0712345678 or +94712345678)",
   };
 };
 
@@ -76,6 +104,15 @@ const validatePassword = (password) => {
 };
 
 /**
+ * Validate 6 digit OTP format
+ * @param {string} otp - OTP to validate
+ * @returns {boolean} - True when OTP has exactly 6 digits
+ */
+const validateOtp = (otp) => {
+  return /^[0-9]{6}$/.test(String(otp || "").trim());
+};
+
+/**
  * Validate registration input
  * @param {object} data - Registration data { email, password, confirmPassword, phone, name }
  * @returns {object} - { isValid: boolean, errors: object }
@@ -107,7 +144,7 @@ const validateRegistrationInput = (data) => {
   if (!data.phone) {
     errors.phone = "Phone number is required";
   } else {
-    const phoneValidation = validatePhone(data.phone);
+    const phoneValidation = validateSriLankanPhone(data.phone);
     if (!phoneValidation.isValid) {
       errors.phone = phoneValidation.error;
     }
@@ -150,10 +187,96 @@ const validateLoginInput = (data) => {
   };
 };
 
+/**
+ * Validate forgot-password input
+ * @param {object} data - Payload with email
+ * @returns {object} - { isValid: boolean, errors: object }
+ */
+const validateForgotPasswordInput = (data) => {
+  const errors = {};
+
+  if (!data.email) {
+    errors.email = "Email is required";
+  } else if (!validateEmail(data.email)) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
+/**
+ * Validate verify-otp input
+ * @param {object} data - Payload with email and otp
+ * @returns {object} - { isValid: boolean, errors: object }
+ */
+const validateVerifyOtpInput = (data) => {
+  const errors = {};
+
+  if (!data.email) {
+    errors.email = "Email is required";
+  } else if (!validateEmail(data.email)) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  if (!data.otp) {
+    errors.otp = "OTP is required";
+  } else if (!validateOtp(data.otp)) {
+    errors.otp = "OTP must be exactly 6 digits";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
+/**
+ * Validate reset-password input
+ * @param {object} data - Payload with email, resetToken, password and confirmPassword
+ * @returns {object} - { isValid: boolean, errors: object }
+ */
+const validateResetPasswordInput = (data) => {
+  const errors = {};
+
+  if (!data.email) {
+    errors.email = "Email is required";
+  } else if (!validateEmail(data.email)) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  if (!data.resetToken) {
+    errors.general = "Reset session is missing. Please verify OTP again.";
+  }
+
+  const passwordValidation = validatePassword(data.password);
+  if (!passwordValidation.isValid) {
+    errors.password = passwordValidation.errors;
+  }
+
+  if (!data.confirmPassword) {
+    errors.confirmPassword = "Please confirm your password";
+  } else if (data.password !== data.confirmPassword) {
+    errors.confirmPassword = "Passwords do not match";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
 module.exports = {
   validateEmail,
   validatePhone,
+  validateSriLankanPhone,
+  validateOtp,
   validatePassword,
   validateRegistrationInput,
-  validateLoginInput
+  validateLoginInput,
+  validateForgotPasswordInput,
+  validateVerifyOtpInput,
+  validateResetPasswordInput,
 };

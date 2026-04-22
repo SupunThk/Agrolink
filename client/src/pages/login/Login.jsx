@@ -169,6 +169,12 @@ export default function Login() {
             </span>
           )}
 
+          <div className="loginAuxLinks">
+            <Link to="/forgot-password" className="forgotPasswordLink">
+              Forgot Password?
+            </Link>
+          </div>
+
           <button className="loginButton" type="submit" disabled={isSubmitting || isFetching}>
             {isSubmitting || isFetching ? "Authenticating..." : "Sign In"}
           </button>

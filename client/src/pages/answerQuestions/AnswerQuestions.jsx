@@ -5,7 +5,7 @@ import ConfirmModal from "../../components/admin/ConfirmModal";
 import { useToast } from "../../components/admin/Toast";
 import "./answerQuestions.css";
 
-const STATUSES = ['Pending', 'Answered', 'Rejected', 'All'];
+const STATUSES = ['Pending', 'Answered', 'All'];
 const CATEGORIES = [
   'All', 'General', 'Organic Farming', 'Inorganic Farming',
   'Crop Diseases', 'Pest Management', 'Soil Management',
@@ -30,6 +30,7 @@ export default function AnswerQuestions() {
   const [editFormData, setEditFormData] = useState({ question: "", category: "" });
 
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteAnswerTarget, setDeleteAnswerTarget] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast, ToastContainer } = useToast();
 
@@ -87,15 +88,44 @@ export default function AnswerQuestions() {
     if (!deleteTarget) return;
     try {
       setActionLoading(true);
-      await axios.delete(`/questions/${deleteTarget._id}`);
+      await axios.delete(`/questions/${deleteTarget._id}`, {
+        params: {
+          username: displayName,
+          userId: user?._id,
+        },
+      });
       setQuestions(questions.filter((q) => q._id !== deleteTarget._id));
       toast.success("Question deleted successfully");
     } catch (err) {
       console.error("Failed to delete question", err);
-      toast.error("Error deleting the question. Please try again.");
+      toast.error(err?.response?.data?.error || "Error deleting the question. Please try again.");
     } finally {
       setActionLoading(false);
       setDeleteTarget(null);
+    }
+  };
+
+  const handleDeleteAnswerConfirm = async () => {
+    if (!deleteAnswerTarget) return;
+
+    try {
+      setActionLoading(true);
+      const res = await axios.delete(`/questions/${deleteAnswerTarget.qId}/answers/${deleteAnswerTarget.answerId}`, {
+        params: { username: displayName },
+      });
+
+      const updatedQuestion = res.data?.question;
+      if (updatedQuestion) {
+        setQuestions(questions.map((q) => (q._id === updatedQuestion._id ? updatedQuestion : q)));
+      }
+
+      toast.success("Answer deleted successfully");
+    } catch (err) {
+      console.error("Failed to delete answer", err);
+      toast.error(err?.response?.data?.error || "Error deleting the answer. Please try again.");
+    } finally {
+      setActionLoading(false);
+      setDeleteAnswerTarget(null);
     }
   };
 
@@ -163,6 +193,17 @@ export default function AnswerQuestions() {
         loading={actionLoading}
         onConfirm={handleDeleteConfirm}
         onCancel={() => { if (!actionLoading) setDeleteTarget(null); }}
+      />
+      <ConfirmModal
+        open={!!deleteAnswerTarget}
+        title="Delete Answer"
+        message={deleteAnswerTarget ? "Are you sure you want to delete your answer? This action cannot be undone." : ""}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        loading={actionLoading}
+        onConfirm={handleDeleteAnswerConfirm}
+        onCancel={() => { if (!actionLoading) setDeleteAnswerTarget(null); }}
       />
       {/* Header */}
       <div className="answerQuestionsHeader">
@@ -369,8 +410,30 @@ export default function AnswerQuestions() {
                     <i className="fas fa-check-circle"></i> Accepted Expert Answer
                   </h4>
                   {q.answers && q.answers.filter(a => a.isAccepted).map((ans, i) => (
-                    <div key={i} style={{ marginBottom: i < q.answers.length - 1 ? 12 : 0 }}>
-                      <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--slate-800)', lineHeight: 1.6 }}>{ans.answer}</p>
+                    <div key={ans._id || i} style={{ marginBottom: i < q.answers.length - 1 ? 12 : 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                        <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--slate-800)', lineHeight: 1.6, margin: 0, flex: 1 }}>{ans.answer}</p>
+                        {user && ans.username === displayName && (
+                          <button
+                            type="button"
+                            onClick={() => setDeleteAnswerTarget({ qId: q._id, answerId: ans._id })}
+                            style={{
+                              padding: '6px 10px',
+                              borderRadius: 8,
+                              border: '1px solid var(--glass-border)',
+                              background: 'var(--bg-surface)',
+                              color: 'var(--status-red-txt)',
+                              cursor: 'pointer',
+                              fontFamily: 'var(--font-display)',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              flexShrink: 0,
+                            }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                       <span style={{ display: 'block', marginTop: 8, fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--slate-500)' }}>
                         Answered by <strong>{ans.username}</strong> on {ans.createdAt ? new Date(ans.createdAt).toLocaleDateString() : 'Unknown Date'}
                       </span>

@@ -3,6 +3,7 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const requireDb = require("../middleware/requireDb");
+const { sendExpertApprovedEmail, sendExpertRejectedEmail } = require("../utils/mailer");
 
 
 router.use(requireDb);
@@ -69,11 +70,12 @@ router.get("/admin/pending-experts", async (req, res) => {
 // ── ADMIN: Get pending experts with farm images (detailed view) ──────────────
 router.get("/admin/pending-experts-with-images", async (req, res) => {
   try {
+    // Keep this endpoint lightweight; verification images are served from /api/expert-images/admin/pending.
     const pendingExperts = await User.find({ 
       role: "expert", 
       verificationStatus: "pending"
     })
-      .select("-password")
+      .select("-password -farmImages")
       .sort({ createdAt: -1 });
     res.status(200).json(pendingExperts);
   } catch (err) {
@@ -95,6 +97,18 @@ router.put("/admin/approve/:id", async (req, res) => {
     }
     
     await user.save();
+
+    if (user.email) {
+      try {
+        await sendExpertApprovedEmail({
+          toEmail: user.email,
+          expertName: user.name || user.username,
+        });
+      } catch (mailError) {
+        console.error("Expert approval email error:", mailError.message);
+      }
+    }
+
     res.status(200).json("Expert has been approved!");
   } catch (err) {
     res.status(500).json("Something went wrong!");
@@ -113,6 +127,19 @@ router.put("/admin/reject/:id", async (req, res) => {
     user.verificationNotes = req.body.verificationNotes || "Farm image verification failed. Please reapply.";
     
     await user.save();
+
+    if (user.email) {
+      try {
+        await sendExpertRejectedEmail({
+          toEmail: user.email,
+          expertName: user.name || user.username,
+          rejectionReason: user.verificationNotes,
+        });
+      } catch (mailError) {
+        console.error("Expert rejection email error:", mailError.message);
+      }
+    }
+
     res.status(200).json("Expert has been rejected!");
   } catch (err) {
     res.status(500).json("Something went wrong!");
@@ -210,7 +237,8 @@ router.put("/:id", async(req, res) => {
                 },
                 {new:true}
             );
-            res.status(200).json(updatedUser);
+          const { password, farmImages, ...safeUser } = updatedUser._doc;
+          res.status(200).json(safeUser);
         }catch(err){
             if (err.code === 11000) {
                 return res.status(400).json("Username or email already exists!");
@@ -259,10 +287,10 @@ router.get("/check/status/:id", async (req, res) => {
 //GET USER
 router.get("/:id", async (req,res)=>{
     try{
-        const user = await User.findById(req.params.id);
+    // Keep profile payloads lightweight: farm images are only needed in admin verification routes.
+    const user = await User.findById(req.params.id).select("-password -farmImages");
         if (!user) return res.status(404).json("User not found!");
-        const {password, ...others} = user._doc;
-        res.status(200).json(others);
+    res.status(200).json(user);
     }catch(err){
         res.status(500).json("Something went wrong!");
     }

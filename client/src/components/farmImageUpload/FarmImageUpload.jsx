@@ -27,12 +27,53 @@ export default function FarmImageUpload({
   const [uploadError, setUploadError] = useState("");
   const [inputKey, setInputKey] = useState(0);
 
-  const convertToBase64 = (file) => {
+  const MAX_SINGLE_IMAGE_BYTES = 2.5 * 1024 * 1024; // ~2.5MB encoded image budget
+  const MAX_TOTAL_IMAGE_BYTES = 10 * 1024 * 1024; // Keep far below MongoDB 16MB document limit
+
+  const getBase64ByteSize = (dataUrl) => {
+    if (typeof dataUrl !== "string") return 0;
+    const base64 = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+    if (!base64) return 0;
+    const padding = (base64.match(/=+$/) || [""])[0].length;
+    return Math.ceil((base64.length * 3) / 4) - padding;
+  };
+
+  const compressImage = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDimension = 1600;
+            const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+            const targetWidth = Math.max(1, Math.round(img.width * scale));
+            const targetHeight = Math.max(1, Math.round(img.height * scale));
+
+            const canvas = document.createElement("canvas");
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              reject(new Error("Unable to initialize canvas"));
+              return;
+            }
+
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            const compressed = canvas.toDataURL("image/jpeg", 0.82);
+            resolve(compressed);
+          } catch (err) {
+            reject(err);
+          }
+        };
+
+        img.onerror = (error) => reject(error);
+        img.src = reader.result;
+      };
+
       reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
     });
   };
 
@@ -69,14 +110,31 @@ export default function FarmImageUpload({
     try {
       const newImages = [];
       let hasErrors = false;
+      let totalBytes = images.reduce((sum, img) => sum + getBase64ByteSize(img), 0);
       
       for (let file of files) {
         if (!validateImage(file)) {
           hasErrors = true;
           continue; // Skip this file and continue with others
         }
-        const base64 = await convertToBase64(file);
-        newImages.push(base64);
+
+        const processed = await compressImage(file);
+        const sizeBytes = getBase64ByteSize(processed);
+
+        if (sizeBytes > MAX_SINGLE_IMAGE_BYTES) {
+          hasErrors = true;
+          setUploadError("One or more images are still too large after optimization. Please use clearer but lower-resolution images.");
+          continue;
+        }
+
+        if (totalBytes + sizeBytes > MAX_TOTAL_IMAGE_BYTES) {
+          hasErrors = true;
+          setUploadError("Total image payload is too large. Remove one image or use smaller images.");
+          continue;
+        }
+
+        totalBytes += sizeBytes;
+        newImages.push(processed);
       }
       
       if (newImages.length > 0) {

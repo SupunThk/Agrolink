@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, useContext } from "react";
 import axios from "axios";
 import { Context } from "../../context/Context";
 import { useToast } from "../../components/admin/Toast";
+import ConfirmModal from "../../components/admin/ConfirmModal";
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -147,6 +148,38 @@ export default function Events() {
 
     const isEditing = useMemo(() => Boolean(editingId), [editingId]);
 
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
+    const getActionErrorMessage = (err, fallback) => {
+        const status = err?.response?.status;
+        const apiMessage = err?.response?.data?.message;
+
+        if (status === 401) return apiMessage || "You must be logged in to perform this action";
+        if (status === 403) return apiMessage || "You do not have permission for this action";
+        if (status === 503) return apiMessage || "Database is unavailable. Please try again shortly";
+
+        return apiMessage || err?.message || fallback;
+    };
+
+    const getEventOwnerId = (event) => {
+        const owner = event?.createdBy;
+        if (!owner) return null;
+        if (typeof owner === "string") return owner;
+        return owner?._id || null;
+    };
+
+    const canManageEvent = (event) => {
+        if (!user) return false;
+        if (user.isAdmin) return true;
+        if (user.role !== "expert") return false;
+
+        const ownerId = getEventOwnerId(event);
+        if (!ownerId) return false;
+
+        return String(ownerId) === String(user._id);
+    };
+
     const fetchEvents = async () => {
         setLoading(true);
         try {
@@ -196,6 +229,11 @@ export default function Events() {
     };
 
     const startEdit = (ev) => {
+        if (!canManageEvent(ev)) {
+            toast.error("You can only edit events created by you");
+            return;
+        }
+
         setEditingId(ev._id);
 
         const d = ev.date ? new Date(ev.date) : null;
@@ -262,15 +300,32 @@ export default function Events() {
     };
 
     const removeEvent = async (id) => {
-        const ok = window.confirm("Are you sure you want to delete this event?");
-        if (!ok) return;
+        const event = events.find((e) => e._id === id);
+        if (!canManageEvent(event)) {
+            toast.error("You can only delete events created by you");
+            return;
+        }
+
+        setDeleteTarget(event);
+    };
+
+    const confirmDeleteEvent = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
         try {
-            await axios.delete(`/events/${id}`, { data: { userId: user ? user._id : null } });
-            setEvents((prev) => prev.filter((e) => e._id !== id));
+            await axios.delete(`/events/${deleteTarget._id}`, { data: { userId: user ? user._id : null } });
+            setEvents((prev) => prev.filter((e) => e._id !== deleteTarget._id));
             toast.success("Event deleted successfully");
         } catch (err) {
-            toast.error(err?.response?.data?.message || err.message || "Delete failed");
+            toast.error(getActionErrorMessage(err, "Delete failed"));
+        } finally {
+            setDeleting(false);
+            setDeleteTarget(null);
         }
+    };
+
+    const closeDeleteConfirm = () => {
+        if (!deleting) setDeleteTarget(null);
     };
 
     const submit = async (e) => {
@@ -305,7 +360,7 @@ export default function Events() {
 
             closeEventModal();
         } catch (err) {
-            toast.error(err?.response?.data?.message || err.message || "Save failed");
+            toast.error(getActionErrorMessage(err, "Save failed"));
             setFormSubmitting(false);
         }
     };
@@ -559,7 +614,7 @@ export default function Events() {
                                             </button>
                                         )}
 
-                                        {isAdminOrExpert && (
+                                        {isAdminOrExpert && canManageEvent(ev) && (
                                             <>
                                                 <button className="btn btn-edit" onClick={() => startEdit(ev)} type="button">
                                                     ✏️ Edit
@@ -893,6 +948,19 @@ export default function Events() {
                     </div>
                 </div>
             )}
+
+            {/* Glass Confirm Modal for Deletion */}
+            <ConfirmModal
+                open={!!deleteTarget}
+                title="Delete Event"
+                message={deleteTarget ? `Are you sure you want to delete "${deleteTarget.title}"?` : ''}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                loading={deleting}
+                onConfirm={confirmDeleteEvent}
+                onCancel={closeDeleteConfirm}
+            />
         </div>
     );
 }

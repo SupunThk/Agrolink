@@ -21,8 +21,31 @@ const EventSchema = new mongoose.Schema(
         },
         description: { type: String, trim: true, default: "" },
 
+        // Ownership metadata for role-based event management
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null,
+            index: true,
+        },
+        createdByRole: {
+            type: String,
+            enum: ["admin", "expert", "user"],
+            default: null,
+        },
+
         // ✅ Registrations
         attendees: { type: [AttendeeSchema], default: [] },
+
+        // One-time reminder tracking
+        reminderSentAt: { type: Date, default: null },
+        reminderProcessedAt: { type: Date, default: null },
+        reminderStatus: {
+            type: String,
+            enum: ["pending", "sent", "skipped", "failed"],
+            default: "pending",
+        },
+        reminderLastError: { type: String, default: "" },
     },
     { timestamps: true, collection: 'events' }
 );

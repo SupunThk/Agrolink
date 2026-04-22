@@ -11,15 +11,15 @@ router.post("/upload", async (req, res) => {
 
     // Validate input
     if (!image || !userId) {
-      return res.status(400).json({ 
-        message: "Image (Base64) and userId are required" 
+      return res.status(400).json({
+        message: "Image (Base64) and userId are required"
       });
     }
 
     // Validate image is Base64
     if (typeof image !== "string" || !image.startsWith("data:image")) {
-      return res.status(400).json({ 
-        message: "Image must be a valid Base64 string starting with 'data:image'" 
+      return res.status(400).json({
+        message: "Image must be a valid Base64 string starting with 'data:image'"
       });
     }
 
@@ -35,8 +35,8 @@ router.post("/upload", async (req, res) => {
 
     // Only allow uploads if verification is still pending
     if (user.verificationStatus === "approved") {
-      return res.status(400).json({ 
-        message: "Cannot modify farm images after approval" 
+      return res.status(400).json({
+        message: "Cannot modify farm images after approval"
       });
     }
 
@@ -48,7 +48,7 @@ router.post("/upload", async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Image uploaded successfully",
       imageCount: user.farmImages.length
     });
@@ -75,8 +75,8 @@ router.delete("/delete/:userId/:imageIndex", async (req, res) => {
 
     // Only allow deletion if verification is still pending
     if (user.verificationStatus === "approved") {
-      return res.status(400).json({ 
-        message: "Cannot delete farm images after approval" 
+      return res.status(400).json({
+        message: "Cannot delete farm images after approval"
       });
     }
 
@@ -87,15 +87,15 @@ router.delete("/delete/:userId/:imageIndex", async (req, res) => {
 
     // Check minimum 3 images if already have more
     if (user.farmImages.length <= 3) {
-      return res.status(400).json({ 
-        message: "Minimum 3 farm images required. Cannot delete." 
+      return res.status(400).json({
+        message: "Minimum 3 farm images required. Cannot delete."
       });
     }
 
     user.farmImages.splice(idx, 1);
     await user.save();
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Image deleted successfully",
       imageCount: user.farmImages.length
     });
@@ -108,9 +108,17 @@ router.delete("/delete/:userId/:imageIndex", async (req, res) => {
 // ── ADMIN: Get pending experts with farm images for verification ────────────
 router.get("/admin/pending", async (req, res) => {
   try {
+    // Match unapproved experts with farm images, including older status variants.
     const pendingExperts = await User.find({
       role: "expert",
-      verificationStatus: "pending"
+      farmImages: { $exists: true, $ne: [] },
+      $or: [
+        { verificationStatus: { $regex: /^pending$/i } },
+        { verificationStatus: { $regex: /^rejected$/i } },
+        { verificationStatus: { $exists: false } },
+        { verificationStatus: null },
+        { approved: false },
+      ],
     })
       .select("-password")
       .sort({ createdAt: -1 });

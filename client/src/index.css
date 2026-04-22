@@ -16,6 +16,37 @@
   --slate-200: #e2e8f0;
   --slate-100: #f1f5f9;
   --slate-50:  #f8fafc;
+
+  /* Legacy aliases used by some pages */
+  --bg-color: var(--bg-snow);
+  --text-color: var(--slate-900);
+  --text-color-light: var(--slate-600);
+  --primary-color: var(--emerald-700);
+
+  /* Disease detection tokens */
+  --disease-accent: #4caf50;
+  --disease-accent-strong: #2e7d32;
+  --disease-accent-soft: rgba(76, 175, 80, 0.08);
+  --disease-accent-soft-subtle: rgba(76, 175, 80, 0.03);
+  --disease-accent-shadow: rgba(76, 175, 80, 0.3);
+  --disease-accent-shadow-strong: rgba(76, 175, 80, 0.4);
+  --disease-overlay: rgba(76, 175, 80, 0.8);
+  --disease-overlay-glow: rgba(76, 175, 80, 0.5);
+  --disease-warning-bg: rgba(255, 152, 0, 0.1);
+  --disease-warning-text: #f57c00;
+  --disease-confidence-start: #ff9800;
+  --disease-meter-bg: #e0e0e0;
+  --disease-remove-bg: rgba(255, 255, 255, 0.9);
+  --disease-surface-subtle: rgba(0, 0, 0, 0.02);
+  --disease-supported-bg: rgba(76, 175, 80, 0.05);
+  --disease-disabled-bg: #ccc;
+  --disease-disabled-text: #777;
+  --disease-reset-border: #ccc;
+  --disease-reset-hover-bg: rgba(0, 0, 0, 0.05);
+  --disease-content-bg: rgba(255, 255, 255, 0.7);
+  --disease-content-border: rgba(255, 255, 255, 0.18);
+  --disease-upload-icon-secondary-bg: #ffffff;
+
   --bg-snow: #ffffff; /* Pure White */
   --bg-card: #ffffff;
   --bg-surface: #f8fafc; /* Added for surface colors */
@@ -63,6 +94,36 @@
   --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
   --shadow-zen: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
   --shadow-input: 0 0 0 4px rgba(16, 185, 129, 0.15);
+
+  /* Legacy aliases used by some pages */
+  --bg-color: var(--bg-snow);
+  --text-color: var(--slate-900);
+  --text-color-light: var(--slate-600);
+  --primary-color: var(--emerald-600);
+
+  /* Disease detection tokens */
+  --disease-accent: #81c784;
+  --disease-accent-strong: #66bb6a;
+  --disease-accent-soft: rgba(129, 199, 132, 0.2);
+  --disease-accent-soft-subtle: rgba(129, 199, 132, 0.08);
+  --disease-accent-shadow: rgba(129, 199, 132, 0.35);
+  --disease-accent-shadow-strong: rgba(129, 199, 132, 0.45);
+  --disease-overlay: rgba(129, 199, 132, 0.8);
+  --disease-overlay-glow: rgba(129, 199, 132, 0.45);
+  --disease-warning-bg: rgba(255, 183, 77, 0.2);
+  --disease-warning-text: #ffb74d;
+  --disease-confidence-start: #ffb74d;
+  --disease-meter-bg: #444;
+  --disease-remove-bg: rgba(30, 30, 30, 0.9);
+  --disease-surface-subtle: rgba(255, 255, 255, 0.02);
+  --disease-supported-bg: rgba(255, 255, 255, 0.02);
+  --disease-disabled-bg: #444;
+  --disease-disabled-text: #888;
+  --disease-reset-border: #555;
+  --disease-reset-hover-bg: rgba(255, 255, 255, 0.05);
+  --disease-content-bg: rgba(30, 30, 30, 0.7);
+  --disease-content-border: rgba(255, 255, 255, 0.05);
+  --disease-upload-icon-secondary-bg: var(--bg-card);
 }
 
 * {

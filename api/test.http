@@ -1,0 +1,44 @@
+### Forgot password - request OTP
+POST http://localhost:5000/api/auth/forgot-password
+Content-Type: application/json
+
+{
+	"email": "your-user-email@example.com"
+}
+
+### Verify reset OTP
+POST http://localhost:5000/api/auth/verify-reset-otp
+Content-Type: application/json
+
+{
+	"email": "your-user-email@example.com",
+	"otp": "123456"
+}
+
+### Reset password
+POST http://localhost:5000/api/auth/reset-password
+Content-Type: application/json
+
+{
+	"email": "your-user-email@example.com",
+	"resetToken": "PASTE_RESET_TOKEN_FROM_VERIFY_RESPONSE",
+	"password": "NewStrongPassword@123",
+	"confirmPassword": "NewStrongPassword@123"
+}
+
+### Event reminders - run scheduled window manually (admin)
+POST http://localhost:5000/api/admin/event-reminders/run
+Content-Type: application/json
+
+{
+	"userId": "PASTE_ADMIN_USER_ID"
+}
+
+### Event reminders - force mode (admin)
+POST http://localhost:5000/api/admin/event-reminders/run
+Content-Type: application/json
+
+{
+	"userId": "PASTE_ADMIN_USER_ID",
+	"force": true
+}

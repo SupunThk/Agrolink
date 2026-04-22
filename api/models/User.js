@@ -11,6 +11,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    phone: {
+      type: String,
+      default: "",
+    },
     email: {
       type: String,
       required: true,
@@ -44,6 +48,56 @@ const UserSchema = new mongoose.Schema(
     isAdmin: {
       type: Boolean,
       default: false,
+    },
+    verificationStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    verificationNotes: {
+      type: String,
+      default: "",
+    },
+    farmImages: {
+      type: [
+        {
+          image: { type: String },
+          uploadedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
+    passwordResetOtpHash: {
+      type: String,
+      default: "",
+    },
+    passwordResetOtpExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    passwordResetLastSentAt: {
+      type: Date,
+      default: null,
+    },
+    passwordResetFailedAttempts: {
+      type: Number,
+      default: 0,
+    },
+    passwordResetLockUntil: {
+      type: Date,
+      default: null,
+    },
+    passwordResetToken: {
+      type: String,
+      default: "",
+    },
+    passwordResetTokenExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    passwordChangedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },

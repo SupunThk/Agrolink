@@ -3,8 +3,9 @@
   flex-direction: column;
   gap: 24px;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  min-height: 100vh;
+  background: var(--bg-surface);
+  border: 1px solid var(--slate-200);
+  border-radius: 16px;
 }
 
 .expertVerificationHeader {
@@ -25,13 +26,13 @@
 }
 
 .expertVerificationHeader i {
-  color: #27ae60;
+  color: var(--emerald-600);
   font-size: 32px;
 }
 
 .expertVerificationBadge {
   display: inline-block;
-  background-color: #e74c3c;
+  background-color: #dc2626;
   color: white;
   padding: 6px 12px;
   border-radius: 20px;
@@ -51,7 +52,7 @@
 
 .expertVerificationLoader i {
   font-size: 48px;
-  color: #27ae60;
+  color: var(--emerald-600);
   margin-bottom: 16px;
 }
 
@@ -68,13 +69,14 @@
   justify-content: center;
   padding: 60px 20px;
   background: var(--bg-card);
-  border-radius: 12px;
+  border: 1px solid var(--slate-200);
+  border-radius: 14px;
   text-align: center;
 }
 
 .expertVerificationEmpty i {
   font-size: 48px;
-  color: #27ae60;
+  color: var(--emerald-600);
   margin-bottom: 16px;
 }
 
@@ -100,9 +102,9 @@
 /* Card */
 .expertVerificationCard {
   background: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid #ecf0f1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  border: 1px solid var(--slate-200);
+  box-shadow: var(--shadow-subtle);
   overflow: hidden;
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease forwards;
@@ -120,7 +122,7 @@
 }
 
 .expertVerificationCard:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
 .expertVerificationCardHeader {
@@ -128,8 +130,8 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 16px;
-  border-bottom: 1px solid #ecf0f1;
-  background: #fafbfc;
+  border-bottom: 1px solid var(--slate-200);
+  background: linear-gradient(180deg, var(--slate-50) 0%, var(--bg-card) 100%);
 }
 
 .expertVerificationCardInfo {
@@ -167,8 +169,18 @@
 }
 
 .expertStatusBadge.pending {
-  background-color: #fff3cd;
-  color: #856404;
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.expertStatusBadge.rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.expertStatusBadge.approved {
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .expertStatusBadge i {
@@ -178,7 +190,7 @@
 /* Description */
 .expertVerificationCardDescription {
   padding: 16px;
-  border-bottom: 1px solid #ecf0f1;
+  border-bottom: 1px solid var(--slate-200);
   background: var(--bg-card);
 }
 
@@ -192,7 +204,7 @@
 /* Image Section */
 .expertVerificationImageSection {
   padding: 16px;
-  border-bottom: 1px solid #ecf0f1;
+  border-bottom: 1px solid var(--slate-200);
 }
 
 .expertImageLabel {
@@ -206,7 +218,7 @@
 }
 
 .expertImageLabel i {
-  color: #27ae60;
+  color: var(--emerald-600);
 }
 
 .expertImageGallery {
@@ -221,15 +233,15 @@
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
-  background: #ecf0f1;
-  border: 1px solid #d5dbdb;
+  background: var(--slate-100);
+  border: 1px solid var(--slate-300);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .expertImagePreview:hover {
   transform: scale(1.05);
-  border-color: #27ae60;
+  border-color: var(--emerald-600);
 }
 
 .expertImageThumbnail {
@@ -242,7 +254,7 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  background-color: rgba(39, 174, 96, 0.9);
+  background-color: rgba(5, 150, 105, 0.92);
   color: white;
   width: 20px;
   height: 20px;
@@ -260,9 +272,9 @@
   align-items: center;
   justify-content: center;
   padding: 30px;
-  background: #f8f9fa;
+  background: var(--slate-50);
   border-radius: 8px;
-  border: 1px dashed #bdc3c7;
+  border: 1px dashed var(--slate-300);
   text-align: center;
   color: var(--slate-600);
 }
@@ -281,22 +293,22 @@
 /* Verification Notes */
 .expertVerificationNotes {
   padding: 16px;
-  border-bottom: 1px solid #ecf0f1;
-  background: #fef5e7;
+  border-bottom: 1px solid var(--slate-200);
+  background: #fffbeb;
 }
 
 .expertVerificationNotes label {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #7d6608;
+  color: #92400e;
   margin-bottom: 6px;
 }
 
 .expertVerificationNotes p {
   margin: 0;
   font-size: 13px;
-  color: #7d6608;
+  color: #78350f;
   line-height: 1.5;
 }
 
@@ -323,22 +335,22 @@
 }
 
 .expertActionBtn.approve {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .expertActionBtn.approve:hover:not(:disabled) {
-  background-color: #c3e6cb;
+  background-color: #bbf7d0;
   transform: translateY(-2px);
 }
 
 .expertActionBtn.reject {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 .expertActionBtn.reject:hover:not(:disabled) {
-  background-color: #f5c6cb;
+  background-color: #fecaca;
   transform: translateY(-2px);
 }
 
@@ -407,8 +419,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  border-bottom: 1px solid #ecf0f1;
-  background: #fafbfc;
+  border-bottom: 1px solid var(--slate-200);
+  background: linear-gradient(180deg, var(--slate-50) 0%, var(--bg-card) 100%);
 }
 
 .expertVerificationModalHeader h3 {
@@ -451,7 +463,7 @@
   flex-direction: column;
   gap: 6px;
   padding: 12px;
-  background: #f8f9fa;
+  background: var(--slate-50);
   border-radius: 6px;
   font-size: 13px;
 }
@@ -488,7 +500,7 @@
   height: 100px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid #ecf0f1;
+  border: 1px solid var(--slate-200);
   transition: transform 0.3s ease;
   cursor: pointer;
 }
@@ -512,7 +524,7 @@
 
 .expertVerificationFormTextarea {
   padding: 10px;
-  border: 1px solid #bdc3c7;
+  border: 1px solid var(--slate-300);
   border-radius: 6px;
   font-family: inherit;
   font-size: 13px;
@@ -523,12 +535,12 @@
 
 .expertVerificationFormTextarea:focus {
   outline: none;
-  border-color: #27ae60;
-  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+  border-color: var(--emerald-600);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
 }
 
 .expertVerificationFormTextarea:disabled {
-  background-color: #ecf0f1;
+  background-color: var(--slate-100);
   cursor: not-allowed;
 }
 
@@ -536,8 +548,8 @@
   display: flex;
   gap: 12px;
   padding: 20px;
-  border-top: 1px solid #ecf0f1;
-  background: #fafbfc;
+  border-top: 1px solid var(--slate-200);
+  background: var(--slate-50);
 }
 
 .expertVerificationFormBtn {
@@ -556,31 +568,31 @@
 }
 
 .expertVerificationFormBtn.cancel {
-  background-color: #ecf0f1;
+  background-color: var(--slate-200);
   color: var(--slate-600);
 }
 
 .expertVerificationFormBtn.cancel:hover:not(:disabled) {
-  background-color: #d5dbdb;
+  background-color: var(--slate-300);
 }
 
 .expertVerificationFormBtn.approve {
-  background-color: #27ae60;
+  background-color: var(--emerald-600);
   color: white;
 }
 
 .expertVerificationFormBtn.approve:hover:not(:disabled) {
-  background-color: #229954;
+  background-color: var(--emerald-700);
   transform: translateY(-2px);
 }
 
 .expertVerificationFormBtn.reject {
-  background-color: #e74c3c;
+  background-color: #dc2626;
   color: white;
 }
 
 .expertVerificationFormBtn.reject:hover:not(:disabled) {
-  background-color: #c0392b;
+  background-color: #b91c1c;
   transform: translateY(-2px);
 }
 

@@ -5,7 +5,7 @@ import axios from "axios"
 import FarmImageUpload from "../../components/farmImageUpload/FarmImageUpload"
 import { 
   validateEmail, 
-  validatePhone, 
+  validateSriLankanPhone, 
   validatePassword, 
   getPasswordStrength,
   getPasswordStrengthLabel,
@@ -52,7 +52,7 @@ export default function Register() {
         }
         break;
       case "phone":
-        const phoneValidation = validatePhone(value);
+        const phoneValidation = validateSriLankanPhone(value);
         if (!phoneValidation.isValid) {
           newErrors.phone = phoneValidation.error;
         } else {
@@ -163,10 +163,11 @@ export default function Register() {
       newErrors.email = "Please enter a valid email address";
     }
 
-    const phoneValidation = validatePhone(phone);
+    const phoneValidation = validateSriLankanPhone(phone);
     if (!phoneValidation.isValid) {
       newErrors.phone = phoneValidation.error;
     }
+    const normalizedPhone = phoneValidation.formatted || phone;
 
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
@@ -198,7 +199,7 @@ export default function Register() {
       const res = await axios.post("/auth/register", {
         name,
         email,
-        phone,
+        phone: normalizedPhone,
         password,
         confirmPassword,
         role,
@@ -223,6 +224,18 @@ export default function Register() {
       if (errorData?.errors) {
         setErrors(errorData.errors);
       } else {
+        if (errorData?.message) {
+          setErrors({ general: errorData.message });
+          return;
+        }
+
+        if (err.response?.status === 413) {
+          setErrors({
+            general: "Selected farm images are too large. Please upload smaller images and try again.",
+          });
+          return;
+        }
+
         const errorMsg = typeof errorData === "string" 
           ? errorData 
           : "Something went wrong during registration!";
@@ -342,7 +355,7 @@ export default function Register() {
           <input
             className={`registerInput ${errors.phone ? "error" : ""}`}
             type="tel"
-            placeholder="Enter your 10-digit phone number..."
+            placeholder="Enter your Phone Number :"
             value={phone}
             onChange={handlePhoneChange}
             onBlur={() => handleBlur("phone")}
