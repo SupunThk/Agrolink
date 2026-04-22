@@ -16,6 +16,30 @@ const SUGGESTED = [
   "Signs of nutrient deficiency in plants",
 ];
 
+const PF = "http://localhost:5000/images/";
+const getAvatarSrc = (src) => {
+  if (!src) return null;
+  if (
+    src.startsWith("http://") ||
+    src.startsWith("https://") ||
+    src.startsWith("data:") ||
+    src.startsWith("blob:")
+  ) {
+    return src;
+  }
+
+  if (src.startsWith("/images/")) {
+    return `http://localhost:5000${src}`;
+  }
+
+  const cleanSrc = src.replace(/^\/+/, "");
+  if (cleanSrc.startsWith("images/")) {
+    return `http://localhost:5000/${cleanSrc}`;
+  }
+
+  return PF + cleanSrc;
+};
+
 const TOPICS = [
   { icon: "fas fa-bug", label: "Pest Control" },
   { icon: "fas fa-seedling", label: "Crop Growth" },
@@ -675,7 +699,7 @@ export default function AskExpert() {
             <div className="ae-user-row">
               <div className="ae-user-avatar">
                 {user?.profilePic ? (
-                  <img src={user.profilePic.startsWith("http") ? user.profilePic : "http://localhost:5000/images/" + user.profilePic} alt="You" />
+                    <img src={getAvatarSrc(user.profilePic)} alt="You" />
                 ) : (
                   <i className="fas fa-user"></i>
                 )}
@@ -761,7 +785,7 @@ export default function AskExpert() {
                     {msg.from === "user" && (
                       <div className="ae-user-msg-avatar">
                         {user?.profilePic ? (
-                          <img src={user.profilePic.startsWith("http") ? user.profilePic : "http://localhost:5000/images/" + user.profilePic} alt="You" />
+                          <img src={getAvatarSrc(user.profilePic)} alt="You" />
                         ) : (
                           <i className="fas fa-user"></i>
                         )}
