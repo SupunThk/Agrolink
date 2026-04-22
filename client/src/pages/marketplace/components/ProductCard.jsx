@@ -3,7 +3,7 @@ import "./productCard.css";
 
 export default function ProductCard({ product, isOwner, onEdit, onDelete }) {
     const [showContact, setShowContact] = useState(false);
-    const PF = "http://localhost:5000/images/";
+
 
     // Format price
     const formattedPrice = `Rs. ${new Intl.NumberFormat('en-US').format(product.price)}`;
@@ -44,7 +44,7 @@ export default function ProductCard({ product, isOwner, onEdit, onDelete }) {
                 <div className="productCardDetails">
                     <div className="productDetail">
                         <i className="fas fa-weight-hanging"></i>
-                        <span>{product.quantity}</span>
+                        <span>{product.quantity} kg</span>
                     </div>
                     <div className="productDetail">
                         <i className="fas fa-map-marker-alt"></i>

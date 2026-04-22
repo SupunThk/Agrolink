@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { Context } from "../../../context/Context";
 import "./createListing.css";
@@ -13,7 +13,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
     const [description, setDescription] = useState(initialProduct ? initialProduct.description : "");
     const [file, setFile] = useState(null);
     const [customCategory, setCustomCategory] = useState("");
-    const [categories, setCategories] = useState([]);
+    // Predefined categories
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -81,13 +81,13 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
             isValid = false;
         }
 
-        if (quantity.trim() === "") {
+        if (quantity === "") {
             setQuantityError("Quantity is required.");
             isValid = false;
         } else {
             const num = parseFloat(quantity);
-            if (!isNaN(num) && num < 0) {
-                setQuantityError("Quantity cannot be negative.");
+            if (!isNaN(num) && num <= 0) {
+                setQuantityError("Quantity must be a positive number.");
                 isValid = false;
             }
         }
@@ -97,10 +97,10 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
              isValid = false;
         }
 
-        const phoneRegex = /^\d{10}$/;
         const cleanPhone = phone.replace(/[-.\s]/g, "");
-        if (!phoneRegex.test(cleanPhone)) {
-            setPhoneError("Please enter a valid 10-digit phone number (e.g., 0716615672)");
+        const slPhoneRegex = /^0[1-9]\d{8}$/;
+        if (!slPhoneRegex.test(cleanPhone) || /(.)\1{6,}/.test(cleanPhone) || /456789/.test(cleanPhone)) {
+            setPhoneError("Please enter a valid and real phone number (e.g., 0716615672)");
             isValid = false;
         }
 
@@ -203,6 +203,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                 </div>
 
                 <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                    <label className="createListingLabel">Crop Name</label>
                     <input
                         type="text"
                         placeholder="Crop Name (e.g., Organic Tomatoes)"
@@ -225,6 +226,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
 
                 <div className="createListingGroup split">
                     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <label className="createListingLabel">Category</label>
                         <select
                             className="createListingInput selectCategory"
                             value={categoryId}
@@ -240,8 +242,10 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                             ))}
                         </select>
                         {categoryId === "Other (Specify)" && (
-                            <input
-                                type="text"
+                            <>
+                                <label className="createListingLabel" style={{ marginTop: "10px" }}>Specify Category</label>
+                                <input
+                                    type="text"
                                 placeholder="Please specify your category"
                                 className="createListingInput"
                                 required
@@ -257,11 +261,13 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                                 }}
                                 style={{ marginTop: "10px" }}
                             />
+                            </>
                         )}
                         {categoryError && <span style={{ color: "red", fontSize: "14px", marginTop: "5px", alignSelf: "flex-start" }}>{categoryError}</span>}
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <label className="createListingLabel">Price (Rs)</label>
                         <input
                             type="number"
                             placeholder="Price (Rs)"
@@ -284,9 +290,10 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
 
                 <div className="createListingGroup split">
                     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <label className="createListingLabel">Quantity</label>
                         <input
-                            type="text"
-                            placeholder="Quantity (e.g., 50 kg)"
+                            type="number"
+                            placeholder="Quantity (e.g., 50)"
                             className="createListingInput"
                             required
                             value={quantity}
@@ -295,10 +302,10 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                                 setQuantityError("");
                             }}
                             onBlur={() => {
-                                if (quantity.trim() !== "") {
+                                if (quantity !== "") {
                                     const num = parseFloat(quantity);
-                                    if (!isNaN(num) && num < 0) {
-                                        setQuantityError("Quantity cannot be negative.");
+                                    if (!isNaN(num) && num <= 0) {
+                                        setQuantityError("Quantity must be a positive number.");
                                     }
                                 }
                             }}
@@ -307,6 +314,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <label className="createListingLabel">Location</label>
                         <input
                             type="text"
                             placeholder="Location"
@@ -323,6 +331,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                 </div>
 
                 <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                    <label className="createListingLabel">Phone Number</label>
                     <input
                         type="tel"
                         placeholder="Phone Number (e.g., 0716615672)"
@@ -335,10 +344,10 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                         }}
                         onBlur={() => {
                             if (phone.trim().length > 0) {
-                                const phoneRegex = /^\d{10}$/;
                                 const cleanPhone = phone.replace(/[-.\s]/g, "");
-                                if (!phoneRegex.test(cleanPhone)) {
-                                    setPhoneError("Please enter a valid 10-digit phone number (e.g., 0716615672)");
+                                const slPhoneRegex = /^0[1-9]\d{8}$/;
+                                if (!slPhoneRegex.test(cleanPhone) || /(.)\1{6,}/.test(cleanPhone) || /456789/.test(cleanPhone)) {
+                                    setPhoneError("Please enter a valid and real phone number (e.g., 0716615672)");
                                 }
                             }
                         }}
@@ -347,6 +356,7 @@ export default function CreateListing({ setActiveTab, initialProduct }) {
                 </div>
 
                 <div className="createListingGroup" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                    <label className="createListingLabel">Description</label>
                     <textarea
                         placeholder="Describe your product..."
                         type="text"

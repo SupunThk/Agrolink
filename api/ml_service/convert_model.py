@@ -4,8 +4,8 @@ import os
 
 print(f"TensorFlow version: {tf.__version__}")
 
-keras_model_path = os.path.join(os.path.dirname(__file__), "..", "colorModelnew.keras")
-tflite_model_path = os.path.join(os.path.dirname(__file__), 'colorModel.tflite')
+keras_model_path = os.path.join(os.path.dirname(__file__), "colorModelnewmobilenet.keras")
+tflite_model_path = os.path.join(os.path.dirname(__file__), 'colorModelnewmobilenet.tflite')
 
 print(f"Loading keras model from {keras_model_path}...")
 model = tf.keras.models.load_model(keras_model_path)

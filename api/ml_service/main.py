@@ -23,8 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load the TFLite model (converted from colorModelnew.keras via convert_model.py)
-TFLITE_MODEL_PATH = os.path.join(os.path.dirname(__file__), "colorModel.tflite")
+# Load the TFLite model (converted from colorModelnewmobilenet.keras via convert_model.py)
+TFLITE_MODEL_PATH = os.path.join(os.path.dirname(__file__), "colorModelnewmobilenet.tflite")
 
 if not os.path.exists(TFLITE_MODEL_PATH):
     raise FileNotFoundError(
