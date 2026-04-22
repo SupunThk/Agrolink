@@ -52,6 +52,7 @@ const TOPICS = [
 export default function AskExpert() {
   const { user } = useContext(Context);
   const navigate = useNavigate();
+  const displayName = user?.username?.trim() || user?.name?.trim() || user?.email?.trim() || "Guest";
 
   const getInitialMessages = () => ([
     {
@@ -81,7 +82,9 @@ export default function AskExpert() {
   const [editQuestionText, setEditQuestionText] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const [deleteQuestion, setDeleteQuestion] = useState(null);
+  const [deleteAnswerTarget, setDeleteAnswerTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteAnswerLoading, setDeleteAnswerLoading] = useState(false);
   const [questionActionError, setQuestionActionError] = useState("");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -404,6 +407,40 @@ export default function AskExpert() {
       setQuestionActionError(err?.response?.data?.error || "Failed to delete question.");
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const openDeleteAnswer = (question, answer) => {
+    if (!question || !answer || answer.username !== displayName) {
+      return;
+    }
+
+    setQuestionActionError("");
+    setDeleteAnswerTarget({ questionId: question._id, answerId: answer._id });
+  };
+
+  const closeDeleteAnswer = () => {
+    if (deleteAnswerLoading) return;
+    setDeleteAnswerTarget(null);
+  };
+
+  const handleDeleteAnswer = async () => {
+    if (!deleteAnswerTarget) return;
+
+    setDeleteAnswerLoading(true);
+    setQuestionActionError("");
+
+    try {
+      await axios.delete(`/questions/${deleteAnswerTarget.questionId}/answers/${deleteAnswerTarget.answerId}`, {
+        params: { username: displayName },
+      });
+      setDeleteAnswerTarget(null);
+      await fetchExpertQuestions({ silent: true });
+    } catch (err) {
+      console.error("Failed to delete answer", err);
+      setQuestionActionError(err?.response?.data?.error || "Failed to delete answer.");
+    } finally {
+      setDeleteAnswerLoading(false);
     }
   };
 
@@ -939,6 +976,17 @@ export default function AskExpert() {
                             {best ? (
                               <div className="ae-expert-answer">
                                 <p className="ae-expert-answer-label">Expert reply</p>
+                                {best.username === displayName && (
+                                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+                                    <button
+                                      type="button"
+                                      className="ae-question-action-btn danger"
+                                      onClick={() => openDeleteAnswer(q, best)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
                                 <p className="ae-expert-answer-text">{best.answer}</p>
                                 <p className="ae-expert-meta">By {best.username}{best.createdAt ? ` • ${formatDateTime(best.createdAt)}` : ""}</p>
                               </div>
@@ -990,6 +1038,23 @@ export default function AskExpert() {
                           </button>
                           <button type="button" className="ae-question-action-btn danger" onClick={handleDeleteQuestion} disabled={deleteLoading}>
                             {deleteLoading ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {deleteAnswerTarget && (
+                    <div className="ae-modal-backdrop" role="presentation" onClick={closeDeleteAnswer}>
+                      <div className="ae-modal-panel glass-panel" role="dialog" aria-modal="true" aria-labelledby="delete-answer-title" onClick={(e) => e.stopPropagation()}>
+                        <h3 id="delete-answer-title" className="ae-modal-title">Delete answer?</h3>
+                        <p className="ae-modal-copy">This reply will be removed permanently from the question thread.</p>
+                        <div className="ae-modal-actions-row">
+                          <button type="button" className="ae-question-action-btn" onClick={closeDeleteAnswer} disabled={deleteAnswerLoading}>
+                            Cancel
+                          </button>
+                          <button type="button" className="ae-question-action-btn danger" onClick={handleDeleteAnswer} disabled={deleteAnswerLoading}>
+                            {deleteAnswerLoading ? "Deleting…" : "Delete"}
                           </button>
                         </div>
                       </div>

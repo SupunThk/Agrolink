@@ -1,6 +1,26 @@
 const express = require("express");
 const router = express.Router();
 const Question = require("../models/Question");
+const User = require("../models/User");
+
+const resolveRequester = async (req) => {
+  const requesterUserId =
+    req.body?.requesterUserId ||
+    req.body?.userId ||
+    req.query?.requesterUserId ||
+    req.query?.userId;
+  const requesterUsername = req.body?.username || req.query?.username;
+
+  if (!requesterUserId && !requesterUsername) {
+    return null;
+  }
+
+  if (requesterUserId) {
+    return User.findById(requesterUserId).select("username role isAdmin");
+  }
+
+  return User.findOne({ username: requesterUsername }).select("username role isAdmin");
+};
 
 // POST - Create a pre-answered question for training
 router.post("/training-pair", async (req, res) => {
@@ -205,8 +225,8 @@ router.put("/:id/helpful/:answerId", async (req, res) => {
   }
 });
 
-// DELETE - Remove a question
-router.delete("/:id", async (req, res) => {
+// DELETE - Remove one answer from a question
+router.delete("/:id/answers/:answerId", async (req, res) => {
   try {
     const question = await Question.findById(req.params.id);
 
@@ -219,12 +239,60 @@ router.delete("/:id", async (req, res) => {
       return res.status(400).json({ error: "Username is required" });
     }
 
-    if (question.username !== requesterUsername) {
-      return res.status(403).json({ error: "You can only delete your own questions." });
+    const answer = question.answers.id(req.params.answerId);
+    if (!answer) {
+      return res.status(404).json({ error: "Answer not found" });
     }
 
-    if (question.status !== "Pending") {
-      return res.status(403).json({ error: "Cannot delete questions that are already answered." });
+    if (answer.username !== requesterUsername) {
+      return res.status(403).json({ error: "You can only delete your own answers." });
+    }
+
+    answer.deleteOne();
+
+    const hasAcceptedAnswer = question.answers.some((item) => item._id.toString() !== req.params.answerId && item.isAccepted);
+    const hasAnyAnswers = question.answers.some((item) => item._id.toString() !== req.params.answerId);
+
+    question.status = hasAcceptedAnswer ? "Answered" : (hasAnyAnswers ? "Answered" : "Pending");
+    if (!hasAnyAnswers) {
+      question.status = "Pending";
+    }
+
+    await question.save();
+
+    res.status(200).json({ message: "Answer deleted successfully", question });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE - Remove a question
+router.delete("/:id", async (req, res) => {
+  try {
+    const question = await Question.findById(req.params.id);
+
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    const requester = await resolveRequester(req);
+    if (!requester) {
+      return res.status(400).json({ error: "Requester identity is required. Provide userId or username." });
+    }
+
+    const isModerator =
+      requester.isAdmin === true ||
+      requester.role === "admin" ||
+      requester.role === "expert";
+
+    if (!isModerator) {
+      if (question.username !== requester.username) {
+        return res.status(403).json({ error: "You can only delete your own questions." });
+      }
+
+      if (question.status !== "Pending") {
+        return res.status(403).json({ error: "Cannot delete questions that are already answered." });
+      }
     }
 
     await Question.findByIdAndDelete(req.params.id);
