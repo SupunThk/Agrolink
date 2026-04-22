@@ -3,6 +3,7 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const requireDb = require("../middleware/requireDb");
+const { sendExpertApprovedEmail, sendExpertRejectedEmail } = require("../utils/mailer");
 
 
 router.use(requireDb);
@@ -96,6 +97,18 @@ router.put("/admin/approve/:id", async (req, res) => {
     }
     
     await user.save();
+
+    if (user.email) {
+      try {
+        await sendExpertApprovedEmail({
+          toEmail: user.email,
+          expertName: user.name || user.username,
+        });
+      } catch (mailError) {
+        console.error("Expert approval email error:", mailError.message);
+      }
+    }
+
     res.status(200).json("Expert has been approved!");
   } catch (err) {
     res.status(500).json("Something went wrong!");
@@ -114,6 +127,19 @@ router.put("/admin/reject/:id", async (req, res) => {
     user.verificationNotes = req.body.verificationNotes || "Farm image verification failed. Please reapply.";
     
     await user.save();
+
+    if (user.email) {
+      try {
+        await sendExpertRejectedEmail({
+          toEmail: user.email,
+          expertName: user.name || user.username,
+          rejectionReason: user.verificationNotes,
+        });
+      } catch (mailError) {
+        console.error("Expert rejection email error:", mailError.message);
+      }
+    }
+
     res.status(200).json("Expert has been rejected!");
   } catch (err) {
     res.status(500).json("Something went wrong!");

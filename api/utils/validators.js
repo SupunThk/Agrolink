@@ -76,6 +76,15 @@ const validatePassword = (password) => {
 };
 
 /**
+ * Validate 6 digit OTP format
+ * @param {string} otp - OTP to validate
+ * @returns {boolean} - True when OTP has exactly 6 digits
+ */
+const validateOtp = (otp) => {
+  return /^[0-9]{6}$/.test(String(otp || "").trim());
+};
+
+/**
  * Validate registration input
  * @param {object} data - Registration data { email, password, confirmPassword, phone, name }
  * @returns {object} - { isValid: boolean, errors: object }
@@ -150,10 +159,95 @@ const validateLoginInput = (data) => {
   };
 };
 
+/**
+ * Validate forgot-password input
+ * @param {object} data - Payload with email
+ * @returns {object} - { isValid: boolean, errors: object }
+ */
+const validateForgotPasswordInput = (data) => {
+  const errors = {};
+
+  if (!data.email) {
+    errors.email = "Email is required";
+  } else if (!validateEmail(data.email)) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
+/**
+ * Validate verify-otp input
+ * @param {object} data - Payload with email and otp
+ * @returns {object} - { isValid: boolean, errors: object }
+ */
+const validateVerifyOtpInput = (data) => {
+  const errors = {};
+
+  if (!data.email) {
+    errors.email = "Email is required";
+  } else if (!validateEmail(data.email)) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  if (!data.otp) {
+    errors.otp = "OTP is required";
+  } else if (!validateOtp(data.otp)) {
+    errors.otp = "OTP must be exactly 6 digits";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
+/**
+ * Validate reset-password input
+ * @param {object} data - Payload with email, resetToken, password and confirmPassword
+ * @returns {object} - { isValid: boolean, errors: object }
+ */
+const validateResetPasswordInput = (data) => {
+  const errors = {};
+
+  if (!data.email) {
+    errors.email = "Email is required";
+  } else if (!validateEmail(data.email)) {
+    errors.email = "Please enter a valid email address";
+  }
+
+  if (!data.resetToken) {
+    errors.general = "Reset session is missing. Please verify OTP again.";
+  }
+
+  const passwordValidation = validatePassword(data.password);
+  if (!passwordValidation.isValid) {
+    errors.password = passwordValidation.errors;
+  }
+
+  if (!data.confirmPassword) {
+    errors.confirmPassword = "Please confirm your password";
+  } else if (data.password !== data.confirmPassword) {
+    errors.confirmPassword = "Passwords do not match";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};
+
 module.exports = {
   validateEmail,
   validatePhone,
+  validateOtp,
   validatePassword,
   validateRegistrationInput,
-  validateLoginInput
+  validateLoginInput,
+  validateForgotPasswordInput,
+  validateVerifyOtpInput,
+  validateResetPasswordInput,
 };

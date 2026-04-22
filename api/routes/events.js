@@ -156,6 +156,13 @@ router.put("/:id", async (req, res) => {
             updateData.geo = normalizeGeo(geo);
         }
 
+        if (updateData.date !== undefined) {
+            updateData.reminderSentAt = null;
+            updateData.reminderProcessedAt = null;
+            updateData.reminderStatus = "pending";
+            updateData.reminderLastError = "";
+        }
+
         // Prevent ownership or attendee tampering from update payloads
         delete updateData.createdBy;
         delete updateData.createdByRole;

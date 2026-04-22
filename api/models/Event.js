@@ -36,6 +36,16 @@ const EventSchema = new mongoose.Schema(
 
         // ✅ Registrations
         attendees: { type: [AttendeeSchema], default: [] },
+
+        // One-time reminder tracking
+        reminderSentAt: { type: Date, default: null },
+        reminderProcessedAt: { type: Date, default: null },
+        reminderStatus: {
+            type: String,
+            enum: ["pending", "sent", "skipped", "failed"],
+            default: "pending",
+        },
+        reminderLastError: { type: String, default: "" },
     },
     { timestamps: true, collection: 'events' }
 );

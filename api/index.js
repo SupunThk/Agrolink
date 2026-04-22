@@ -18,6 +18,7 @@ const diseaseRoute = require("./routes/disease");
 const knowledgeRoute = require("./routes/knowledge");
 const expertImagesRoute = require("./routes/expert-images");
 const adminRoute = require("./routes/admin");
+const { startEventReminderScheduler } = require("./services/eventReminderService");
 const Category = require("./models/Category");
 const {
   isCloudinaryConfigured,
@@ -95,6 +96,15 @@ async function startServer() {
     );
   }
 
+  const missingSmtpVars = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"].filter(
+    (name) => !process.env[name],
+  );
+  if (missingSmtpVars.length > 0) {
+    console.warn(
+      `SMTP is not fully configured (${missingSmtpVars.join(", ")}). Forgot-password OTP emails will fail until these are set in api/.env`,
+    );
+  }
+
   try {
     if (process.env.MONGO_URL) {
       await mongoose.connect(process.env.MONGO_URL, {
@@ -102,6 +112,7 @@ async function startServer() {
       });
       console.log("Connected to MongoDB");
       await seedDefaultCategories();
+      startEventReminderScheduler();
     }
   } catch (err) {
     console.error("Failed to connect to MongoDB", err);

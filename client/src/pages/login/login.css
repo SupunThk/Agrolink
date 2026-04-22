@@ -144,6 +144,26 @@
   transform: translateY(-2px);
 }
 
+.loginAuxLinks {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.forgotPasswordLink {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--emerald-700);
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.forgotPasswordLink:hover {
+  color: var(--forest-900);
+  transform: translateY(-1px);
+}
+
 .loginButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;

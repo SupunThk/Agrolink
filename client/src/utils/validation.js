@@ -33,6 +33,15 @@ export const validatePhone = (phone) => {
 };
 
 /**
+ * Validate OTP format (6 digits)
+ * @param {string} otp - OTP to validate
+ * @returns {boolean} - True if OTP has exactly 6 digits
+ */
+export const validateOtp = (otp) => {
+  return /^[0-9]{6}$/.test(String(otp || "").trim());
+};
+
+/**
  * Check individual password requirements
  * @param {string} password - Password to check
  * @returns {object} - Requirements status

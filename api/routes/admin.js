@@ -2,6 +2,7 @@ const router = require("express").Router();
 const requireDb = require("../middleware/requireDb");
 const User = require("../models/User");
 const ChatbotConfig = require("../models/ChatbotConfig");
+const { processEventReminders } = require("../services/eventReminderService");
 
 router.use(requireDb);
 
@@ -93,6 +94,20 @@ router.put("/chatbot-settings", requireAdmin, async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/event-reminders/run
+router.post("/event-reminders/run", requireAdmin, async (req, res) => {
+  try {
+    const force = Boolean(req.body?.force);
+    const summary = await processEventReminders({ force });
+    return res.status(200).json({
+      message: "Event reminder job completed",
+      summary,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Failed to run event reminders" });
   }
 });
 
