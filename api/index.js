@@ -24,6 +24,7 @@ const {
   isCloudinaryConfigured,
   uploadToCloudinary,
 } = require("./utils/cloudinary");
+const { connectMongo, logMongoConnectError } = require("./utils/mongo");
 
 // Prevent unhandled promise rejections from crashing the server
 process.on("unhandledRejection", (reason) => {
@@ -107,15 +108,13 @@ async function startServer() {
 
   try {
     if (process.env.MONGO_URL) {
-      await mongoose.connect(process.env.MONGO_URL, {
-        serverSelectionTimeoutMS: 5000,
-      });
+      await connectMongo(mongoose, process.env.MONGO_URL);
       console.log("Connected to MongoDB");
       await seedDefaultCategories();
       startEventReminderScheduler();
     }
   } catch (err) {
-    console.error("Failed to connect to MongoDB", err);
+    logMongoConnectError(err);
     console.error("Continuing without DB (API will return 503 for DB routes).");
   }
 

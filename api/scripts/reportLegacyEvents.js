@@ -1,6 +1,7 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Event = require("../models/Event");
+const { connectMongo, logMongoConnectError } = require("../utils/mongo");
 
 dotenv.config();
 
@@ -10,9 +11,7 @@ async function run() {
     process.exit(1);
   }
 
-  await mongoose.connect(process.env.MONGO_URL, {
-    serverSelectionTimeoutMS: 5000,
-  });
+  await connectMongo(mongoose, process.env.MONGO_URL);
 
   try {
     const legacyFilter = {
@@ -48,6 +47,7 @@ async function run() {
 }
 
 run().catch((err) => {
-  console.error("Failed to generate event ownership report:", err.message || err);
+  logMongoConnectError(err);
+  console.error("Failed to generate event ownership report.");
   process.exit(1);
 });
